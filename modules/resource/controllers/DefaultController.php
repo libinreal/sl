@@ -1,11 +1,11 @@
 <?php
 
-namespace app\modules\console\controllers;
+namespace app\modules\resource\controllers;
 
 use yii\web\Controller;
 
 /**
- * Default controller for the `console` module
+ * Default controller for the `resource` module
  */
 class DefaultController extends Controller
 {
@@ -15,7 +15,6 @@ class DefaultController extends Controller
      */
     public function actionIndex()
     {
-
         return $this->render('index');
     }
 }

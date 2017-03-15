@@ -1,16 +1,16 @@
 <?php
 
-namespace app\modules\console;
+namespace app\modules\resource;
 
 /**
- * console module definition class
+ * resource module definition class
  */
 class Module extends \yii\base\Module
 {
     /**
      * @inheritdoc
      */
-    public $controllerNamespace = 'app\modules\console\controllers';
+    public $controllerNamespace = 'app\modules\resource\controllers';
 
     /**
      * @inheritdoc
@@ -19,7 +19,6 @@ class Module extends \yii\base\Module
     {
         parent::init();
 
-        // custom initialization code goes here
         \Yii::configure($this, require(__DIR__ . '/config.php'));
     }
 }
