@@ -1,17 +1,18 @@
 <?php
 
 $params = require(__DIR__ . '/params.php');
+$urlRules = require(__DIR__ . '/url.php');
 
 $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'modules' => [
-        'console' => [
-            'class' => 'app\modules\console\Module',
+        'res' => [
+            'class' => 'app\modules\res\Module',
         ],
-        'resource' => [
-            'class' => 'app\modules\resource\Module',
+        'ctrl' => [
+            'class' => 'app\modules\ctrl\Module',
         ],
     ],
     'components' => [
@@ -51,10 +52,7 @@ $config = [
             'enablePrettyUrl' => true,
             'enableStrictParsing' => true,
             'showScriptName' => false,
-            'rules' => [
-                ['class' => 'yii\rest\UrlRule', 'controller' => 'user'],
-                ['class' => 'yii\rest\UrlRule', 'controller' => 'user'],
-            ],
+            'rules' => $urlRules,
         ],
 
     ],
@@ -67,7 +65,18 @@ if (YII_ENV_DEV) {
     $config['modules']['debug'] = [
         'class' => 'yii\debug\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
+        'allowedIPs' => ['192.168.91.*'],
+        'panels' => [
+            'db' => [
+                'class' => 'yii\debug\panels\DbPanel',
+                'defaultOrder' => [
+                    'seq' => SORT_ASC
+                ],
+                'defaultFilter' => [
+                    'type' => 'SELECT'
+                ]
+            ],
+        ],
     ];
 
     $config['bootstrap'][] = 'gii';

@@ -1,11 +1,11 @@
 <?php
 
-namespace app\modules\resource\controllers;
+namespace app\modules\res\controllers;
 
 use yii\web\Controller;
 
 /**
- * Default controller for the `resource` module
+ * Default controller for the `res` module
  */
 class DefaultController extends Controller
 {
