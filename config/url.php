@@ -10,7 +10,7 @@ return [
     //ctrl
     'ctrl/<controller>/<action>' => 'ctrl/<controller>/<action>',
     'ctrl/<controller>' => 'ctrl/<controller>/index',
-    'ctrl' => 'ctrl/default/index',
+    'ctrl' => 'ctrl/auth/index',
     //RESTful API
     'res/<controller>/<action>' => 'res/<controller>/<action>',
 ];

@@ -1,5 +1,6 @@
 <?php
 return [
+    'defaultRoute' => 'auth/index',
     'layout' => 'default',
     'components' => [
     	'spiderMysql' => [
