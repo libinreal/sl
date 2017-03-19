@@ -15,7 +15,6 @@ class AuthController extends Controller
      */
     public function actionIndex()
     {
-    	echo 'auth';exit;
         return $this->render('index');
     }
 }
