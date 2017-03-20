@@ -9,6 +9,8 @@ use Yii;
  *
  * @property integer $id
  * @property integer $rid
+ * @property string $auth_key
+ * @property string $access_token
  * @property string $name
  * @property string $pwd
  * @property string $salt
@@ -32,6 +34,8 @@ class AdminUsers extends \yii\db\ActiveRecord
     {
         return [
             [['rid'], 'integer'],
+            [['auth_key'], 'string', 'max' => 6 ],
+            [['access_token'], 'string', 'max' => 16],
             [['name'], 'string', 'max' => 30],
             [['pwd'], 'string', 'max' => 32],
             [['salt'], 'string', 'max' => 6],

@@ -15,5 +15,17 @@ return [
     		'class' => '\yii\mongodb\Connection',
 		    'dsn' => 'mongodb://192.168.2.187:27017'
     	],
+        'user' => [
+            'class' => '\yii\web\User',
+            'identityClass' => 'app\modules\ctrl\models\AdminUsers', // User must implement the IdentityInterface
+            'enableAutoLogin' => true,
+            'loginUrl' => ['ctrl/auth/login'],
+        ],
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager',
+            'db' => 'spiderMysql',
+            'cache' => 'spiderMongodb',
+
+        ],
     ]
 ];

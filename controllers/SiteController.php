@@ -122,4 +122,12 @@ class SiteController extends Controller
     {
         return $this->render('about');
     }
+
+    public function actionTest(){
+
+        $user_id = '1';
+        // return  substr(md5('g6OJLI'), -(15 - count( $user_id ) ) );//16位access_token生成
+        // echo strlen('$2y$13$x1BkIuWdotjLKZPYhK39FO91SP7bcZOhkh3iB3VPNBqD6LPIcnE9G');//'libin3ti'密码生成
+        return 1;
+    }
 }
