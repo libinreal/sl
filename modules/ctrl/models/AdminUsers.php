@@ -4,7 +4,7 @@ namespace app\modules\ctrl\models;
 
 use yii\web\IdentityInterface;
 
-class AdminUsers extends app\models\AdminUsers implements IdentityInterface
+class AdminUsers extends \app\models\AdminUsers implements IdentityInterface
 {
 
     /**

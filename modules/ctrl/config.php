@@ -1,6 +1,5 @@
 <?php
 return [
-    'defaultRoute' => 'auth/index',
     'layout' => 'default',
     'components' => [
     	'spiderMysql' => [
@@ -17,12 +16,12 @@ return [
     	],
         'user' => [
             'class' => '\yii\web\User',
-            'identityClass' => 'app\modules\ctrl\models\AdminUsers', // User must implement the IdentityInterface
+            'identityClass' => '\app\modules\ctrl\models\AdminUsers', // identityClass must implement the IdentityInterface
             'enableAutoLogin' => true,
             'loginUrl' => ['ctrl/auth/login'],
         ],
         'authManager' => [
-            'class' => 'yii\rbac\DbManager',
+            'class' => '\yii\rbac\DbManager',
             'db' => 'spiderMysql',
             'cache' => 'spiderMongodb',
 

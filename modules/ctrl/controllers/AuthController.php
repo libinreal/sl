@@ -24,4 +24,38 @@ class AuthController extends Controller
     	$this->layout = 'login';
     	return $this->render('login');
     }
+
+    public function actionUsers(){
+        return $this->render('users');
+    }
+
+    public function actionUserOperate(){
+        return '';
+    }
+
+    public function actionMenu()
+    {
+        return '';
+    }
+
+    public function actionMenuOperate()
+    {
+        return '';
+    }
+
+    public function actionRoles(){
+        return '';
+    }
+
+    public function actionRoleOperate(){
+        return '';
+    }
+
+    public function actionPermissions(){
+        return '';
+    }
+
+    public function actionPermissionOperate(){
+        return '';
+    }
 }

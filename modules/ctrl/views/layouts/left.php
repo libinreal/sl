@@ -30,34 +30,36 @@
             [
                 'options' => ['class' => 'sidebar-menu'],
                 'items' => [
-                    ['label' => 'Menu Yii2', 'options' => ['class' => 'header']],
-                    ['label' => 'Gii', 'icon' => 'fa fa-file-code-o', 'url' => ['/gii']],
-                    ['label' => 'Debug', 'icon' => 'fa fa-dashboard', 'url' => ['/debug']],
-                    ['label' => 'Login', 'url' => ['site/login'], 'visible' => Yii::$app->user->isGuest],
+                    ['label' => '菜单栏', 'options' => ['class' => 'header']],
                     [
-                        'label' => 'Same tools',
-                        'icon' => 'fa fa-share',
+                        'label' => '权限管理',
+                        'icon' => 'fa fa-group',
                         'url' => '#',
                         'items' => [
-                            ['label' => 'Gii', 'icon' => 'fa fa-file-code-o', 'url' => ['/gii'],],
-                            ['label' => 'Debug', 'icon' => 'fa fa-dashboard', 'url' => ['/debug'],],
-                            [
-                                'label' => 'Level One',
-                                'icon' => 'fa fa-circle-o',
-                                'url' => '#',
-                                'items' => [
-                                    ['label' => 'Level Two', 'icon' => 'fa fa-circle-o', 'url' => '#',],
-                                    [
-                                        'label' => 'Level Two',
-                                        'icon' => 'fa fa-circle-o',
-                                        'url' => '#',
-                                        'items' => [
-                                            ['label' => 'Level Three', 'icon' => 'fa fa-circle-o', 'url' => '#',],
-                                            ['label' => 'Level Three', 'icon' => 'fa fa-circle-o', 'url' => '#',],
-                                        ],
-                                    ],
-                                ],
-                            ],
+                            ['label' => '用户列表', 'icon' => 'fa fa-users', 'url' => ['/ctrl/auth/users'],],
+                            ['label' => '权限分组', 'icon' => 'fa fa-user-circle-o', 'url' => ['/ctrl/auth/roles'],],
+                            ['label' => '菜单设置', 'icon' => 'fa fa-sitemap', 'url' => ['/ctrl/auth/menu'],],
+                        ],
+                    ],
+                    [
+                        'label' => '任务管理',
+                        'icon' => 'fa fa-tasks',
+                        'url' => '#',
+                        'items' => [
+                            ['label' => '任务列表', 'icon' => 'fa fa-list', 'url' => ['/ctrl/spider-task/tasks'],],
+                            ['label' => '计划任务', 'icon' => 'fa fa-clock-o', 'url' => ['/ctrl/spider-task/task-schedules'],],
+                            ['label' => '任务运行统计', 'icon' => 'fa fa-list-alt', 'url' => ['/ctrl/spider-task/task-statistics'],],
+                        ],
+                    ],
+                    [
+                        'label' => '数据处理',
+                        'icon' => 'fa fa-calculator',
+                        'url' => '#',
+                        'items' => [
+                            ['label' => '内容检索', 'icon' => 'fa fa-search', 'url' => ['/ctrl/spider-data/data-search'],],
+                            ['label' => '自然语义分析', 'icon' => 'fa fa-language', 'url' => ['/ctrl/spider-data/semantics-analysis'],],
+                            ['label' => '数据概览', 'icon' => 'fa fa-line-chart', 'url' => ['/ctrl/spider-data/data-overview'],],
+                            ['label' => '热搜指数', 'icon' => 'fa fa-dashboard', 'url' => ['/ctrl/spider-data/data-dashboard'],],
                         ],
                     ],
                 ],
