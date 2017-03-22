@@ -30,6 +30,40 @@ class AdminUsers extends \app\models\AdminUsers implements IdentityInterface
     }
 
     /**
+     * Finds out if password reset token is valid
+     *
+     * @param string $token password reset token
+     * @return boolean
+     */
+    public static function isAccessTokenValid($token)
+    {
+        if (empty($token)) {
+            return false;
+        }
+        $expire = Yii::$app->getModule('ctrl')->params['adminUsers.AccessTokenExpire'];
+        $parts = explode('_', $token);
+        $timestamp = (int) end($parts);
+        return $timestamp + $expire >= time();
+    }
+
+     /**
+     * Generates new password reset token
+     */
+    public function generateAccessToken()
+    {
+        $this->access_token = Yii::$app->security->generateRandomString() . '_' . time();
+    }
+
+    /**
+     * Removes password reset token
+     */
+    public function removePasswordResetToken()
+    {
+        $this->access_token = null;
+    }
+
+
+    /**
      * @return int|string 当前用户ID
      */
     public function getId()

@@ -24,7 +24,10 @@ return [
             'class' => '\yii\rbac\DbManager',
             'db' => 'spiderMysql',
             'cache' => 'spiderMongodb',
-
         ],
-    ]
+    ],
+    'params' => [
+        'adminUsers.AccessTokenExpire' => 10800,
+    ],
+
 ];

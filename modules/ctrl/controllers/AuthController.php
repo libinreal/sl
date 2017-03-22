@@ -26,7 +26,16 @@ class AuthController extends Controller
     }
 
     public function actionUsers(){
-        return $this->render('users');
+
+        $model = new \app\modules\ctrl\models\AdminUsers();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider = new ActiveDataProvider([
+            'query' => User::find()->orderBy('id'),//此处添加where条件时：'query'=>User::find()->where(['username'=>'lizi']);
+        ]);
+        return $this->render('users',
+                'model' => $model,
+                'dataProvider' => $dataProvider
+            );
     }
 
     public function actionUserOperate(){
