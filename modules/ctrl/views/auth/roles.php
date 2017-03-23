@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
+use yii\bootstrap\Button;
 use app\modules\ctrl\models\AdminUsers;
 
 /* @var $this yii\web\View */
@@ -12,7 +13,12 @@ $this->title = Yii::t('app', '权限分组');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="user-index">
-
+    <?=
+    Button::widget([
+            'label' => '权限列表',
+            'options' => ['class' => 'btn'],
+    ]);
+    ?>
     <?=
     GridView::widget([
         'dataProvider' => $dataProvider,

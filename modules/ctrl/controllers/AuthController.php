@@ -5,7 +5,7 @@ namespace app\modules\ctrl\controllers;
 use Yii;
 use yii\web\Controller;
 use \app\modules\ctrl\models\AdminUsers;
-use \app\modules\ctrl\models\auth_item;
+use \app\modules\ctrl\models\AuthItem;
 /**
  * Default controller for the `ctrl` module
  */
