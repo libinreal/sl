@@ -3,11 +3,11 @@
 namespace app\models;
 
 /**
- * This is the ActiveQuery class for [[AdminPrivileges]].
+ * This is the ActiveQuery class for [[AuthItem]].
  *
- * @see AdminPrivileges
+ * @see AuthItem
  */
-class AdminPrivilegesQuery extends \yii\db\ActiveQuery
+class AuthItemQuery extends \yii\db\ActiveQuery
 {
     /*public function active()
     {
@@ -16,7 +16,7 @@ class AdminPrivilegesQuery extends \yii\db\ActiveQuery
 
     /**
      * @inheritdoc
-     * @return AdminPrivileges[]|array
+     * @return AuthItem[]|array
      */
     public function all($db = null)
     {
@@ -25,7 +25,7 @@ class AdminPrivilegesQuery extends \yii\db\ActiveQuery
 
     /**
      * @inheritdoc
-     * @return AdminPrivileges|array|null
+     * @return AuthItem|array|null
      */
     public function one($db = null)
     {

@@ -3,11 +3,11 @@
 namespace app\models;
 
 /**
- * This is the ActiveQuery class for [[AdminActions]].
+ * This is the ActiveQuery class for [[AuthAssignment]].
  *
- * @see AdminActions
+ * @see AuthAssignment
  */
-class AdminActionsQuery extends \yii\db\ActiveQuery
+class AuthAssignmentQuery extends \yii\db\ActiveQuery
 {
     /*public function active()
     {
@@ -16,7 +16,7 @@ class AdminActionsQuery extends \yii\db\ActiveQuery
 
     /**
      * @inheritdoc
-     * @return AdminActions[]|array
+     * @return AuthAssignment[]|array
      */
     public function all($db = null)
     {
@@ -25,7 +25,7 @@ class AdminActionsQuery extends \yii\db\ActiveQuery
 
     /**
      * @inheritdoc
-     * @return AdminActions|array|null
+     * @return AuthAssignment|array|null
      */
     public function one($db = null)
     {

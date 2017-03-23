@@ -9,6 +9,7 @@ use Yii;
  *
  * @property integer $id
  * @property integer $rid
+ * @property integer $status
  * @property string $auth_key
  * @property string $access_token
  * @property string $name
@@ -34,6 +35,7 @@ class AdminUsers extends \yii\db\ActiveRecord
     {
         return [
             [['rid'], 'integer'],
+            [['status'], 'integer', 'max' => 3],
             [['auth_key'], 'string', 'max' => 6 ],
             [['access_token'], 'string', 'max' => 43],
             [['name'], 'string', 'max' => 30],
@@ -52,6 +54,7 @@ class AdminUsers extends \yii\db\ActiveRecord
         return [
             'id' => Yii::t('app', '管理员id'),
             'rid' => Yii::t('app', '角色id'),
+            'status' => Yii::t('app', '状态'),
             'name' => Yii::t('app', '管理员名字'),
             'pwd' => Yii::t('app', '帐号密码'),
             'salt' => Yii::t('app', '密码混淆值'),

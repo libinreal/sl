@@ -3,6 +3,7 @@
 namespace app\modules\ctrl\models;
 
 use yii\web\IdentityInterface;
+use yii\data\ActiveDataProvider;
 
 class AdminUsers extends \app\models\AdminUsers implements IdentityInterface
 {
@@ -80,9 +81,6 @@ class AdminUsers extends \app\models\AdminUsers implements IdentityInterface
     }
 
     /**
-     * This method is called at the beginning of inserting or updating a record.
-     * The default implementation will trigger an [[EVENT_BEFORE_INSERT]] event when `$insert` is `true`,
-     * or an [[EVENT_BEFORE_UPDATE]] event if `$insert` is `false`.
      * @param bool $insert whether this method called while inserting a record.
      * If `false`, it means the method is called while updating a record.
      * @return bool whether the insertion or updating should continue.
@@ -117,5 +115,41 @@ class AdminUsers extends \app\models\AdminUsers implements IdentityInterface
     public function validatePassword($password)
     {
         return $this->pwd === $password;
+    }
+
+    /**
+     * Creates data provider instance with search query applied
+     * @return [type] [description]
+     */
+    public function search($params){
+        $query = static::find();
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'db'  => \Yii::$app->getModule('ctrl')->spiderMysql
+        ]);
+
+        $this->load($params);
+        if (!$this->validate()) {
+            $query->where('1=0');
+            return $dataProvider;
+        }
+
+        $query->andFilterWhere([
+            'rid' => $this->rid,
+            'status' => $this->status,
+            'auth_key' => $this->auth_key,
+            'access_token' => $this->access_token,
+        ]);
+
+        $query->andFilterWhere(['like', 'name', $this->name])
+            ->andFilterWhere(['like', 'email', $this->email]);
+
+        return $dataProvider;
+    }
+
+    public static function getDb()
+    {
+        return \Yii::$app->getModule('ctrl')->spiderMysql;
     }
 }

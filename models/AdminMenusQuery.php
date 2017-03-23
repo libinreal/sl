@@ -3,11 +3,11 @@
 namespace app\models;
 
 /**
- * This is the ActiveQuery class for [[AdminUserRole]].
+ * This is the ActiveQuery class for [[AdminMenus]].
  *
- * @see AdminUserRole
+ * @see AdminMenus
  */
-class AdminUserRoleQuery extends \yii\db\ActiveQuery
+class AdminMenusQuery extends \yii\db\ActiveQuery
 {
     /*public function active()
     {
@@ -16,7 +16,7 @@ class AdminUserRoleQuery extends \yii\db\ActiveQuery
 
     /**
      * @inheritdoc
-     * @return AdminUserRole[]|array
+     * @return AdminMenus[]|array
      */
     public function all($db = null)
     {
@@ -25,7 +25,7 @@ class AdminUserRoleQuery extends \yii\db\ActiveQuery
 
     /**
      * @inheritdoc
-     * @return AdminUserRole|array|null
+     * @return AdminMenus|array|null
      */
     public function one($db = null)
     {

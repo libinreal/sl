@@ -5,10 +5,10 @@ use yii\grid\GridView;
 use app\modules\ctrl\models\AdminUsers;
 
 /* @var $this yii\web\View */
-/* @var $searchModel app\modules\ctrl\models\AdminUsers */
+/* @var $searchModel app\modules\ctrl\models\AuthItem */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('app', '用户列表');
+$this->title = Yii::t('app', '权限分组');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="user-index">
@@ -19,24 +19,8 @@ $this->params['breadcrumbs'][] = $this->title;
         'filterModel' => $searchModel,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
-            'id',
             'name',
-            'email:email',
-            [
-                'attribute' => 'status',
-                'value' => function($model) {
-                    return $model->status == 0 ? '禁用' : '正常';
-                },
-                'filter' => [
-                    0 => '禁用',
-                    1 => '正常'
-                ]
-            ],
-            [
-                'value'=>function($model){
-                    return  date('Y-m-d H:i:s',$model->last_login);
-                }
-            ],
+            'description',
             [
                 'class' => 'yii\grid\ActionColumn',
                 'template' => '{view} {update} {delete}',

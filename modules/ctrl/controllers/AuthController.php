@@ -2,8 +2,10 @@
 
 namespace app\modules\ctrl\controllers;
 
+use Yii;
 use yii\web\Controller;
-
+use \app\modules\ctrl\models\AdminUsers;
+use \app\modules\ctrl\models\auth_item;
 /**
  * Default controller for the `ctrl` module
  */
@@ -27,15 +29,13 @@ class AuthController extends Controller
 
     public function actionUsers(){
 
-        $model = new \app\modules\ctrl\models\AdminUsers();
+        $searchModel = new AdminUsers();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-        $dataProvider = new ActiveDataProvider([
-            'query' => User::find()->orderBy('id'),//此处添加where条件时：'query'=>User::find()->where(['username'=>'lizi']);
-        ]);
-        return $this->render('users',
-                'model' => $model,
+
+        return $this->render('users', [
+                'searchModel' => $searchModel,
                 'dataProvider' => $dataProvider
-            );
+            ]);
     }
 
     public function actionUserOperate(){
@@ -53,7 +53,13 @@ class AuthController extends Controller
     }
 
     public function actionRoles(){
-        return '';
+        $searchModel = new AuthItem();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
+        return $this->render('roles', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider
+        ]);
     }
 
     public function actionRoleOperate(){
