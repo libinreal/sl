@@ -2,6 +2,7 @@
 
 namespace app\modules\ctrl\models;
 
+use Yii;
 use yii\web\IdentityInterface;
 use yii\data\ActiveDataProvider;
 
@@ -90,7 +91,7 @@ class AdminUsers extends \app\models\AdminUsers implements IdentityInterface
     {
         if (parent::beforeSave($insert)) {
             if ($this->isNewRecord) {
-                $this->auth_key = \Yii::$app->security->generateRandomString();//生成和存储每个用户的认证密钥
+                $this->auth_key = Yii::$app->security->generateRandomString();//生成和存储每个用户的认证密钥
             }
             return true;
         }
@@ -126,7 +127,7 @@ class AdminUsers extends \app\models\AdminUsers implements IdentityInterface
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'db'  => \Yii::$app->getModule('ctrl')->spiderMysql
+            'db'  => Yii::$app->getModule('ctrl')->spiderMysql
         ]);
 
         $this->load($params);
@@ -150,6 +151,6 @@ class AdminUsers extends \app\models\AdminUsers implements IdentityInterface
 
     public static function getDb()
     {
-        return \Yii::$app->getModule('ctrl')->spiderMysql;
+        return Yii::$app->getModule('ctrl')->spiderMysql;
     }
 }

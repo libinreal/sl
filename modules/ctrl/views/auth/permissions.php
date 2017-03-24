@@ -2,41 +2,37 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
-use app\modules\ctrl\models\AdminUsers;
+use yii\bootstrap\Button;
+use app\modules\ctrl\models\AuthItem;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
-/* @var $searchModel app\modules\ctrl\models\AdminUsers */
+/* @var $searchModel app\modules\ctrl\models\AuthItem */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('app/ctrl/auth', 'Users');
+$this->title = Yii::t('app/ctrl/auth', 'Permissions');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="user-index">
-
+    <!-- ?=
+    Button::widget([
+            'label' => '权限列表',
+            'options' => ['class' => 'btn'],
+    ]);
+    ? -->
     <?=
     GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
-            'id',
             'name',
-            'email:email',
             [
-                'attribute' => 'status',
-                'value' => function($model) {
-                    return $model->status == AdminUsers::STATUS_INACTIVE ? Yii::t('app/ctrl/auth', 'Inactive') : Yii::t('app/ctrl/auth', 'Active');
-                },
-                'filter' => [
-                    AdminUsers::STATUS_INACTIVE => Yii::t('app/ctrl/auth', 'Inactive'),
-                    AdminUsers::STATUS_ACTIVE => Yii::t('app/ctrl/auth', 'Active')
-                ]
+                'attribute' => 'ruleName',
+                'label' => Yii::t('app/ctrl/auth', 'Rule Name'),
+                'filter' => $rules
             ],
-            [
-                'value'=>function($model){
-                    return  date('Y-m-d H:i:s',$model->last_login);
-                }
-            ],
+            'description',
             [
                 'class' => 'yii\grid\ActionColumn',
                 'template' => '{view} {update} {delete}',
@@ -51,6 +47,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     'delete' => function($url, $model, $key){
                        return Html::a('<span class="glyphicon glyphicon-remove"></span>', $url, [
                             'title' => Yii::t('app/ctrl/auth', 'Delete'),
+                            'aria-label' => Yii::t('app/ctrl/auth', 'Delete'),
                             'data-confirm' => Yii::t('app/ctrl/auth', 'Are you sure you want to delete this item?'),
                             'data-method' => 'delete',
                             'data-pjax' => '1',
@@ -59,6 +56,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     'update' => function($url, $model) {
                         return Html::a('<span class="glyphicon glyphicon-pencil"></span>', $url, [
                             'title' => Yii::t('app/ctrl/auth', 'Update'),
+                            'aria-label' => Yii::t('app/ctrl/auth', 'Update'),
                             'data-method' => 'put',
                             'data-pjax' => '1',
                         ]);

@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\rbac\Item;
 
 /**
  * This is the model class for table "{{%auth_item}}".
@@ -31,6 +32,7 @@ class AuthItem extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
+            ['type', 'in', 'range' => [Item::TYPE_ROLE, Item::TYPE_PERMISSION]],
             [['name', 'type'], 'required'],
             [['type', 'created_at', 'updated_at'], 'integer'],
             [['description', 'data'], 'string'],

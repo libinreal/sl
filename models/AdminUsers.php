@@ -20,6 +20,8 @@ use Yii;
  */
 class AdminUsers extends \yii\db\ActiveRecord
 {
+    const STATUS_INACTIVE = 0;
+    const STATUS_ACTIVE = 1;
     /**
      * @inheritdoc
      */
@@ -35,7 +37,7 @@ class AdminUsers extends \yii\db\ActiveRecord
     {
         return [
             [['rid'], 'integer'],
-            [['status'], 'integer', 'max' => 3],
+            ['status', 'in', 'range' => [self::STATUS_INACTIVE, self::STATUS_ACTIVE]],
             [['auth_key'], 'string', 'max' => 6 ],
             [['access_token'], 'string', 'max' => 43],
             [['name'], 'string', 'max' => 30],

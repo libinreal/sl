@@ -2,6 +2,7 @@
 
 namespace app\modules\ctrl;
 
+use Yii;
 /**
  * ctrl module definition class
  */
@@ -19,6 +20,7 @@ class Module extends \yii\base\Module
     {
         parent::init();
 
-        \Yii::configure($this, require(__DIR__ . '/config.php'));
+        Yii::configure($this, require(__DIR__ . '/config.php'));
+        Yii::$app->language = 'zh-CN';
     }
 }

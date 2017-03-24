@@ -26,7 +26,7 @@ use yii\helpers\Url;
             [
                 'homeLink'=>[
                     'label' => '首 页',
-                    'url' => Url::to('ctrl', true),
+                    'url' => '/',
                 ],
                 'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
             ]

@@ -2,9 +2,11 @@
 
 $params = require(__DIR__ . '/params.php');
 $urlRules = require(__DIR__ . '/url.php');
+$i18n = require(__DIR__ . '/i18n.php');
 
 $config = [
     'id' => 'basic',
+    'name' => 'Media Monitoring',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'modules' => [
@@ -43,14 +45,13 @@ $config = [
             ],
         ],
         'db' => require(__DIR__ . '/db.php'),
-
         'urlManager' => [
             'enablePrettyUrl' => true,
             'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => $urlRules,
         ],
-
+        'i18n' => $i18n,
     ],
     'params' => $params,
 ];

@@ -54,7 +54,7 @@ class AuthController extends Controller
 
     public function actionRoles(){
         $searchModel = new AuthItem();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider = $searchModel->searchRole(Yii::$app->request->queryParams);
 
         return $this->render('roles', [
             'searchModel' => $searchModel,
@@ -67,7 +67,13 @@ class AuthController extends Controller
     }
 
     public function actionPermissions(){
-        return '';
+        $searchModel = new AuthItem();
+        $dataProvider = $searchModel->searchPermissions(Yii::$app->request->queryParams);
+
+        return $this->render('permissions', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider
+        ]);
     }
 
     public function actionPermissionOperate(){
