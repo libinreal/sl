@@ -1,10 +1,10 @@
 <?php
 
-namespace app\components;
+namespace app\modules\ctrl\components;
 
 use Yii;
 use yii\caching\TagDependency;
-use app\models\AdminMenus;
+use app\models\AdminMenus as Menu;
 
 /**
  * MenuHelper used to generate menu depend of user role.
@@ -64,14 +64,13 @@ class MenuHelper
      */
     public static function getAssignedMenu($userId, $root = null, $callback = null, $refresh = false)
     {
-        $config = Configs::instance();
+        $module = Yii::$app->getModule('ctrl');
 
-        /* @var $manager \yii\rbac\BaseManager */
-        $manager = Configs::authManager();
+        $manager = $module->authManager;
+        $cache = $module->cache;
         $menus = Menu::find()->asArray()->indexBy('id')->all();
-        $key = [__METHOD__, $userId, $manager->defaultRoles];
-        $cache = $config->cache;
 
+        $key = [__METHOD__, $userId, $manager->defaultRoles];
         if ($refresh || $cache === null || ($assigned = $cache->get($key)) === false) {
             $routes = $filter1 = $filter2 = [];
             if ($userId !== null) {
@@ -120,8 +119,8 @@ class MenuHelper
             }
             $assigned = static::requiredParent($assigned, $menus);
             if ($cache !== null) {
-                $cache->set($key, $assigned, $config->cacheDuration, new TagDependency([
-                    'tags' => Configs::CACHE_TAG
+                $cache->set($key, $assigned, $module->params['adminMenus.cacheExpire'], new TagDependency([
+                    'tags' => $module->params['tagDependency.tags'],
                 ]));
             }
         }
@@ -130,8 +129,8 @@ class MenuHelper
         if ($refresh || $callback !== null || $cache === null || (($result = $cache->get($key)) === false)) {
             $result = static::normalizeMenu($assigned, $menus, $callback, $root);
             if ($cache !== null && $callback === null) {
-                $cache->set($key, $result, $config->cacheDuration, new TagDependency([
-                    'tags' => Configs::CACHE_TAG
+                $cache->set($key, $result, $module->params['adminMenus.cacheExpire'], new TagDependency([
+                    'tags' => $module->params['tagDependency.tags'],
                 ]));
             }
         }
@@ -150,8 +149,8 @@ class MenuHelper
         $l = count($assigned);
         for ($i = 0; $i < $l; $i++) {
             $id = $assigned[$i];
-            $parent_id = $menus[$id]['parent'];
-            if ($parent_id !== null && !in_array($parent_id, $assigned)) {
+            $parent_id = $menus[$id]['pid'];
+            if ($parent_id != 0 && !in_array($parent_id, $assigned)) {
                 $assigned[$l++] = $parent_id;
             }
         }
@@ -167,16 +166,16 @@ class MenuHelper
     public static function parseRoute($route)
     {
         if (!empty($route)) {
-            $url = [];
+           /* $url = [];
             $r = explode('&', $route);
             $url[0] = $r[0];
             unset($r[0]);
             foreach ($r as $part) {
                 $part = explode('=', $part);
                 $url[$part[0]] = isset($part[1]) ? $part[1] : '';
-            }
+            }*/
 
-            return $url;
+            return trim($url, '/');
         }
 
         return '#';
@@ -190,13 +189,13 @@ class MenuHelper
      * @param  integer $parent
      * @return array
      */
-    private static function normalizeMenu(&$assigned, &$menus, $callback, $parent = null)
+    private static function normalizeMenu(&$assigned, &$menus, $callback, $parent = 0)
     {
         $result = [];
         $order = [];
         foreach ($assigned as $id) {
             $menu = $menus[$id];
-            if ($menu['parent'] == $parent) {
+            if ($menu['pid'] == $parent) {
                 $menu['children'] = static::normalizeMenu($assigned, $menus, $callback, $id);
                 if ($callback !== null) {
                     $item = call_user_func($callback, $menu);
