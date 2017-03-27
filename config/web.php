@@ -6,7 +6,7 @@ $i18n = require(__DIR__ . '/i18n.php');
 
 $config = [
     'id' => 'basic',
-    'name' => 'Media Monitoring',
+    'name' => 'Media Monitoring Service',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'modules' => [

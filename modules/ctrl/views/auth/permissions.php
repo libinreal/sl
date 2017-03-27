@@ -12,27 +12,31 @@ use yii\helpers\Url;
 
 $this->title = Yii::t('app/ctrl/auth', 'Permissions');
 $this->params['breadcrumbs'][] = $this->title;
+
+$rules = array_keys(Yii::$app->getModule('ctrl')->authManager->getRules());
+$rules = array_combine($rules, $rules);
 ?>
 <div class="user-index">
-    <!-- ?=
-    Button::widget([
-            'label' => '权限列表',
-            'options' => ['class' => 'btn'],
-    ]);
-    ? -->
+
     <?=
     GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
-            'name',
             [
-                'attribute' => 'ruleName',
-                'label' => Yii::t('app/ctrl/auth', 'Rule Name'),
+                'attribute' => 'name',
+                'label' => Yii::t('app/ctrl/auth_item', 'name')
+            ],
+            [
+                'attribute' => 'rule_name',
+                'label' => Yii::t('app/ctrl/auth_item', 'rule_name'),
                 'filter' => $rules
             ],
-            'description',
+            [
+                'attribute' => 'description',
+                'label' => Yii::t('app/ctrl/auth_item', 'description')
+            ],
             [
                 'class' => 'yii\grid\ActionColumn',
                 'template' => '{view} {update} {delete}',

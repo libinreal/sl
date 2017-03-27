@@ -6,6 +6,7 @@ use Yii;
 use yii\web\Controller;
 use \app\modules\ctrl\models\AdminUsers;
 use \app\modules\ctrl\models\AuthItem;
+use \app\modules\ctrl\models\AdminMenus;
 /**
  * Default controller for the `ctrl` module
  */
@@ -44,7 +45,13 @@ class AuthController extends Controller
 
     public function actionMenu()
     {
-        return '';
+        $searchModel = new AdminMenus();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
+        return $this->render('menu', [
+                'searchModel' => $searchModel,
+                'dataProvider' => $dataProvider
+            ]);
     }
 
     public function actionMenuOperate()

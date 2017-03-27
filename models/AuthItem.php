@@ -47,13 +47,13 @@ class AuthItem extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'name' => Yii::t('app', 'Name'),
-            'type' => Yii::t('app', 'Type'),
-            'description' => Yii::t('app', 'Description'),
-            'rule_name' => Yii::t('app', 'Rule Name'),
-            'data' => Yii::t('app', 'Data'),
-            'created_at' => Yii::t('app', 'Created At'),
-            'updated_at' => Yii::t('app', 'Updated At'),
+            'name' => Yii::t('app/ctrl/auth_item', 'name'),
+            'type' => Yii::t('app/ctrl/auth_item', 'type'),
+            'description' => Yii::t('app/ctrl/auth_item', 'description'),
+            'rule_name' => Yii::t('app/ctrl/auth_item', 'rule_name'),
+            'data' => Yii::t('app/ctrl/auth_item', 'data'),
+            'created_at' => Yii::t('app/ctrl/auth_item', 'created_at'),
+            'updated_at' => Yii::t('app/ctrl/auth_item', 'updated_at'),
         ];
     }
 

@@ -17,6 +17,7 @@ use Yii;
  */
 class AdminMenus extends \yii\db\ActiveRecord
 {
+    public $parent_name;
     /**
      * @inheritdoc
      */
@@ -36,8 +37,67 @@ class AdminMenus extends \yii\db\ActiveRecord
             [['icon'], 'string', 'max' => 30],
             [['url'], 'string', 'max' => 100],
             [['pid'], 'exist', 'skipOnError' => true, 'targetClass' => AdminMenus::className(), 'targetAttribute' => ['pid' => 'id']],
+            [['pid'], 'filterParent', 'when' => function() {
+                return !$this->isNewRecord;
+            }],
             [['auth_item_name'], 'exist', 'skipOnError' => true, 'targetClass' => AuthItem::className(), 'targetAttribute' => ['auth_item_name' => 'name']],
         ];
+    }
+
+    /**
+     * Use to loop detected.
+     */
+    public function filterParent()
+    {
+        $parent = $this->pid;
+        $db = static::getDb();
+        $query = (new Query)->select(['pid'])
+            ->from(static::tableName())
+            ->where('[[id]]=:id');
+        while ($parent) {
+            if ($this->id == $parent) {
+                $this->addError('parent_name', 'Loop detected.');
+                return;
+            }
+            $parent = $query->params([':id' => $parent])->scalar($db);
+        }
+    }
+
+    /**
+     * Get menu parent
+     * @return \yii\db\ActiveQuery
+     */
+    public function getMenuParent()
+    {
+        return $this->hasOne(AdminMenus::className(), ['id' => 'pid']);
+    }
+
+    /**
+     * Get menu children
+     * @return \yii\db\ActiveQuery
+     */
+    public function getMenus()
+    {
+        return $this->hasMany(AdminMenus::className(), ['pid' => 'id']);
+    }
+
+    /**
+     * Get related permission
+     * @return \yii\db\ActiveQuery
+     */
+    public function getAuthItem()
+    {
+        return $this->hasOne(AuthItem::className(), ['name' => 'auth_item_name']);
+    }
+
+    public static function getMenuSource()
+    {
+        $tableName = static::tableName();
+        return (new \yii\db\Query())
+                ->select(['m.id', 'm.name', 'm.url', 'parent_name' => 'p.name'])
+                ->from(['m' => $tableName])
+                ->leftJoin(['p' => $tableName], '[[m.pid]]=[[p.id]]')
+                ->all(static::getDb());
     }
 
     /**
@@ -46,13 +106,13 @@ class AdminMenus extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', '菜单id'),
-            'pid' => Yii::t('app', '上级菜单id'),
-            'name' => Yii::t('app', '显示名字'),
-            'icon' => Yii::t('app', '菜单的icon'),
-            'url' => Yii::t('app', '路由地址'),
-            'auth_item_name' => Yii::t('app', '绑定到的权限名，关联auth_item表的name'),
-            'order' => Yii::t('app', '菜单序号'),
+            'id' => Yii::t('app/ctrl/admin_menus', 'Id'),
+            'pid' => Yii::t('app/ctrl/admin_menus', 'pid'),
+            'name' => Yii::t('app/ctrl/admin_menus', 'name'),
+            'icon' => Yii::t('app/ctrl/admin_menus', 'icon'),
+            'url' => Yii::t('app/ctrl/admin_menus', 'url'),
+            'auth_item_name' => Yii::t('app/ctrl/admin_menus', 'auth_item_name'),
+            'order' => Yii::t('app/ctrl/admin_menus', 'order'),
         ];
     }
 

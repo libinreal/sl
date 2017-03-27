@@ -2,6 +2,7 @@
 return [
     'layout' => 'default',
     'components' => [
+        //analysis database
     	'spiderMysql' => [
     		'class' => '\yii\db\Connection',
 		    'dsn' => 'mysql:host=192.168.2.187;dbname=analyzedb',
@@ -10,10 +11,20 @@ return [
 		    'tablePrefix' => 'da_',
 		    'charset' => 'utf8',
     	],
+        //analysis database
     	'spiderMongodb' => [
     		'class' => '\yii\mongodb\Connection',
 		    'dsn' => 'mongodb://192.168.2.187:27017'
     	],
+        //spider database
+        'sourceDb' => [
+            'class' => '\yii\db\Connection',
+            'dsn' => 'mysql:host=192.168.2.187;dbname=webspider',
+            'username' => 'root',
+            'password' => '3ti123',
+            'tablePrefix' => 'ws_',
+            'charset' => 'utf8',
+        ],
         'user' => [
             'class' => '\yii\web\User',
             'identityClass' => '\app\modules\ctrl\models\AdminUsers', // identityClass must implement the IdentityInterface
@@ -22,8 +33,6 @@ return [
         ],
         'authManager' => [
             'class' => '\yii\rbac\DbManager',
-            'db' => 'spiderMysql',
-            'cache' => 'spiderMongodb',
         ],
     ],
     'params' => [

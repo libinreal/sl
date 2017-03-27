@@ -2,7 +2,11 @@
 
 namespace app\modules\ctrl\controllers;
 
-class SpiderTaskController extends \yii\web\Controller
+use Yii;
+use yii\web\Controller;
+use \app\modules\ctrl\models\TaskRule;
+
+class SpiderTaskController extends Controller
 {
     public function actionTaskGroupOperate()
     {
@@ -36,7 +40,13 @@ class SpiderTaskController extends \yii\web\Controller
 
     public function actionTasks()
     {
-        return $this->render('tasks');
+        $searchModel = new TaskRule();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
+        return $this->render('tasks', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider
+        ]);
     }
 
 }
