@@ -9,6 +9,6 @@ return [
     'parent_name' => '上级菜单名',
     'icon' => '菜单Icon',
     'url' => '路由地址',
-    'auth_item_name' => '绑定权限名',
+    'auth item name' => '绑定权限名',
     'order' => '显示优先级',
 ];

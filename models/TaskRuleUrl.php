@@ -25,7 +25,7 @@ class TaskRuleUrl extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'webspider.ws_task_rule_url';
+        return '{{%task_rule_url}}';
     }
 
     /**
@@ -35,8 +35,7 @@ class TaskRuleUrl extends \yii\db\ActiveRecord
     {
         return [
             [['rule_id', 'auto_iteration', 'limit_top_num', 'limit_page_num'], 'integer'],
-            [['url_entry', 'url_page_pattern', 'url_content_pattern', 'cookie', 'user_agent'], 'string', 'max' => 1024],
-            [['url_param'], 'string', 'max' => 100],
+            [['url_entry', 'url_param', 'url_page_pattern', 'url_content_pattern', 'cookie', 'user_agent'], 'string'],
         ];
     }
 
@@ -46,16 +45,16 @@ class TaskRuleUrl extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'rule_id' => Yii::t('app', '规则id'),
-            'url_entry' => Yii::t('app', '入口url'),
-            'url_param' => Yii::t('app', '关键字参数'),
-            'url_page_pattern' => Yii::t('app', '分页url表达式'),
-            'url_content_pattern' => Yii::t('app', '内容url表达式'),
-            'cookie' => Yii::t('app', '网页cookie'),
-            'user_agent' => Yii::t('app', '网页UA'),
-            'auto_iteration' => Yii::t('app', '自动迭代下页（当列表页，1：是，0：否）'),
-            'limit_top_num' => Yii::t('app', '最新top数量'),
-            'limit_page_num' => Yii::t('app', '分页限制数'),
+            'rule_id' => Yii::t('app', 'rule id'),
+            'url_entry' => Yii::t('app', 'url entry'),
+            'url_param' => Yii::t('app', 'url param'),
+            'url_page_pattern' => Yii::t('app', 'url page pattern'),
+            'url_content_pattern' => Yii::t('app', 'url content pattern'),
+            'cookie' => Yii::t('app', 'cookie'),
+            'user_agent' => Yii::t('app', 'user agent'),
+            'auto_iteration' => Yii::t('app', 'auto iteration'),
+            'limit_top_num' => Yii::t('app', 'limit top num'),
+            'limit_page_num' => Yii::t('app', 'limit page num'),
         ];
     }
 

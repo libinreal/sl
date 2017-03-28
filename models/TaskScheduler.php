@@ -23,7 +23,7 @@ class TaskScheduler extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'webspider.ws_task_scheduler';
+        return '{{%task_scheduler}}';
     }
 
     /**
@@ -33,9 +33,10 @@ class TaskScheduler extends \yii\db\ActiveRecord
     {
         return [
             [['module_type'], 'required'],
+            [['module_type'], 'string'],
             [['start_time', 'end_time'], 'safe'],
             [['status', 'group_id', 'rule_id'], 'integer'],
-            [['module_type', 'name'], 'string', 'max' => 100],
+            [['name'], 'string', 'max' => 100],
         ];
     }
 
@@ -45,14 +46,14 @@ class TaskScheduler extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'scheduler_id' => Yii::t('app', '任务主键'),
-            'module_type' => Yii::t('app', '模块类型'),
-            'name' => Yii::t('app', '任务名称'),
-            'start_time' => Yii::t('app', '开始时间'),
-            'end_time' => Yii::t('app', '结束时间'),
-            'status' => Yii::t('app', '当前状态(0:停止;1:采集)'),
-            'group_id' => Yii::t('app', '分组id（新闻类，论坛类）'),
-            'rule_id' => Yii::t('app', '规则id'),
+            'scheduler_id' => Yii::t('app', 'scheduler id'),
+            'module_type' => Yii::t('app', 'module type'),
+            'name' => Yii::t('app', 'name'),
+            'start_time' => Yii::t('app', 'start time'),
+            'end_time' => Yii::t('app', 'end time'),
+            'status' => Yii::t('app', 'status'),
+            'group_id' => Yii::t('app', 'group id'),
+            'rule_id' => Yii::t('app', 'rule id'),
         ];
     }
 

@@ -23,7 +23,7 @@ class TaskRuleContent extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'webspider.ws_task_rule_content';
+        return '{{%task_rule_content}}';
     }
 
     /**
@@ -32,11 +32,10 @@ class TaskRuleContent extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id', 'db_name', 'db_field'], 'required'],
+            [['id'], 'required'],
             [['id', 'rule_id'], 'integer'],
-            [['xpath', 'fetch_re'], 'string', 'max' => 200],
-            [['fetch_pos', 'removes'], 'string', 'max' => 255],
-            [['db_name', 'db_field'], 'string', 'max' => 20],
+            [['xpath', 'fetch_re', 'fetch_pos', 'removes'], 'string'],
+            [['db_name', 'db_field'], 'string', 'max' => 114],
         ];
     }
 
@@ -46,14 +45,14 @@ class TaskRuleContent extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', '内容规则id'),
-            'rule_id' => Yii::t('app', '规则id'),
-            'xpath' => Yii::t('app', '元素提取表达式'),
-            'fetch_re' => Yii::t('app', '提取正则表达式'),
-            'fetch_pos' => Yii::t('app', '提取位置（$1:第一个 $2：第二个）'),
-            'removes' => Yii::t('app', '替换无效字符或字符串'),
-            'db_name' => Yii::t('app', '数据库表名'),
-            'db_field' => Yii::t('app', '数据库表字段'),
+            'id' => 'Id',
+            'rule_id' => Yii::t('app', 'rule id'),
+            'xpath' => Yii::t('app', 'xpath'),
+            'fetch_re' => Yii::t('app', 'fetch re'),
+            'fetch_pos' => Yii::t('app', 'fetch pos'),
+            'removes' => Yii::t('app', 'removes'),
+            'db_name' => Yii::t('app', 'db name'),
+            'db_field' => Yii::t('app', 'db field'),
         ];
     }
 

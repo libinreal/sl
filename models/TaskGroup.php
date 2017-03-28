@@ -19,7 +19,7 @@ class TaskGroup extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'webspider.ws_task_group';
+        return '{{%task_group}}';
     }
 
     /**
@@ -28,8 +28,8 @@ class TaskGroup extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['scheduler_id', 'parent_id'], 'integer'],
-            [['name'], 'string', 'max' => 50],
+            [['parent_id'], 'integer'],
+            [['name'], 'string', 'max' => 200],
         ];
     }
 
@@ -39,10 +39,9 @@ class TaskGroup extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', '任务分组id'),
-            'scheduler_id' => Yii::t('app', '任务主键'),
-            'name' => Yii::t('app', '任务分组名'),
-            'parent_id' => Yii::t('app', '任务分组父类id'),
+            'id' => 'Id',
+            'name' => Yii::t('app/ctrl/task_group', 'name'),
+            'parent_id' => Yii::t('app/ctrl/task_group', 'parent id'),
         ];
     }
 

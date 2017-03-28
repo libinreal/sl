@@ -50,10 +50,10 @@ class AuthItem extends \yii\db\ActiveRecord
             'name' => Yii::t('app/ctrl/auth_item', 'name'),
             'type' => Yii::t('app/ctrl/auth_item', 'type'),
             'description' => Yii::t('app/ctrl/auth_item', 'description'),
-            'rule_name' => Yii::t('app/ctrl/auth_item', 'rule_name'),
+            'rule_name' => Yii::t('app/ctrl/auth_item', 'rule name'),
             'data' => Yii::t('app/ctrl/auth_item', 'data'),
-            'created_at' => Yii::t('app/ctrl/auth_item', 'created_at'),
-            'updated_at' => Yii::t('app/ctrl/auth_item', 'updated_at'),
+            'created_at' => Yii::t('app/ctrl/auth_item', 'created at'),
+            'updated_at' => Yii::t('app/ctrl/auth_item', 'updated at'),
         ];
     }
 

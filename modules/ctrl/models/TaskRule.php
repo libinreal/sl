@@ -30,10 +30,13 @@ class TaskRule extends \app\models\TaskRule
         }
 
         $query->andFilterWhere([
-            'rid' => $this->rid,
-            'status' => $this->status,
-            'auth_key' => $this->auth_key,
-            'access_token' => $this->access_token,
+            'rule_id' => $this->rule_id,
+            'site' => $this->site,
+            'type' => $this->auth_key,
+            'delay' => $this->access_token,
+            'encode' => $this->access_token,
+            'auto_proxy' => $this->access_token,
+            'db_id' => $this->access_token,
         ]);
 
         $query->andFilterWhere(['like', 'name', $this->name])

@@ -1,10 +1,11 @@
 <?php
 return [
-    'module_type' => '模块类型',
+    'scheduler id' => '任务Id',
+    'module type' => '模块类型',
     'name' => '任务名称',
-    'start_time' => '开始时间',
-    'end_time' => '结束时间',
+    'start time' => '开始时间',
+    'end time' => '结束时间',
     'status' => '当前状态',
-    'group_id' => '分组id',
-    'rule_id' => '规则id',
+    'group id' => '任务分组Id',
+    'rule id' => '规则Id',
 ];

@@ -8,12 +8,12 @@ use Yii;
  * This is the model class for table "webspider.ws_task_rule".
  *
  * @property integer $rule_id
- * @property integer $id
  * @property string $site
  * @property string $type
  * @property integer $delay
  * @property string $encode
  * @property integer $auto_proxy
+ * @property integer $db_id
  */
 class TaskRule extends \yii\db\ActiveRecord
 {
@@ -31,8 +31,11 @@ class TaskRule extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id', 'delay', 'auto_proxy'], 'integer'],
-            [['site', 'type', 'encode'], 'string', 'max' => 255],
+            [['site'], 'required'],
+            [['site'], 'string'],
+            [['delay', 'auto_proxy', 'db_id'], 'integer'],
+            [['type'], 'string', 'max' => 150],
+            [['encode'], 'string', 'max' => 22],
         ];
     }
 
@@ -42,13 +45,13 @@ class TaskRule extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'rule_id' => Yii::t('app', '规则id'),
-            'id' => Yii::t('app', '代理设置id'),
-            'site' => Yii::t('app', '站点名'),
-            'type' => Yii::t('app', '网页类型（列表页/内容页）'),
-            'delay' => Yii::t('app', '采集间隔'),
-            'encode' => Yii::t('app', '网页编码'),
-            'auto_proxy' => Yii::t('app', '是否启动ip代理（0：不启动，1：启动）'),
+            'rule_id' => Yii::t('app', 'rule id'),
+            'site' => Yii::t('app', 'site'),
+            'type' => Yii::t('app', 'type'),
+            'delay' => Yii::t('app', 'delay'),
+            'encode' => Yii::t('app', 'encode'),
+            'auto_proxy' => Yii::t('app', 'auto proxy'),
+            'db_id' => Yii::t('app', 'Db ID'),
         ];
     }
 

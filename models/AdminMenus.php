@@ -111,7 +111,7 @@ class AdminMenus extends \yii\db\ActiveRecord
             'name' => Yii::t('app/ctrl/admin_menus', 'name'),
             'icon' => Yii::t('app/ctrl/admin_menus', 'icon'),
             'url' => Yii::t('app/ctrl/admin_menus', 'url'),
-            'auth_item_name' => Yii::t('app/ctrl/admin_menus', 'auth_item_name'),
+            'auth_item_name' => Yii::t('app/ctrl/admin_menus', 'auth item name'),
             'order' => Yii::t('app/ctrl/admin_menus', 'order'),
         ];
     }
