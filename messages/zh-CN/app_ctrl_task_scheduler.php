@@ -8,4 +8,6 @@ return [
     'status' => '当前状态',
     'group id' => '任务分组Id',
     'rule id' => '规则Id',
+    'Stopped' => '停止',
+    'Running' => '采集中',
 ];

@@ -17,6 +17,13 @@ use Yii;
  */
 class TaskRule extends \yii\db\ActiveRecord
 {
+    const WEB_TYPE_UNKNOWN = 0;
+    const WEB_TYPE_LIST = 1;
+    const WEB_TYPE_CONTENT = 2;
+
+    const PROXY_OPENED = 1;
+    const PROXY_CLOSED = 0;
+
     /**
      * @inheritdoc
      */
@@ -45,13 +52,13 @@ class TaskRule extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'rule_id' => Yii::t('app', 'rule id'),
-            'site' => Yii::t('app', 'site'),
-            'type' => Yii::t('app', 'type'),
-            'delay' => Yii::t('app', 'delay'),
-            'encode' => Yii::t('app', 'encode'),
-            'auto_proxy' => Yii::t('app', 'auto proxy'),
-            'db_id' => Yii::t('app', 'Db ID'),
+            'rule_id' => Yii::t('app/ctrl/task_rule', 'rule id'),
+            'site' => Yii::t('app/ctrl/task_rule', 'site'),
+            'type' => Yii::t('app/ctrl/task_rule', 'type'),
+            'delay' => Yii::t('app/ctrl/task_rule', 'delay'),
+            'encode' => Yii::t('app/ctrl/task_rule', 'encode'),
+            'auto_proxy' => Yii::t('app/ctrl/task_rule', 'auto proxy'),
+            'db_id' => Yii::t('app/ctrl/task_rule', 'Db ID'),
         ];
     }
 

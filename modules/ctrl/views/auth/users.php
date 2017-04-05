@@ -14,7 +14,7 @@ $this->title = Yii::t('app/ctrl/auth', 'Users');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="user-index">
-<a class="btn btn-success" href="/ctrl/auth/user-operate"><?= Yii::t('app/ctrl/auth', 'Create'); ?></a>
+    <a class="btn btn-success" href="/ctrl/auth/user-operate"><?= Yii::t('app/ctrl/auth', 'Create'); ?></a>
     <?=
     GridView::widget([
         'showFooter' => true,  //设置显示最下面的footer

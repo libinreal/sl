@@ -18,6 +18,9 @@ use Yii;
  */
 class TaskScheduler extends \yii\db\ActiveRecord
 {
+    const STATUS_STOPPED = 0;
+    const STATUS_RUNNING = 1;
+
     /**
      * @inheritdoc
      */
@@ -46,14 +49,14 @@ class TaskScheduler extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'scheduler_id' => Yii::t('app', 'scheduler id'),
-            'module_type' => Yii::t('app', 'module type'),
-            'name' => Yii::t('app', 'name'),
-            'start_time' => Yii::t('app', 'start time'),
-            'end_time' => Yii::t('app', 'end time'),
-            'status' => Yii::t('app', 'status'),
-            'group_id' => Yii::t('app', 'group id'),
-            'rule_id' => Yii::t('app', 'rule id'),
+            'scheduler_id' => Yii::t('app/ctrl/task_scheduler', 'scheduler id'),
+            'module_type' => Yii::t('app/ctrl/task_scheduler', 'module type'),
+            'name' => Yii::t('app/ctrl/task_scheduler', 'name'),
+            'start_time' => Yii::t('app/ctrl/task_scheduler', 'start time'),
+            'end_time' => Yii::t('app/ctrl/task_scheduler', 'end time'),
+            'status' => Yii::t('app/ctrl/task_scheduler', 'status'),
+            'group_id' => Yii::t('app/ctrl/task_scheduler', 'group id'),
+            'rule_id' => Yii::t('app/ctrl/task_scheduler', 'rule id'),
         ];
     }
 

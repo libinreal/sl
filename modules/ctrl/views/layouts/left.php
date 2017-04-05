@@ -46,8 +46,8 @@
                         'icon' => 'fa fa-tasks',
                         'url' => '#',
                         'items' => [
-                            ['label' => '任务列表', 'icon' => 'fa fa-list', 'url' => ['/ctrl/spider-task/tasks'],],
-                            ['label' => '计划任务', 'icon' => 'fa fa-clock-o', 'url' => ['/ctrl/spider-task/task-schedules'],],
+                            ['label' => '任务规则', 'icon' => 'fa fa-list', 'url' => ['/ctrl/spider-task/task-rules'],],
+                            ['label' => '任务列表', 'icon' => 'fa fa-clock-o', 'url' => ['/ctrl/spider-task/task-schedules'],],
                             ['label' => '任务运行统计', 'icon' => 'fa fa-list-alt', 'url' => ['/ctrl/spider-task/task-statistics'],],
                         ],
                     ],
