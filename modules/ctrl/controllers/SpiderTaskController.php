@@ -6,6 +6,7 @@ use Yii;
 use yii\web\Controller;
 use \app\modules\ctrl\models\TaskRule;
 use \app\modules\ctrl\models\TaskScheduler;
+use \app\modules\ctrl\models\TaskSchedulerState;
 
 class SpiderTaskController extends Controller
 {
@@ -41,9 +42,21 @@ class SpiderTaskController extends Controller
         ]);
     }
 
-    public function actionTaskStatistics()
+    public function actionScheduleState()
     {
-        return $this->render('task-statistics');
+        $searchModel = new TaskSchedulerState();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
+        return $this->render('schedule-state', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider
+        ]);
+    }
+
+    public function actionScheduleStateOperate()
+    {
+
+        return '';
     }
 
     public function actionTaskRules()

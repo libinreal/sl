@@ -11,11 +11,11 @@ use yii\helpers\Url;
 /* @var $searchModel app\modules\ctrl\models\AuthItem */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('app/ctrl/task', 'Schedule list');
+$this->title = Yii::t('app/ctrl/task', 'Schedule state');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="schedule-index">
-    <a class="btn btn-success" href="/ctrl/spider-task/task-schedule-operate"><?= Yii::t('app', 'Create'); ?></a>
+<div class="schedule-state-index">
+    <a class="btn btn-success" href="/ctrl/spider-task/schedule-state-operate"><?= Yii::t('app', 'Create'); ?></a>
     <?=
     GridView::widget([
         'dataProvider' => $dataProvider,
@@ -25,7 +25,7 @@ $this->params['breadcrumbs'][] = $this->title;
                'class'=>CheckboxColumn::className(),
                'name'=>'id',  //设置每行数据的复选框属性
                'headerOptions' => ['width'=>'30'],
-               'footer' => '<button href="#" class="btn btn-default btn-xs btn-delete" url="'. Url::toRoute('task-schedule-operate') .'">删除</button>',
+               'footer' => '<button href="#" class="btn btn-default btn-xs btn-delete" url="'. Url::toRoute('schedule-state-operate') .'">删除</button>',
                'footerOptions' => ['colspan' => 8],  //设置删除按钮垮列显示；
             ],
             [
@@ -33,19 +33,20 @@ $this->params['breadcrumbs'][] = $this->title;
              	'footerOptions' => ['class'=>'hide']
             ],
             [
-            	'attribute' => 'module_type',
+            	'attribute' => 'name',
+            	'value' => 'task_scheduler.name',
              	'footerOptions' => ['class'=>'hide']
             ],
             [
-            	'attribute' => 'name',
+            	'attribute' => 'getting_number',
                 'footerOptions' => ['class'=>'hide'],
             ],
             [
-            	'attribute' => 'start_time',
+            	'attribute' => 'total_number',
              	'footerOptions' => ['class'=>'hide']
             ],
             [
-            	'attribute' => 'end_time',
+             	'attribute' => 'end_time',
              	'footerOptions' => ['class'=>'hide']
             ],
             [
