@@ -20,6 +20,7 @@ return [
                     'app/ctrl/task_rule_url' => 'app_ctrl_task_rule_url.php',
                     'app/ctrl/task_group' => 'app_ctrl_task_group.php',
                     'app/ctrl/task_scheduler' => 'app_ctrl_task_scheduler.php',
+                    'app/ctrl/task_scheduler_state' => 'app_ctrl_task_scheduler_state.php',
                 ],
             ],
         ],

@@ -17,6 +17,7 @@ use Yii;
  */
 class TaskSchedulerState extends \yii\db\ActiveRecord
 {
+    public $name;//task_scheduler.name
     /**
      * @inheritdoc
      */
@@ -43,13 +44,13 @@ class TaskSchedulerState extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'schedule_id' => Yii::t('app', '任务id'),
-            'getting_number' => Yii::t('app', '已经抓取的数量'),
-            'total_number' => Yii::t('app', '要抓取的数量'),
-            'getting_percent' => Yii::t('app', '进度，已抓取/要抓取'),
-            'error_log' => Yii::t('app', '出错日志'),
-            'error_time' => Yii::t('app', '出错次数'),
-            'update_time' => Yii::t('app', '最后一次更新的时间戳'),
+            'schedule_id' => Yii::t('app/ctrl/task_scheduler_state', '任务id'),
+            'getting_number' => Yii::t('app/ctrl/task_scheduler_state', '已经抓取的数量'),
+            'total_number' => Yii::t('app/ctrl/task_scheduler_state', '要抓取的数量'),
+            'getting_percent' => Yii::t('app/ctrl/task_scheduler_state', '进度，已抓取/要抓取'),
+            'error_log' => Yii::t('app/ctrl/task_scheduler_state', '出错日志'),
+            'error_time' => Yii::t('app/ctrl/task_scheduler_state', '出错次数'),
+            'update_time' => Yii::t('app/ctrl/task_scheduler_state', '最后一次更新的时间戳'),
         ];
     }
 

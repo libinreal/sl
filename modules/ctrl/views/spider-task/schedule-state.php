@@ -4,11 +4,11 @@ use yii\helpers\Html;
 use yii\grid\GridView;
 use yii\bootstrap\Button;
 use yii\grid\CheckboxColumn;
-use app\modules\ctrl\models\TaskScheduler;
+use app\modules\ctrl\models\TaskSchedulerState;
 use yii\helpers\Url;
 
 /* @var $this yii\web\View */
-/* @var $searchModel app\modules\ctrl\models\AuthItem */
+/* @var $searchModel app\modules\ctrl\models\TaskSchedulerState */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 $this->title = Yii::t('app/ctrl/task', 'Schedule state');
