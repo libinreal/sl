@@ -4,6 +4,7 @@ namespace app\modules\ctrl\controllers;
 
 class SpiderDataController extends \yii\web\Controller
 {
+    public $adminUser = ['name'=>'admin', 'role_name'=>'管理员'];
     public function actionDataDashboard()
     {
         return $this->render('data-dashboard');

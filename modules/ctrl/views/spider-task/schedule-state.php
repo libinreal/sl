@@ -15,7 +15,6 @@ $this->title = Yii::t('app/ctrl/task', 'Schedule state');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="schedule-state-index">
-    <a class="btn btn-success" href="/ctrl/spider-task/schedule-state-operate"><?= Yii::t('app', 'Create'); ?></a>
     <?=
     GridView::widget([
         'dataProvider' => $dataProvider,
@@ -30,12 +29,14 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
             	'attribute' => 'scheduler_id',
+                'label' => Yii::t('app/ctrl/task_scheduler_state', 'Schedule id'),
              	'footerOptions' => ['class'=>'hide']
             ],
             [
             	'attribute' => 'name',
-            	'value' => 'task_scheduler.name',
-             	'footerOptions' => ['class'=>'hide']
+            	'value' => 'taskScheduler.name',
+             	'footerOptions' => ['class'=>'hide'],
+                'label' => Yii::t('app/ctrl/task_scheduler', 'Name'),
             ],
             [
             	'attribute' => 'getting_number',
@@ -46,18 +47,24 @@ $this->params['breadcrumbs'][] = $this->title;
              	'footerOptions' => ['class'=>'hide']
             ],
             [
-             	'attribute' => 'end_time',
+             	'attribute' => 'taskScheduler.start_time',
+                'label' => Yii::t('app/ctrl/task_scheduler', 'Start time'),
              	'footerOptions' => ['class'=>'hide']
             ],
             [
-                'attribute' => 'status',
+                'attribute' => 'taskScheduler.end_time',
+                'label' => Yii::t('app/ctrl/task_scheduler', 'End time'),
+                'footerOptions' => ['class'=>'hide']
+            ],
+            [
+                'attribute' => 'state',
                 'value' => function($model) {
-                    return $model->status == TaskScheduler::STATUS_STOPPED ? Yii::t('app/ctrl/task_scheduler', 'Stopped') : Yii::t('app/ctrl/task_scheduler', 'Running');
+                    return $model->state;
                 },
+                'label' => Yii::t('app/ctrl/task_scheduler_state', 'State'),
                 'filter' => [
-                    // 'prompt' => Yii::t('app/ctrl/auth', 'Select'),
-                    TaskScheduler::STATUS_STOPPED => Yii::t('app/ctrl/task_scheduler', 'Stopped'),
-                    TaskScheduler::STATUS_RUNNING => Yii::t('app/ctrl/task_scheduler', 'Running')
+                    TaskSchedulerState::STATE_STOPPED => Yii::t('app/ctrl/task_scheduler_state', 'Stopped'),
+                    TaskSchedulerState::STATE_RUNNING => Yii::t('app/ctrl/task_scheduler_state', 'Running')
                 ],
                 'footerOptions' => ['class'=>'hide']
             ],

@@ -14,7 +14,7 @@ class AdminMenus extends \app\models\AdminMenus
      * @return [type] [description]
      */
     public function search($params){
-        $query = MenuModel::find()
+        $query = static::find()
             ->from(MenuModel::tableName() . ' t')
             ->joinWith(['menuParent' => function ($q) {
             $q->from(MenuModel::tableName() . ' parent');

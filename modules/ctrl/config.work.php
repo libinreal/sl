@@ -32,11 +32,18 @@ return [
             'loginUrl' => ['ctrl/auth/login'],
         ],
         'authManager' => [
-            'class' => '\yii\rbac\DbManager',
+            'class' => 'yii\rbac\DbManager',
+            'defaultRoles' => ['guest'],
+        ],
+        'cache' => [
+            'class' => 'yii\caching\Cache'
         ],
     ],
     'params' => [
+        'tagDependency.tags' => 'ctrl',
         'adminUsers.AccessTokenExpire' => 10800,
+        'adminMenus.cacheExpire' => 10800,
+        'taskScheduler.stateDelay' => 60,
     ],
 
 ];

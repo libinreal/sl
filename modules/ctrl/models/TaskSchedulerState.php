@@ -10,7 +10,7 @@ class TaskSchedulerState extends \app\models\TaskSchedulerState
     public function rules()
     {
         return array_merge( [
-            ['name', 'safe'],
+            [['name', 'state'], 'safe'],
         ], parent::rules() );
     }
 
@@ -23,11 +23,15 @@ class TaskSchedulerState extends \app\models\TaskSchedulerState
      * @return [type] [description]
      */
     public function search($params){
+        $module = Yii::$app->getModule('ctrl');
         $query = static::find();
 
+        $schedule_table = \app\models\TaskScheduler::tableName();
+        $state_table = parent::tableName();
+
         //获取name, end_time等字段
-        $query->joinWith('task_scheduler');
-        $query->select('task_scheduler_state.*, task_scheduler.name, task_scheduler.start_time,task_scheduler.end_time, task_scheduler.update_time');
+        $query->joinWith('taskScheduler');
+        $query->select( "$state_table.*, $schedule_table.name, $schedule_table.start_time, $schedule_table.end_time");
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -38,6 +42,14 @@ class TaskSchedulerState extends \app\models\TaskSchedulerState
         if (!$this->validate()) {
             $query->where('1=0');
             return $dataProvider;
+        }
+
+        $delay = $module->params['taskScheduler.stateDelay'];
+
+        if( $this->state === self::STATE_STOPPED ){
+            $query->where( 'update_time<:max_delay', [':max_delay' => time() - $delay]  );
+        }else if( $this->state === self::STATE_RUNNING ){
+            $query->where( 'update_time>=:max_delay', [':max_delay' => time() - $delay]  );
         }
 
         $query->andFilterWhere([

@@ -1,6 +1,6 @@
 <?php
 return [
-    'rule id' => '规则id',
+    'rule id' => '规则Id',
     'site' => '站点名',
     'type' => '网页类型',
     'delay' => '采集间隔',

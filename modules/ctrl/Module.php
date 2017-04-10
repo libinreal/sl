@@ -23,6 +23,7 @@ class Module extends \yii\base\Module
         // Yii::configure($this, require(__DIR__ . '/config.php'));
         Yii::configure($this, require(__DIR__ . '/config.work.php'));
         Yii::$app->language = 'zh-CN';
+
         $this->authManager->db = $this->spiderMysql;
         $this->authManager->cache = $this->spiderMongodb;
     }

@@ -23,8 +23,6 @@ return [
         'authManager' => [
             'class' => 'yii\rbac\DbManager',
             'defaultRoles' => ['guest'],
-            'db' => 'spiderMysql',
-            'cache' => 'spiderMongodb',
         ],
         'cache' => [
             'class' => 'yii\caching\Cache'

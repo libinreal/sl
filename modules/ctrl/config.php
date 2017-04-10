@@ -3,19 +3,19 @@ return [
     'layout' => 'default',
     'components' => [
         //analysis database
-    	'spiderMysql' => [
-    		'class' => '\yii\db\Connection',
-		    'dsn' => 'mysql:host=192.168.2.187;dbname=analyzedb',
-		    'username' => 'root',
-		    'password' => '3ti123',
-		    'tablePrefix' => 'da_',
-		    'charset' => 'utf8',
-    	],
+        'spiderMysql' => [
+            'class' => '\yii\db\Connection',
+            'dsn' => 'mysql:host=192.168.2.187;dbname=analyzedb',
+            'username' => 'root',
+            'password' => '3ti123',
+            'tablePrefix' => 'da_',
+            'charset' => 'utf8',
+        ],
         //analysis database
-    	'spiderMongodb' => [
-    		'class' => '\yii\mongodb\Connection',
-		    'dsn' => 'mongodb://192.168.2.187:27017'
-    	],
+        'spiderMongodb' => [
+            'class' => '\yii\mongodb\Connection',
+            'dsn' => 'mongodb://192.168.2.187:27017'
+        ],
         //spider database
         'sourceDb' => [
             'class' => '\yii\db\Connection',
@@ -32,11 +32,18 @@ return [
             'loginUrl' => ['ctrl/auth/login'],
         ],
         'authManager' => [
-            'class' => '\yii\rbac\DbManager',
+            'class' => 'yii\rbac\DbManager',
+            'defaultRoles' => ['guest'],
+        ],
+        'cache' => [
+            'class' => 'yii\caching\Cache'
         ],
     ],
     'params' => [
+        'tagDependency.tags' => 'ctrl',
         'adminUsers.AccessTokenExpire' => 10800,
+        'adminMenus.cacheExpire' => 10800,
+        'taskScheduler.stateDelay' => 60,
     ],
 
 ];

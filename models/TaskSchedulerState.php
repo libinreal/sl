@@ -18,6 +18,10 @@ use Yii;
 class TaskSchedulerState extends \yii\db\ActiveRecord
 {
     public $name;//task_scheduler.name
+    private $_state;//running , stopped
+
+    const STATE_RUNNING = 1;
+    const STATE_STOPPED = 0;
     /**
      * @inheritdoc
      */
@@ -44,13 +48,13 @@ class TaskSchedulerState extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'schedule_id' => Yii::t('app/ctrl/task_scheduler_state', '任务id'),
-            'getting_number' => Yii::t('app/ctrl/task_scheduler_state', '已经抓取的数量'),
-            'total_number' => Yii::t('app/ctrl/task_scheduler_state', '要抓取的数量'),
-            'getting_percent' => Yii::t('app/ctrl/task_scheduler_state', '进度，已抓取/要抓取'),
-            'error_log' => Yii::t('app/ctrl/task_scheduler_state', '出错日志'),
-            'error_time' => Yii::t('app/ctrl/task_scheduler_state', '出错次数'),
-            'update_time' => Yii::t('app/ctrl/task_scheduler_state', '最后一次更新的时间戳'),
+            'schedule_id' => Yii::t('app/ctrl/task_scheduler_state', 'Schedule id'),
+            'getting_number' => Yii::t('app/ctrl/task_scheduler_state', 'Getting number'),
+            'total_number' => Yii::t('app/ctrl/task_scheduler_state', 'Total number'),
+            'getting_percent' => Yii::t('app/ctrl/task_scheduler_state', 'Getting percent'),
+            'error_log' => Yii::t('app/ctrl/task_scheduler_state', 'Error log'),
+            'error_time' => Yii::t('app/ctrl/task_scheduler_state', 'Error time'),
+            'update_time' => Yii::t('app/ctrl/task_scheduler_state', 'Update time'),
         ];
     }
 
@@ -61,6 +65,30 @@ class TaskSchedulerState extends \yii\db\ActiveRecord
     public function getTaskScheduler()
     {
         return $this->hasOne(TaskScheduler::className(), ['scheduler_id' => 'schedule_id' ]);
+    }
+
+    /**
+     * 获取状态
+     * @return string
+     */
+    public function getState()
+    {
+        $module = Yii::$app->getModule('ctrl');
+        $delay = $module->params['taskScheduler.stateDelay'];
+        if( $this->update_time + $delay >= time() ){
+            return Yii::t('app/ctrl/task_scheduler_state', 'Running');
+        }else{
+            return Yii::t('app/ctrl/task_scheduler_state', 'Stopped');
+        }
+    }
+
+    /**
+     * 设置状态
+     * @return string
+     */
+    public function setState( $value )
+    {
+        $this->_state = intval( $value ) === 1 ? 1 : 0 ;
     }
 
     /**
