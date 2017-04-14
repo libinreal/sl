@@ -21,6 +21,12 @@ return [
                     'app/ctrl/task_group' => 'app_ctrl_task_group.php',
                     'app/ctrl/task_scheduler' => 'app_ctrl_task_scheduler.php',
                     'app/ctrl/task_scheduler_state' => 'app_ctrl_task_scheduler_state.php',
+
+                    'app/ctrl/spider_data' => 'app_ctrl_spider_data.php',
+                    'app/ctrl/spider_data_article_topic' => 'app_ctrl_spider_data_article_topic.php',
+                    'app/ctrl/spider_data_comment_article' => 'app_ctrl_spider_data_comment_article.php',
+                    'app/ctrl/spider_data_product_comment_topic' => 'app_ctrl_spider_data_product_comment_topic.php',
+                    'app/ctrl/spider_data_comment_product' => 'app_ctrl_spider_data_comment_product.php',
                 ],
             ],
         ],

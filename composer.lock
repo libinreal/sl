@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "e36f5b83a2c2901334b14b75341ffb72",
+    "content-hash": "e9317e08e0b57be3412a3f907eb64a7c",
     "packages": [
         {
             "name": "almasaeed2010/adminlte",
@@ -45,6 +45,50 @@
                 "web"
             ],
             "time": "2017-01-08T21:03:57+00:00"
+        },
+        {
+            "name": "bburim/daterangepicker",
+            "version": "dev-master",
+            "target-dir": "bburim/daterangepicker",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/bburim/daterangepicker.git",
+                "reference": "451a80bd611f4e62d9e0ff37a60900e44dc05384"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/bburim/daterangepicker/zipball/451a80bd611f4e62d9e0ff37a60900e44dc05384",
+                "reference": "451a80bd611f4e62d9e0ff37a60900e44dc05384",
+                "shasum": ""
+            },
+            "require": {
+                "yiisoft/yii2": "*",
+                "yiisoft/yii2-bootstrap": "*"
+            },
+            "type": "yii2-extension",
+            "autoload": {
+                "psr-0": {
+                    "bburim\\daterangepicker\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GNU GENERAL PUBLIC LICENSE"
+            ],
+            "authors": [
+                {
+                    "name": "Bogdan Burim",
+                    "email": "bgdn2007@ukr.net"
+                }
+            ],
+            "description": "Bootstrap Date Range Picker widget for Yii 2 Framework",
+            "keywords": [
+                "bootstrap",
+                "daterangepicker",
+                "jquery",
+                "yii"
+            ],
+            "time": "2014-02-14 19:17:01"
         },
         {
             "name": "bower-asset/bootstrap",
@@ -3322,9 +3366,11 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
-    "stability-flags": [],
-    "prefer-stable": false,
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "bburim/daterangepicker": 20
+    },
+    "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": ">=5.4.0"

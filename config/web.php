@@ -25,6 +25,10 @@ $config = [
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
+        'user' => [
+            'identityClass' => 'app\models\User',
+            'enableAutoLogin' => true,
+        ],
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
@@ -45,6 +49,11 @@ $config = [
             ],
         ],
         'db' => require(__DIR__ . '/db.php'),
+        //analysis database
+        'spiderMongodb' => [
+            'class' => '\yii\mongodb\Connection',
+            'dsn' => 'mongodb://192.168.2.187:27017/comment'
+        ],
         'urlManager' => [
             'enablePrettyUrl' => true,
             'enableStrictParsing' => true,
@@ -81,6 +90,11 @@ if (YII_ENV_DEV) {
         'class' => 'yii\gii\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
         'allowedIPs' => ['192.168.91.*'],
+        'generators' => [
+                'mongoDbModel' => [
+                    'class' => 'yii\mongodb\gii\model\Generator'
+                ]
+         ],
     ];
 }
 

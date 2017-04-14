@@ -8,9 +8,11 @@ return [
 	'site' => 'site/index',
 	'site/<action>' => 'site/<action>',
     //ctrl
+    /*spider-data*/
+    'ctrl/spider-data/data-search/<category>' => 'ctrl/spider-data/data-search',
+
+
     'ctrl/<controller>/<action>' => 'ctrl/<controller>/<action>',
-    'ctrl/<controller>' => 'ctrl/<controller>/index',
-    'ctrl' => 'ctrl/default/index',
     //RESTful API
     'res/<controller>/<action>' => 'res/<controller>/<action>',
 ];

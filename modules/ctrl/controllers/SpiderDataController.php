@@ -1,6 +1,9 @@
 <?php
 
 namespace app\modules\ctrl\controllers;
+use \app\modules\ctrl\models\CommentArticle;
+use \app\modules\ctrl\models\CommentProduct;
+use Yii;
 
 class SpiderDataController extends \yii\web\Controller
 {
@@ -17,7 +20,27 @@ class SpiderDataController extends \yii\web\Controller
 
     public function actionDataSearch()
     {
-        return $this->render('data-search');
+        $category = Yii::$app->request->get('category');
+        if( $category == 'article' || empty($category) )
+        {
+            $articleModel = new CommentArticle();
+            $articleProvider = $articleModel->search(Yii::$app->request->queryParams);
+
+            return $this->render('data-search', [
+                'articleModel' => $articleModel,
+                'articleProvider' => $articleProvider
+            ]);
+        }
+        else if( $category == 'product' )
+        {
+            $productModel = new CommentProduct();
+            $productProvider = $productModel->search(Yii::$app->request->queryParams);
+
+            return $this->render('data-search', [
+                'productModel' => $productModel,
+                'productProvider' => $productProvider
+            ]);
+        }
     }
 
     public function actionIndex()

@@ -12,14 +12,16 @@
         "irc": "irc://irc.freenode.net/yii",
         "source": "https://github.com/yiisoft/yii2"
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "require": {
         "php": ">=5.4.0",
         "yiisoft/yii2": "~2.0.5",
         "yiisoft/yii2-bootstrap": "~2.0.0",
         "yiisoft/yii2-swiftmailer": "~2.0.0",
         "dmstr/yii2-adminlte-asset": "^2.3",
-        "yiisoft/yii2-mongodb": "^2.1"
+        "yiisoft/yii2-mongodb": "^2.1",
+        "bburim/daterangepicker": "dev-master"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",
