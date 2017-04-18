@@ -24,10 +24,10 @@ $this->params['breadcrumbs'][] = $this->title;
 		<div class="nav-tabs-custom">
 			<ul class="nav nav-tabs">
 				<li <?php if( $category == 'article' || empty( $category ) ): ?> class="active"<?php endif; ?>>
-					<a href="/ctrl/spider-data/data-search/article" data-toggle="tab" aria-expanded="true"><?= Yii::t('app', 'Article') ?></a>
+					<a href="/ctrl/spider-data/data-search/article" aria-expanded="true"><?= Yii::t('app', 'Article') ?></a>
 				</li>
 				<li <?php if( $category == 'product' ): ?> class="active"<?php endif; ?>>
-					<a href="/ctrl/spider-data/data-search/product" data-toggle="tab" aria-expanded="true"><?= Yii::t('app', 'Product') ?></a>
+					<a href="/ctrl/spider-data/data-search/product" aria-expanded="true"><?= Yii::t('app', 'Product') ?></a>
 				</li>
 			</ul>
 			<div class="tab-content">

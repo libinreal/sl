@@ -27,6 +27,7 @@ use Yii;
  * @property string $general_count
  * @property string $poor_count
  * @property string $record_time
+ * @property string $site_name
  * @property string $crawl_time
  */
 class DataProductCommentTopic extends \yii\db\ActiveRecord
@@ -45,16 +46,14 @@ class DataProductCommentTopic extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['scheduler_id', 'keyword', 'product_code', 'product_title', 'product_cate1', 'product_cate2', 'product_cate3', 'product_attr1', 'product_attr2', 'product_attr3', 'product_addr', 'comment_url'], 'required'],
             [['scheduler_id'], 'integer'],
             [['record_time', 'crawl_time'], 'safe'],
-            [['keyword', 'product_name', 'product_brand', 'product_cate1', 'product_cate2', 'product_cate3', 'comment_count', 'good_count', 'general_count', 'poor_count'], 'string', 'max' => 20],
-            [['product_code'], 'string', 'max' => 200],
-            [['product_title'], 'string', 'max' => 255],
-            [['product_attr1', 'product_attr2', 'product_attr3'], 'string', 'max' => 100],
-            [['product_addr'], 'string', 'max' => 30],
-            [['comment_url'], 'string', 'max' => 300],
-            [['product_code'], 'unique'],
+            [
+                ['keyword', 'product_name', 'product_brand', 'product_cate1', 'product_cate2', 'product_cate3', 'comment_count',
+                'product_code', 'product_title', 'product_attr1', 'product_attr2', 'product_attr3'
+                'good_count', 'general_count', 'poor_count', 'site_name', 'product_addr', 'comment_url'],
+                'string'
+            ],
         ];
     }
 
@@ -84,6 +83,7 @@ class DataProductCommentTopic extends \yii\db\ActiveRecord
             'general_count' => Yii::t('app', '中评数'),
             'poor_count' => Yii::t('app', '差评数'),
             'record_time' => Yii::t('app', '当前插入数据库时间'),
+            'site_name' => Yii::t('app', '站点名称'),
             'crawl_time' => Yii::t('app', '爬行时间'),
         ];
     }

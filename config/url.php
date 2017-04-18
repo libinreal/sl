@@ -10,7 +10,7 @@ return [
     //ctrl
     /*spider-data*/
     'ctrl/spider-data/data-search/<category>' => 'ctrl/spider-data/data-search',
-
+    'ctrl/spider-data/semantics-analysis/<from>/<kw>' => 'ctrl/spider-data/semantics-analysis',
 
     'ctrl/<controller>/<action>' => 'ctrl/<controller>/<action>',
     //RESTful API

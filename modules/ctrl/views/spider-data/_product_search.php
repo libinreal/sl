@@ -1,10 +1,10 @@
 <?php
 use yii\helpers\Html;
 use yii\grid\GridView;
-use app\modules\ctrl\models\CommentProduct;
+use app\modules\ctrl\models\DataProductCommentTopic;
 use yii\helpers\Url;
 use bburim\daterangepicker\DateRangePicker as DateRangePicker;
-/* @var $productModel app\modules\ctrl\models\CommentProduct */
+/* @var $productModel app\modules\ctrl\models\DataProductCommentTopic */
 /* @var $productProvider yii\data\ActiveDataProvider */
 ?>
 <?=
@@ -21,35 +21,48 @@ GridView::widget([
                'footerOptions' => ['colspan' => 8],  //设置删除按钮垮列显示；
             ],*/
             [
-            	'attribute' => '_id',
+            	'attribute' => 'id',
              	'footerOptions' => ['class'=>'hide']
             ],
             [
-            	'attribute' => 'content',
+            	'attribute' => 'keyword',
              	'footerOptions' => ['class'=>'hide'],
             ],
             [
-            	'attribute' => 'code',
+            	'attribute' => 'product_name',
                 'footerOptions' => ['class'=>'hide'],
             ],
             [
-            	'attribute' => 'time',
-            	'filter' => DateRangePicker::widget([
-            		'callback' => $date_ranges_callback,
-		            'options'  => [
-		               'ranges' => $date_ranges,
-		               'locale' => [
-		                'firstDay' => 1
-		               ]
-		            ],
-		            'htmlOptions' => [
-		            'name'        => 'CommentArticle[time_ranges]',
-		            'class'       => 'form-control',
-		            'placeholder' => yii::t('app/ctrl/spider_data_comment_article', 'Select Date Range'),
-		            'style'       => 'width:190px;',
-		            ]
-            	]),
+                'attribute' => 'product_title',
+                'footerOptions' => ['class'=>'hide'],
+            ],
+            [
+                'attribute' => 'product_cate1',
+                'footerOptions' => ['class'=>'hide'],
+            ],
+            [
+                'attribute' => 'product_cate2',
+                'footerOptions' => ['class'=>'hide'],
+            ],
+            [
+                'attribute' => 'product_cate3',
+                'footerOptions' => ['class'=>'hide'],
+            ],
+            [
+            	'attribute' => 'comment_count',
              	'footerOptions' => ['class'=>'hide']
+            ],
+            [
+                'attribute' => 'good_count',
+                'footerOptions' => ['class'=>'hide']
+            ],
+            [
+                'attribute' => 'general_count',
+                'footerOptions' => ['class'=>'hide']
+            ],
+            [
+                'attribute' => 'poor_count',
+                'footerOptions' => ['class'=>'hide']
             ],
             [
                 'class' => 'yii\grid\ActionColumn',

@@ -1,10 +1,10 @@
 <?php
 use yii\helpers\Html;
 use yii\grid\GridView;
-use app\modules\ctrl\models\CommentArticle;
+use app\modules\ctrl\models\DataArticleTopic;
 use yii\helpers\Url;
 use bburim\daterangepicker\DateRangePicker as DateRangePicker;
-/* @var $articleModel app\modules\ctrl\models\CommentArticle */
+/* @var $articleModel app\modules\ctrl\models\DataArticleTopic */
 /* @var $articleProvider yii\data\ActiveDataProvider */
 ?>
 <?=
@@ -21,19 +21,35 @@ GridView::widget([
                'footerOptions' => ['colspan' => 8],  //设置删除按钮垮列显示；
             ],*/
             [
-            	'attribute' => '_id',
+            	'attribute' => 'id',
              	'footerOptions' => ['class'=>'hide']
             ],
             [
-            	'attribute' => 'content',
+                'attribute' => 'article_code',
+                'footerOptions' => ['class'=>'hide']
+            ],
+            [
+                'attribute' => 'site_name',
+                'footerOptions' => ['class'=>'hide']
+            ],
+            [
+                'attribute' => 'url',
+                'footerOptions' => ['class'=>'hide']
+            ],
+            [
+                'attribute' => 'title',
+                'footerOptions' => ['class'=>'hide']
+            ],
+            [
+            	'attribute' => 'praise_num',
              	'footerOptions' => ['class'=>'hide'],
             ],
             [
-            	'attribute' => 'code',
+                'attribute' => 'comment_num',
                 'footerOptions' => ['class'=>'hide'],
             ],
             [
-            	'attribute' => 'time',
+            	'attribute' => 'createtime',
             	'filter' => DateRangePicker::widget([
             		'callback' => $date_ranges_callback,
 		            'options'  => [
@@ -43,7 +59,7 @@ GridView::widget([
 		               ]
 		            ],
 		            'htmlOptions' => [
-		            'name'        => 'CommentArticle[time_ranges]',
+		            'name'        => 'DataArticleTopic[time_ranges]',
 		            'class'       => 'form-control',
 		            'placeholder' => yii::t('app/ctrl/spider_data_comment_article', 'Select Date Range'),
 		            'style'       => 'width:190px;',

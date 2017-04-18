@@ -38,7 +38,7 @@ class DataArticleTopic extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['scheduler_id', 'site_name', 'keyword', 'title', 'area', 'createtime'], 'required'],
+            // [['scheduler_id', 'site_name', 'keyword', 'title', 'area', 'createtime'], 'required'],
             [['scheduler_id'], 'integer'],
             [['article_code'], 'string', 'max' => 200],
             [['site_name', 'area'], 'string', 'max' => 20],

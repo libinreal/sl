@@ -4,6 +4,7 @@ namespace app\modules\ctrl\models;
 
 use Yii;
 use yii\data\ActiveDataProvider;
+use app\components\helpers\DateHelper;
 
 class DataArticleTopic extends \app\models\DataArticleTopic
 {
