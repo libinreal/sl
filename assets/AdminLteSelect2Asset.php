@@ -3,15 +3,15 @@ namespace app\assets;
 
 use yii\web\AssetBundle;
 
-class AdminLteDatatablesAsset extends AssetBundle
+class AdminLteSelect2Asset extends AssetBundle
 {
     public $sourcePath = '@vendor/almasaeed2010/adminlte/plugins';
     public $js = [
-        'datatables/dataTables.bootstrap.min.js',
+        'select2/select2.min.js',
         // more plugin Js here
     ];
     public $css = [
-        'datatables/dataTables.bootstrap.css',
+        'select2/select2.min.css',
         // more plugin CSS here
     ];
     public $depends = [

@@ -45,8 +45,8 @@ return [
         'adminMenus.cacheExpire' => 10800,
         'taskScheduler.stateDelay' => 60,
         'spiderData.fromSites' => [
-            'article' => ['百度新闻', '搜狗微信', '天涯论坛', '新浪微博'],
-            'product' => ['淘宝商城', '京东商城'],
+            'article' => [ 'baiduNewsSpider' => '百度新闻', 'sogouSpider' => '搜狗微信', 'tianyaSpider' => '天涯论坛', 'sinaWeiboSpider' => '新浪微博'],
+            'product' => [ 'taobaoSpider' => '淘宝商城', 'jd_Spider' => '京东商城'],
         ],
     ],
 

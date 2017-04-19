@@ -19,4 +19,6 @@ return [
 	'This Year' => '今年',
 	'Last Month' => '上月',
 
+	'Please choose' => '请选择',
+	'Search' => '查询',
 ];

@@ -55,12 +55,16 @@ class SpiderDataController extends \yii\web\Controller
 
     public function actionSemanticsAnalysis()
     {
-        $from = Yii::$app->request->get('from');
-        $kw = Yii::$app->request->get('kw');
+        $from = Yii::$app->request->get('SemanticsAnalysisForm[from]');
+        $kw = Yii::$app->request->get('SemanticsAnalysisForm[kw]');
 
         $db = Yii::$app->getModule('ctrl')->sourceDb;
         $module = Yii::$app->getModule('ctrl');
         $formModel = new SemanticsAnalysisForm;
+
+        $product = $module->params['spiderData.fromSites']['product'];
+        $article = $module->params['spiderData.fromSites']['article'];
+        $fromSites = array_merge( $product, $article);
 
         if( empty($from) || empty($kw) )
         {
@@ -71,7 +75,7 @@ class SpiderDataController extends \yii\web\Controller
         }
         else
         {
-            if( in_array($from, $module->params['spiderData.fromSites']['article']) )
+            if( in_array($from, $article) )
             {
                 $comments = CommentArticle::find()->where(['like', 'content', $kw])->buildCursor($db);
 
@@ -89,7 +93,7 @@ class SpiderDataController extends \yii\web\Controller
                 ]);
                 $query->where(['in', 'article_code', $codes]);
             }
-            else if( in_array($from, $module->params['spiderData.fromSites']['product']) )
+            else if( in_array($from, $product) )
             {
                 $query = CommentProduct::find()->where(['like', 'content', $kw])->buildCursor($db);
 
@@ -112,6 +116,7 @@ class SpiderDataController extends \yii\web\Controller
         return $this->render('semantics-analysis', [
                 'dataProvider' => $dataProvider,
                 'formModel' => $formModel,
+                'fromSites' => $fromSites,
             ]);
     }
 
@@ -132,6 +137,14 @@ class SemanticsAnalysisForm extends \yii\base\Model{
         return [
             ['from', 'in', 'range' => array_merge($article, $product) ],
             ['kw', 'string', 'min' => 2],
+        ];
+    }
+
+    public function attributeLabels()
+    {
+        return [
+            'from' => Yii::t('app/ctrl/spider_data', 'From'),
+            'kw' => Yii::t('app/ctrl/spider_data', 'Key word'),
         ];
     }
 }

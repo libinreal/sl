@@ -7,13 +7,40 @@ use yii\widgets\ActiveForm;
 /* @var $articleProvider yii\data\ActiveDataProvider */
 /* @var $formModel app\modules\ctrl\controllers\SemanticsAnalysisForm */
 /* @var $this yii\web\View */
+
+app\assets\AdminLteSelect2Asset::register($this);
+
 $this->title = Yii::t('app/ctrl/spider_data', 'Semantics analysis');
 $this->params['breadcrumbs'][] = $this->title;
 
+
 // 查询表单
-$searchForm = ActiveForm::begin(['action' => ['test/getpost'],'method'=>'post',]);
-echo $searchForm->field($formModel, 'from')->textInput(['maxlength' => 20]);
-echo $searchForm->field($formModel, 'kw')->textInput(['maxlength' => 20]);
+//
+$searchForm = ActiveForm::begin(['action' => ['test/getpost'],'method'=>'post']);
+?>
+
+<div class="col-lg-5">
+    <div class="row">
+        <div class="col-lg-6">
+<?= $searchForm->field($formModel, 'from')->dropDownList( $fromSites, ['prompt'=>yii::t('app', 'Please choose'), 'class' => 'form-control select2']); ?>
+        </div>
+        <div class="col-lg-6">
+<?= $searchForm->field($formModel, 'kw', ['template' => '<div class=\'input-group\'>{input}<span class=\'input-group-btn\'>' .
+                                                                '<input type=\'submit\' class=\'btn btn-info btn-flat\'' . yii::t('app', 'Search') . '/></span></div>',
+                                           'inputOptions' =>['maxlength' => 20, 'class' => 'form-control']
+                                            ]); ?>
+        </div>
+    </div>
+</div>
+<?php ActiveForm::end(); ?>
+
+<?php $this->beginBlock('select2'); ?>
+    $(function(){
+        $('.select2').select2();
+    });
+<?php
+$this->endBlock();
+$this->registerJs($this->blocks['select2'], \yii\web\View::POS_END);
 ?>
 
 <?=
