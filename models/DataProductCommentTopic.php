@@ -50,7 +50,7 @@ class DataProductCommentTopic extends \yii\db\ActiveRecord
             [['record_time', 'crawl_time'], 'safe'],
             [
                 ['keyword', 'product_name', 'product_brand', 'product_cate1', 'product_cate2', 'product_cate3', 'comment_count',
-                'product_code', 'product_title', 'product_attr1', 'product_attr2', 'product_attr3'
+                'product_code', 'product_title', 'product_attr1', 'product_attr2', 'product_attr3',
                 'good_count', 'general_count', 'poor_count', 'site_name', 'product_addr', 'comment_url'],
                 'string'
             ],

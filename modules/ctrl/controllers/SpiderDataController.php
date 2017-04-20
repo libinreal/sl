@@ -55,29 +55,30 @@ class SpiderDataController extends \yii\web\Controller
 
     public function actionSemanticsAnalysis()
     {
-        $from = Yii::$app->request->get('SemanticsAnalysisForm[from]');
-        $kw = Yii::$app->request->get('SemanticsAnalysisForm[kw]');
+        $queryParams = Yii::$app->request->get('SemanticsAnalysisForm');
+        $from = $queryParams['from'];
+        $kw = $queryParams['kw'];
 
-        $db = Yii::$app->getModule('ctrl')->sourceDb;
+        $sourceDb = Yii::$app->getModule('ctrl')->sourceDb;
+        $spiderMongodb = Yii::$app->getModule('ctrl')->spiderMongodb;
         $module = Yii::$app->getModule('ctrl');
         $formModel = new SemanticsAnalysisForm;
 
         $product = $module->params['spiderData.fromSites']['product'];
         $article = $module->params['spiderData.fromSites']['article'];
         $fromSites = array_merge( $product, $article);
+        // var_dump( Yii::$app->request->getQueryParams(), $from, $kw );exit;
 
-        if( empty($from) || empty($kw) )
+        $dataProvider = new ActiveDataProvider([
+            'query' => DataArticleTopic::find()->where('1=0'),
+            'db'  => $sourceDb
+        ]);
+
+        if( !empty($from) && !empty($kw) )
         {
-            $dataProvider = new ActiveDataProvider([
-                'query' => DataArticleTopic::find()->where('1=0'),
-                'db'  => $db
-            ]);
-        }
-        else
-        {
-            if( in_array($from, $article) )
+            if( in_array($from, array_keys($article) ) )
             {
-                $comments = CommentArticle::find()->where(['like', 'content', $kw])->buildCursor($db);
+                $comments = CommentArticle::find()->where(['like', 'content', $kw])->andWhere(['like', 'code', $from])->buildCursor($spiderMongodb);
 
                 $codes = [];
                 foreach ($comments as $comment)
@@ -89,13 +90,13 @@ class SpiderDataController extends \yii\web\Controller
                 $query = DataArticleTopic::find();
                 $dataProvider = new ActiveDataProvider([
                     'query' => $query,
-                    'db'  => $db
+                    'db'  => $sourceDb
                 ]);
                 $query->where(['in', 'article_code', $codes]);
             }
-            else if( in_array($from, $product) )
+            else if( in_array($from, array_keys($product) ) )
             {
-                $query = CommentProduct::find()->where(['like', 'content', $kw])->buildCursor($db);
+                $comments = CommentProduct::find()->where(['like', 'content', $kw])->andWhere(['like', 'code', $from])->buildCursor($spiderMongodb);
 
                 $codes = [];
                 foreach ($comments as $comment)
@@ -107,7 +108,7 @@ class SpiderDataController extends \yii\web\Controller
                 $query = DataProductCommentTopic::find();
                 $dataProvider = new ActiveDataProvider([
                     'query' => $query,
-                    'db'  => $db
+                    'db'  => $sourceDb
                 ]);
                 $query->andWhere(['in', 'product_code', $codes]);
             }
@@ -132,8 +133,8 @@ class SemanticsAnalysisForm extends \yii\base\Model{
     public function rules()
     {
         $module = Yii::$app->getModule('ctrl');
-        $product = $module->params['spiderData.fromSites']['product'];
-        $article = $module->params['spiderData.fromSites']['article'];
+        $product = array_keys( $module->params['spiderData.fromSites']['product'] );
+        $article = array_keys( $module->params['spiderData.fromSites']['article'] );
         return [
             ['from', 'in', 'range' => array_merge($article, $product) ],
             ['kw', 'string', 'min' => 2],

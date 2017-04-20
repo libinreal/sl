@@ -16,7 +16,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 // 查询表单
 //
-$searchForm = ActiveForm::begin(['action' => ['test/getpost'],'method'=>'post']);
+$searchForm = ActiveForm::begin(['action' => ['/ctrl/spider-data/semantics-analysis'],'method'=>'get']);
 ?>
 
 <div class="col-lg-5">
@@ -34,19 +34,27 @@ $searchForm = ActiveForm::begin(['action' => ['test/getpost'],'method'=>'post'])
 </div>
 <?php ActiveForm::end(); ?>
 
-<?php $this->beginBlock('select2'); ?>
+<?php $this->beginBlock('js'); ?>
     $(function(){
-        $('.select2').select2();
+        $('.select2').select2({'width':'auto'});
     });
+
+    //获取
+    function getCommentByTopic( id ){
+
+    }
 <?php
 $this->endBlock();
-$this->registerJs($this->blocks['select2'], \yii\web\View::POS_END);
+$this->registerJs($this->blocks['js'], \yii\web\View::POS_END);
 ?>
 
 <?=
 GridView::widget([
     	'id' => 'commentsGrid',
         'dataProvider' => $dataProvider,
+        'rowOptions' => function($model, $key, $index, $grid){
+            return ['onclick' => 'getCommentByTopic('.$model->id.');'];
+        },
         'columns' => [
         	[
             	'attribute' => 'id',
