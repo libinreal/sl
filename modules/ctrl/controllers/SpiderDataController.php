@@ -74,10 +74,13 @@ class SpiderDataController extends \yii\web\Controller
             'db'  => $sourceDb
         ]);
 
+        $commentsLink = '';
+
         if( !empty($from) && !empty($kw) )
         {
             if( in_array($from, array_keys($article) ) )
             {
+                $commentsLink = '/res/article-comments';
                 $comments = CommentArticle::find()->where(['like', 'content', $kw])->andWhere(['like', 'code', $from])->buildCursor($spiderMongodb);
 
                 $codes = [];
@@ -96,6 +99,7 @@ class SpiderDataController extends \yii\web\Controller
             }
             else if( in_array($from, array_keys($product) ) )
             {
+                $commentsLink = '/res/product-comments';
                 $comments = CommentProduct::find()->where(['like', 'content', $kw])->andWhere(['like', 'code', $from])->buildCursor($spiderMongodb);
 
                 $codes = [];
@@ -118,6 +122,7 @@ class SpiderDataController extends \yii\web\Controller
                 'dataProvider' => $dataProvider,
                 'formModel' => $formModel,
                 'fromSites' => $fromSites,
+                'commentsLink' => $commentsLink,
             ]);
     }
 

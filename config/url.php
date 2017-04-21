@@ -14,5 +14,7 @@ return [
 
     'ctrl/<controller>/<action>' => 'ctrl/<controller>/<action>',
     //RESTful API
-    'res/<controller>/<action>' => 'res/<controller>/<action>',
+    [ 'class' => 'yii\rest\UrlRule',
+      'controller' => ['res/article-comment', 'res/product-comment']
+    ],
 ];
