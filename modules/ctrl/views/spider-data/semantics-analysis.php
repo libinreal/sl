@@ -4,6 +4,7 @@ use yii\grid\GridView;
 use app\modules\ctrl\controllers\SemanticsAnalysisForm;
 use yii\widgets\ActiveForm;
 use yii\bootstrap\Modal;
+// use yii\Yii;
 
 /* @var $articleModel app\modules\ctrl\models\DataArticleTopic */
 /* @var $articleProvider yii\data\ActiveDataProvider */
@@ -36,14 +37,27 @@ $searchForm = ActiveForm::begin(['action' => ['/ctrl/spider-data/semantics-analy
 </div>
 <?php
 ActiveForm::end();
+$curUrl = Yii::$app->request->url;
 $js = <<<JS
     var comments_link = '$commentsLink';
+    var cur_url = '$curUrl';
     $(function(){
         $('.select2').select2({'width':'auto'});
     });
 
-    //获取
-    function getCommentByTopic( id ){
+    //获取评论
+    function getPages( id ){
+        var page_url = cur_url.replace('/(\?|&)(p=(\d)*)/', '\$1');
+        page_url = page_url.replace('/&$/', '');
+        if( page_url.indexOf('?') == -1 )
+        {
+            page_url += '?';
+        }
+        else
+        {
+            page_url += '&';
+        }
+
         var gridView = '<div class="grid-view"><div class="summary">第{rows_index}条，共{total_num}条数据</div><table class="table table-striped table-bordered"' +
         '<thead><tr><th>评论</th><th>评论时间</th><th>评论时间</th><th>评论时间</th></tr></thead><tbody>';
         $.get(comments_link, null, function( ret, stat, xhr ){
@@ -66,13 +80,31 @@ $js = <<<JS
             }
 
             if( current_page == 1 ){
-                gridView += '</tbody></table><ul class="pagination"><li>';
+                gridView += '</tbody></table><ul class="pagination"><li class="prev disabled"><span>«</span></li>';
+                gridView += '<li class="active"><a href="'+page_url+'p=1">1</a></li>';
+                for(var p = 2; p <= page_count; p++){
+                    gridView += '<li><a href="'+page_url+'p='+p+'">'+p+'</a></li>';
+                }
+                gridView += '<li class="next"><a href="'+page_url+'p='+p+'">'+p+'</a>»</li>';
             }else if( current_page == page_count ){
-                gridView += '</tbody></table><ul class="pagination"><li>';
+                gridView += '</tbody></table><ul class="pagination"><li class="prev"><a href="+ +">«</a></li>';
+                gridView += '<li class="active"><a href="'+page_url+'p=1">1</a></li>';
+                for(var p = 2; p <= page_count; p++){
+                    if( p < page_count )
+                        gridView += '<li><a href="'+page_url+'p='+p+'">'+p+'</a></li>';
+                    else if( p == page_count)
+                        gridView += '<li class="next"><a href="'+page_url+'p='+p+'">'+p+'</a>»</li>';
+                }
             }else{
                 gridView += '</tbody></table><ul class="pagination"><li>';
             }
+
+            $('.modal-body').html(gridView);
         }, 'json');
+    }
+
+    function make_pagination(){
+
     }
 JS;
 $this->registerJs($js, \yii\web\View::POS_END);
@@ -83,7 +115,7 @@ GridView::widget([
     	'id' => 'commentsGrid',
         'dataProvider' => $dataProvider,
         'rowOptions' => function($model, $key, $index, $grid){
-            return ['onclick' => 'getCommentByTopic('.$model->id.');'];
+            return ['onclick' => 'getPages('.$model->id.');'];
         },
         'columns' => [
         	[
