@@ -1,0 +1,24 @@
+{
+	"name": "selectify",
+	"version": "1.1.7",
+	"title": "Selectify",
+	"description": "Selectify is a UI overlay for select elements which does not screw up your events.",
+	"keywords": [ "selectify", "select", "selectbox", "input", "ui", "overlay", "event", "events" ],
+	"author": {
+		"name": "James Ducker",
+		"email": "james.ducker+js@gmail.com"
+	},
+	"licenses": [
+		{
+			"type": "MIT",
+			"url": "https://raw.github.com/jamesinc/selectify/master/LICENSE"
+		}
+	],
+	"dependencies": {
+		"jquery": ">=1.7"
+	},
+	"homepage": "https://github.com/jamesinc/selectify",
+	"docs": "https://github.com/jamesinc/selectify",
+	"bugs": "https://github.com/jamesinc/selectify/issues",
+	"demo": "http://jsfiddle.net/jamesinc/5bSYN/"
+}

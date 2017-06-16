@@ -1,17 +1,17 @@
 <?php
 
-namespace app\modules\res;
+namespace app\modules\nlp;
 use Yii;
 
 /**
- * res module definition class
+ * nlp module definition class
  */
 class Module extends \yii\base\Module
 {
     /**
      * @inheritdoc
      */
-    public $controllerNamespace = 'app\modules\res\controllers';
+    public $controllerNamespace = 'app\modules\nlp\controllers';
 
     /**
      * @inheritdoc
@@ -22,10 +22,10 @@ class Module extends \yii\base\Module
 
         // custom initialization code goes here
         // Yii::configure($this, require(__DIR__ . '/config.php'));
-        Yii::configure($this, require(__DIR__ . '/config.work.php'));
+        Yii::configure($this, require(__DIR__ . '/config.php'));
         Yii::$app->language = 'zh-CN';
 
-        /*$this->authManager->db = $this->spiderMysql;
-        $this->authManager->cache = $this->spiderMongodb;*/
+        /*$this->authManager->db = $this->mysql;
+        $this->authManager->cache = $this->mongodb;*/
     }
 }

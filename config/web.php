@@ -16,6 +16,9 @@ $config = [
         'ctrl' => [
             'class' => 'app\modules\ctrl\Module',
         ],
+        'nlp' => [
+            'class' => 'app\modules\nlp\Module',
+        ],
     ],
     'components' => [
         'request' => [

@@ -13,6 +13,10 @@ return [
     'ctrl/spider-data/semantics-analysis/<from>/<kw>' => 'ctrl/spider-data/semantics-analysis',
 
     'ctrl/<controller>/<action>' => 'ctrl/<controller>/<action>',
+
+    //nlp
+    'nlp/<controller>/<action>' => 'nlp/<controller>/<action>',
+
     //RESTful API
     [ 'class' => 'yii\rest\UrlRule',
       'controller' => ['res/article-comment', 'res/product-comment']
