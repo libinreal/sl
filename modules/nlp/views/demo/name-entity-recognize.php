@@ -1,5 +1,5 @@
 <?php
-    $this->title = '词性分析';
+    $this->title = '实体识别';
     $this->params['breadcrumbs'][] = 'NLP System';
     $this->params['breadcrumbs'][] = '分析结果';
     $this->params['breadcrumbs'][] = $this->title;
@@ -7,20 +7,20 @@
     $wcJs = <<<JS
     jQuery('form#stmts-form').on('submit', function (e) {
     	e.preventDefault();
-        var wc = $(this);
+        var sf = $(this);
         $.ajax({
         	crossDomain: true,
-            url: wc.attr('action'),
+            url: sf.attr('action'),
             type: 'post',
-            data: wc.serialize(),
+            data: sf.serialize(),
             dataType: 'json',
             success: function (json_data) {
             	tags = json_data.result
-            	var wc_ret = ''
+            	var ner_ret = ''
             	for(var e in tags){
-            		wc_ret += '<span class="wc-'+ tags[e]["tag"] +'">' + tags[e]["content"] + '</span>'
+            		ner_ret += '<span class="ner-'+ tags[e]["tag"] +'">' + tags[e]["content"] + '</span>'
             	}
-            	$('#wc-ret').html(wc_ret);
+            	$('#ner-ret').html(ner_ret);
             }
         });
     })
@@ -28,10 +28,10 @@ JS;
     $this->registerJs($wcJs);
 ?>
 <div class="basic-block ei-panel">
-        <span class="title-prefix-md">词性分析</span>
+        <span class="title-prefix-md">实体识别</span>
 
             <div class="ei-dl clearfix">
-                <div id="wc-ret">
+                <div id="ner-ret">
 
                 </div>
             </div>
@@ -39,14 +39,14 @@ JS;
         </div>
 
         <div class="basic-block ei-example">
-        <span class="title-prefix-md">词性类别图示</span>
+        <span class="title-prefix-md">实体识别图示</span>
 
             <div class="ei-dr clearfix">
                 <div class="color-palette">
                     <?php
-                        $word_class_set = array_flip( array_flip( Yii::$app->getModule('nlp')->params['WORD_CLASS_TAG_SET'] ));
+                        $word_class_set = array_flip( array_flip( Yii::$app->getModule('nlp')->params['NAME_ENTITY_RECOGNIZE_SET'] ));
                         foreach($word_class_set as $tk => $tv){
-                            echo '<span class="wc-' . $tk . '">' . $tv . '</span>';
+                            echo '<span class="ner-' . $tk . '">' . $tv . '</span>';
                         }
                     ?>
                 </div>

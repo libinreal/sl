@@ -16,6 +16,8 @@ a:visited{
 	text-decoration: none;
 }
 
+ textarea { resize: none; }
+
 .nav-path{
 	background: #4a4a4a;
 	height: 40px;
@@ -39,7 +41,7 @@ a:visited{
     font-weight: bold;
     color: #4a4a4a;
     font-size: 19px;
-    
+
 }
 .prs-left{
 	float: left;
@@ -119,7 +121,7 @@ a:visited{
 	background: #fff;
 	border-radius: 5px;
 	margin-bottom: 12px;
-	height: 300px;
+	/*height: 300px;*/
 	padding: 10px;
 }
 .title-prefix-md{
@@ -160,7 +162,7 @@ a:visited{
 }
 .breadcrumb{
 	font-size: 12px;
-	
+
 }
 .breadcrumb-item{
     display: inline-block;
@@ -168,6 +170,6 @@ a:visited{
 }
 .arrow-gt{
 	padding: 0 12px;
-    color: #808080;	
+    color: #808080;
     font-size: 14px;
 }

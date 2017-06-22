@@ -8,7 +8,6 @@ use yii\helpers\Html;
 <header>
     <nav class="top-nav clearfix">
         <div class="nav-left">
-            <a href="javascript:">SL</a>
             <a href="javascript:">NLP</a>
         </div>
         <div class="btn-keys">

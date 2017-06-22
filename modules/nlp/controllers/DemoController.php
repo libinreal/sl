@@ -24,9 +24,9 @@ class DemoController extends \yii\web\Controller
      * 实体识别
      * @return [type] [description]
      */
-    public function actionEntityIndentify()
+    public function actionNameEntityRecognize()
     {
-    	return $this->render('entity-indentify');
+    	return $this->render('name-entity-recognize');
     }
 
     /**
