@@ -14,36 +14,10 @@ class DemoController extends \yii\web\Controller
      * 词性分析
      * @return string
      */
-    public function actionWordClass()
+    public function actionIndex()
     {
 
-        return $this->render('word-class');
+        return $this->render('index');
     }
 
-    /**
-     * 实体识别
-     * @return [type] [description]
-     */
-    public function actionNameEntityRecognize()
-    {
-    	return $this->render('name-entity-recognize');
-    }
-
-    /**
-     * 依存文法
-     * @return [type] [description]
-     */
-    public function actionDependParse()
-    {
-    	return $this->render('depend-parse');
-    }
-
-    /**
-     * 情感分析
-     * @return [type] [description]
-     */
-    public function actionSentimentAnalyse()
-    {
-    	return $this->render('sentiment-analyse');
-    }
 }

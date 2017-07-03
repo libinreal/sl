@@ -34,6 +34,7 @@
     float: left;
     position: relative;
     display: block;
+    border-bottom:2px solid #fff;
 }
 
 .bb-nav ul li>a{
@@ -50,6 +51,10 @@
 
 .bb-nav ul li>a:hover, .bb-nav ul li>a:active{
 	color:#7f387a;
+}
+
+.bb-nav li.active{
+	border-bottom:2px solid #7f387a;
 }
 
 .bb-rb{
@@ -98,24 +103,35 @@
 
 .stmts-form>form{
 	min-height: 410px;
-	padding: 20px 10px;
+	/*padding: 20px 10px;*/
 	border-radius: 0;
     box-shadow: none;
     border-color: #d2d6de;
     font-size:14px;
     font-family: 'Source Sans Pro','Helvetica Neue',Helvetica,Arial,sans-serif;
     font-weight: 400;
-    padding-bottom: 0px;
+    text-align: center;
 }
 
-.stmts-ta{
+.stmts-form{
+	margin-top: -6px;
+}
+
+.stmts-ta, .stmts-tx{
 	display: block;
 	width:86%;
 	line-height: 20px;
 	color:#333;
 	border: 1px solid #ccc;
 	font-family: inherit;
-	padding: 6px 12px;
+	padding: 6px 4px;
+	margin:16px 8px;
+	margin-bottom:6px;
+}
+
+.stmts-tx{
+	padding: 3px 12px;
+	width: 78%;
 }
 
 .btn-sub{
@@ -126,6 +142,10 @@
 	width:106px;
 	height: 36px;
 	margin: 35px;
+	margin-top:24px;
+	margin-bottom: 12px;
+	margin-left:auto;
+	margin-right:auto;
 }
 
 .color-palette{
@@ -202,6 +222,9 @@ span.ner-Ni, span.ner-S-Ni, span.ner-B-Ni, span.ner-I-Ni, span.ner-E-Ni{
 span.ner-Ns, span.ner-S-Ns, span.ner-B-Ns, span.ner-I-Ns, span.ner-E-Ns{
 	background-color: #faf176;
 }
+span.ner-other{
+	background-color: #539d53;
+}
 /** 实体标注集 */
 
 /** 情感分析 **/
@@ -213,9 +236,9 @@ span.ner-Ns, span.ner-S-Ns, span.ner-B-Ns, span.ner-I-Ns, span.ner-E-Ns{
 	width:50%;
 }
 .sa-tab{
-	margin:0px;
+	margin:2px 56px;
 	padding:0px;
-	width: auto;
+	width: 80%;
 	list-style: none;
 }
 .sa-dl{
@@ -226,13 +249,51 @@ span.ner-Ns, span.ner-S-Ns, span.ner-B-Ns, span.ner-I-Ns, span.ner-E-Ns{
 }
 .sa-dr{
 	min-height: 30px;
-	margin: 20px auto;
+	margin: 100px 50px;
+	line-height: 30px;
+	color:#606b79;
 }
-.sa-tab>li{
-	float:left;
-	padding:2px 3px;
+.sa-tab>li.active{
+	/*float:left;
+	padding:2px 20px;
+	font-size:15px;
+	border-radius: 126px;*/
 	background-color:#7e3879;
 	color:#fff;
+}
+.sa-tab li{
+	cursor:pointer;
+	font-weight: 500;
+	float:left;
+	padding:2px 20px;
+	background-color:#fff;
+	color:#7e3879;
 	font-size:15px;
+	border-radius: 126px;
+}
+.sa-dr .sa-tag:before{
+	background-color: #944d8f;/*#7f387a;*/
+    /* position: absolute; */
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 73px;
+    /* vertical-align: middle; */
+    display: inline-block;
+    line-height: 21px;
+    margin-right: 7px;
+}
+
+.sa-dr .sa-tag-p:before{
+	background-color: #be94bc;
 }
 /**情感分析**/
+
+/** 2017/06/26 修改 */
+.left-menu{
+	display: none;
+}
+header{
+	left:0px;
+}
+/** 2017/06/26 修改 */

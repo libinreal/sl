@@ -21,8 +21,8 @@ class Module extends \yii\base\Module
         parent::init();
 
         // custom initialization code goes here
-        Yii::configure($this, require(__DIR__ . '/config.php'));
-        // Yii::configure($this, require(__DIR__ . '/config.3ti.php'));
+        // Yii::configure($this, require(__DIR__ . '/config.php'));
+        Yii::configure($this, require(__DIR__ . '/config.3ti.php'));
         Yii::$app->language = 'zh-CN';
 
         /*$this->authManager->db = $this->mysql;

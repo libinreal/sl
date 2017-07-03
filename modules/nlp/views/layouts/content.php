@@ -23,8 +23,8 @@
     </div>
     <div class="bb-left clearfix">
         <div class="basic-block">
-            <span class="title-prefix-md">文字输入</span>
-            <div style="clear:both;"></div>
+            <!--span class="title-prefix-md">文字输入</span>
+            <div style="clear:both;"></div-->
             <div class="stmts-form">
                 <form id="stmts-form" method="post" action=<?php
                 if($this->context->action->id == 'word-class'):
@@ -37,8 +37,15 @@
                     echo Yii::$app->getModule('nlp')->params['API.NLP_PARSE'];
                 endif;
                 ?>>
+                <span class="title-prefix-md">文字输入</span>
+                <div style="clear:both;"></div>
                     <textarea name="intext" class="stmts-ta" rows="17" placeholder="请输入文字..."></textarea>
-                    <input type="submit" class="btn-sub" value="提交">
+                <div id="stmts-kw" style="display: none;">
+                    <span class="title-prefix-md">输入关键字</span>
+                    <div style="clear:both;"></div>
+                    <input name="kw" class="stmts-tx" placeholder="请输入关键字...">
+                </div>
+                <input type="submit" class="btn-sub" value="提交">
                 </form>
             </div>
         </div>
@@ -47,10 +54,10 @@
     <div class="bb-right clearfix">
         <div class="bb-nav clearfix">
             <ul>
-            <li><a class="active" href="/nlp/demo/word-class">词性分析</a></li>
-            <li><a href="/nlp/demo/name-entity-recognize">实体识别</a></li>
-            <li><a href="/nlp/demo/depend-parse">依存文法</a></li>
-            <li><a href="/nlp/demo/sentiment-analyse">情感分析</a></li>
+            <li><a href="javascript:;">词性分析</a></li>
+            <li><a href="javascript:;">实体识别</a></li>
+            <li><a href="javascript:;">依存文法</a></li>
+            <li><a href="javascript:;">情感分析</a></li>
             </ul>
             <div style="clear:both"></div>
         </div>
