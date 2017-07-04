@@ -19,6 +19,9 @@ $config = [
         'nlp' => [
             'class' => 'app\modules\nlp\Module',
         ],
+        'sl' => [
+            'class' => 'app\modules\sl\Module',
+        ],
     ],
     'components' => [
         'request' => [

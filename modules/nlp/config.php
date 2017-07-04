@@ -21,10 +21,10 @@ return [
         ],
     ],
     'params' => [
-        'API.NLP_WORD_CLASS_ANALYSE'  => '//192.168.2.187:8007/semodel/word_class_analyse',
-        'API.NLP_NAME_ENTITY_RECOGNIZE'  => '//192.168.2.187:8007/semodel/name_entity_recognize',
-        'API.NLP_SENTIMENT_ANALYSE'  => '//192.168.2.187:8007/sentiment/',
-        'API.NLP_PARSE'  => '//192.168.2.187:8007/semodel/parse',
+        'API.NLP_WORD_CLASS_ANALYSE'  => '//nlp.3tichina.com/api/semodel/word_class_analyse',//词性分析
+        'API.NLP_NAME_ENTITY_RECOGNIZE'  => '//nlp.3tichina.com/api/semodel/name_entity_recognize',//实体识别
+        'API.NLP_SENTIMENT_ANALYSE'  => '//nlp.3tichina.com/api/sentiment/',//情感分析
+        'API.NLP_PARSE'  => '//nlp.3tichina.com/api/semodel/parse',//依存关系
         'WORD_CLASS_TAG_SET' => [
             'c' => '连词',
             'd' => '副词',

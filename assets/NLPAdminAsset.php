@@ -3,7 +3,7 @@ namespace app\assets;
 
 use yii\web\AssetBundle;
 
-class PRSAdminAsset extends AssetBundle
+class NLPAdminAsset extends AssetBundle
 {
 
     public $basePath = '@webroot';
@@ -22,10 +22,10 @@ class PRSAdminAsset extends AssetBundle
     ];
 
     public static function addScript($view, $jsfile) {
-        $view->registerJsFile($jsfile, [AdminLteAsset::className(), 'depends' => 'app\assets\PRSAdminAsset']);
+        $view->registerJsFile($jsfile, [NLPAdminAsset::className(), 'depends' => 'app\assets\NLPAdminAsset']);
     }
 
     public static function addCss($view, $cssfile) {
-        $view->registerCssFile($cssfile, [AdminLteAsset::className(), 'depends' => 'app\assets\PRSAdminAsset']);
+        $view->registerCssFile($cssfile, [NLPAdminAsset::className(), 'depends' => 'app\assets\NLPAdminAsset']);
     }
 }

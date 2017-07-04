@@ -133,7 +133,7 @@
         });
     }
 JS;
-    app\assets\PRSAdminAsset::addScript($this, '@web/admin/js/echarts.common.min.js');
+    app\assets\NLPAdminAsset::addScript($this, '@web/admin/js/echarts.common.min.js');
     // app\assets\PRSAdminAsset::addScript($this, '@web/admin/js/echarts.js');
     // app\assets\PRSAdminAsset::addScript($this, '@web/admin/js/echarts.simple.min.js');
     $this->registerJs($wcJs);
@@ -215,8 +215,9 @@ JS;
             <div class="sa-tag sa-tag-p clearfix">正面</div>
             <div  class="sa-tag clearfix">负面</div>
             <div>负面指数：</div>
-            <div>负值判断为负面。</div>
-            <div>正值判断为正面。</div>
+            <div>负面情感值。</div>
+            <div>正面指数：</div>
+            <div>正面情感值。</div>
         </div>
 
     </div>

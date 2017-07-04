@@ -1,24 +1,20 @@
 <?php
 return [
-	//debug
-	'debug/<controller>/<action>' => 'debug/<controller>/<action>',
-
 	//site
-	'' => 'ctrl',
-	'site' => 'site/index',
-	'site/<action>' => 'site/<action>',
+	'' => 'nlp/demo/index',
+
     //ctrl
-    /*spider-data*/
-    'ctrl/spider-data/data-search/<category>' => 'ctrl/spider-data/data-search',
+    /*'ctrl/spider-data/data-search/<category>' => 'ctrl/spider-data/data-search',
     'ctrl/spider-data/semantics-analysis/<from>/<kw>' => 'ctrl/spider-data/semantics-analysis',
 
-    'ctrl/<controller>/<action>' => 'ctrl/<controller>/<action>',
+    'ctrl/<controller>/<action>' => 'ctrl/<controller>/<action>',*/
 
     //nlp
     'nlp/<controller>/<action>' => 'nlp/<controller>/<action>',
 
+    // 'http://<_m:(sl|nlp)>.3tichina.com' => '<_m>'
     //RESTful API
-    [ 'class' => 'yii\rest\UrlRule',
+    /*[ 'class' => 'yii\rest\UrlRule',
       'controller' => ['res/article-comment', 'res/product-comment']
-    ],
+    ],*/
 ];

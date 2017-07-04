@@ -3,11 +3,11 @@ use yii\helpers\Html;
 
 /* @var $this \yii\web\View */
 /* @var $content string */
-    app\assets\NLPAdminAsset::register($this);
+    app\assets\SLAdminAsset::register($this);
     $prsColor = ".keys-wrapper{background-color:#a775a4}.left-menu{background-color:#7f387a}.title-prefix-md:before{background-color:#7f387a}.top-nav{color:#7f387a}.btn-keys{background-color:#a775a4}a:visited,a:link{color:#7f387a}";
     $this->registerCss($prsColor);
 
-    app\assets\NLPAdminAsset::addScript($this, '@web/admin/lib/selectify/jquery.selectify.js');
+    app\assets\SLAdminAsset::addScript($this, '@web/admin/lib/selectify/jquery.selectify.js');
     $nlpJs = <<<JS
         $( "select" ).selectify({
                 btnText: '',
