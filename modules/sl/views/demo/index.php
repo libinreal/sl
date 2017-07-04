@@ -16,7 +16,7 @@
     $scheJs = <<<JS
 
 JS;
-    app\assets\PRSAdminAsset::addScript($this, '@web/admin/js/echarts.common.min.js');
+    // app\assets\SLAdminAsset::addScript($this, '@web/admin/js/echarts.common.min.js');
     $this->registerJs($scheJs);
 ?>
 <div>^_^</div>

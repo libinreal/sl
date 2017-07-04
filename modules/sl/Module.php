@@ -1,17 +1,17 @@
 <?php
 
-namespace app\modules\nlp;
+namespace app\modules\sl;
 use Yii;
 
 /**
- * nlp module definition class
+ * sl module definition class
  */
 class Module extends \yii\base\Module
 {
     /**
      * @inheritdoc
      */
-    public $controllerNamespace = 'app\modules\nlp\controllers';
+    public $controllerNamespace = 'app\modules\sl\controllers';
 
     /**
      * @inheritdoc

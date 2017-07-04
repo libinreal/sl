@@ -1,12 +1,12 @@
 <?php
 
-namespace app\modules\nlp\controllers;
+namespace app\modules\sl\controllers;
 
 use yii\data\ActiveDataProvider;
 use Yii;
 
 /**
- * Default controller for the `nlp` module
+ * Default controller for the `sl` module
  */
 class DemoController extends \yii\web\Controller
 {
