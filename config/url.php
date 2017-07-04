@@ -11,6 +11,7 @@ return [
 
     //nlp
     'nlp/<controller>/<action>' => 'nlp/<controller>/<action>',
+    'sl/<controller>/<action>' => 'sl/<controller>/<action>',
 
     // 'http://<_m:(sl|nlp)>.3tichina.com' => '<_m>'
     //RESTful API

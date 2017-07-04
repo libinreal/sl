@@ -3,13 +3,13 @@ return [
     'layout' => 'default',
     'components' => [
         //analysis database
-        'mysql' => [
+        'db' => [
             'class' => '\yii\db\Connection',
-            'dsn' => 'mysql:host=192.168.2.187;dbname=analyzedb',
-            'username' => '',
-            'password' => '',
+            'dsn' => 'mysql:host=61.155.169.179;port=23306;dbname=webspider',
+            'username' => 'webspider',
+            'password' => '$b1cFERT@!',
             'tablePrefix' => '',
-            'charset' => '',
+            'charset' => 'UTF-8',
         ],
         //analysis database
         'mongodb' => [

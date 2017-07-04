@@ -8,7 +8,7 @@ use yii\helpers\Html;
     $this->registerCss($prsColor);
 
     app\assets\SLAdminAsset::addScript($this, '@web/admin/lib/selectify/jquery.selectify.js');
-    $nlpJs = <<<JS
+    $slJs = <<<JS
         $( "select" ).selectify({
                 btnText: '',
             });
@@ -16,7 +16,7 @@ use yii\helpers\Html;
                 console.log( "Yes, these events work as they did on the native UI!" );
             });
 JS;
-    $this->registerJs($nlpJs);
+    $this->registerJs($slJs);
 
     ?>
     <?php $this->beginPage() ?>
