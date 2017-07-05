@@ -5,7 +5,7 @@ use yii\helpers\Html;
 /* @var $content string */
 ?>
 
-<header>
+<header style="left: 0px;">
     <nav class="top-nav clearfix">
         <div class="nav-left">
             <a href="javascript:">SL</a>

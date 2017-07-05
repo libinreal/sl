@@ -10,10 +10,12 @@ class SLAdminAsset extends AssetBundle
     public $baseUrl = '@web';
 
     public $css = [
-        'admin/css/frame.css',
-        'admin/css/public.css',
-        'admin/css/content.css',
-        'admin/lib/selectify/silver.default.css',
+        'sl/lib/sui/sui.css',
+        'sl/lib/sui/sui-append.css',
+        'sl/css/frame.css',
+        'sl/css/public.css',
+        'sl/lib/selectify/silver.default.css',
+        'sl/css/sl.css',
     ];
     public $js = [];
 

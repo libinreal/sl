@@ -4,17 +4,29 @@ use yii\helpers\Html;
 /* @var $this \yii\web\View */
 /* @var $content string */
     app\assets\SLAdminAsset::register($this);
-    $prsColor = ".keys-wrapper{background-color:#a775a4}.left-menu{background-color:#7f387a}.title-prefix-md:before{background-color:#7f387a}.top-nav{color:#7f387a}.btn-keys{background-color:#a775a4}a:visited,a:link{color:#7f387a}";
-    $this->registerCss($prsColor);
+
 
     app\assets\SLAdminAsset::addScript($this, '@web/admin/lib/selectify/jquery.selectify.js');
+    app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/sui/sui.js');
     $slJs = <<<JS
-        $( "select" ).selectify({
+        $( ".prs__select" ).selectify({
+            btnText: '',
+            classes: {
+                container: "prs__select sl-container"
+            }
+        });
+        $( ".select" ).each(function(i){
+            var className = $(this).attr('class');
+            $(this).selectify({
                 btnText: '',
+                classes: {
+                    container: className+ ' sl-container'
+                }
             });
-            $( "select" ).on( "change", function ( ) {
-                console.log( "Yes, these events work as they did on the native UI!" );
-            });
+        })
+        $( "select" ).on( "change", function ( ) {
+            console.log( "Yes, these events work as they did on the native UI!" );
+        });
 JS;
     $this->registerJs($slJs);
 

@@ -1,4 +1,4 @@
-<div class="left-menu">
+<div class="left-menu" style="display: none;">
     <div class="lm-icon-wrapper">
         <div class="lm-icon icon-list"></div>
     </div>

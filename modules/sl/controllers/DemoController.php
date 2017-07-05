@@ -17,8 +17,24 @@ class DemoController extends \yii\web\Controller
      */
     public function actionIndex()
     {
+        if(Yii::$app->request->isGet)
+        {
+            return $this->render('index');
+        }
+        else
+        {
+            $post = Yii::$app->request->post();
+            $pageNo = $post['pageNo'];
+            $pageSize = $post['pageSize'];
+            $pageCount = $post['pageCount'];
+            $page = $post['brand_name'];
+            $post['pageCount'];
+            $post['pageCount'];
+            $post['pageCount'];
+            $post['pageCount'];
+        }
 
-        return $this->render('index');
+
     }
 
     /**

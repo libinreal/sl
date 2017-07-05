@@ -26,6 +26,10 @@ use Yii;
  */
 class SlTaskSchedule extends \yii\db\ActiveRecord
 {
+
+    const STATUS_CLOSE = 0;
+    const STATUS_OPEN = 1;
+    const STATUS_COMPLETE = 2;
     /**
      * @inheritdoc
      */
@@ -43,6 +47,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
             [['name', 'brand_name', 'class_name', 'cookie', 'user_agent'], 'required'],
             [['name', 'brand_name', 'class_name', 'cookie', 'user_agent'], 'string'],
             [['sche_status', 'sche_type', 'update_time', 'task_number'], 'integer'],
+            ['sche_status', 'in', 'range' => [self::STATUS_CLOSE, self::STATUS_OPEN, self::STATUS_COMPLETE]],
             [['sche_progress', 'data_number'], 'number'],
             [['pf_name', 'dt_category'], 'string', 'max' => 100],
             [['key_words'], 'string', 'max' => 200],
