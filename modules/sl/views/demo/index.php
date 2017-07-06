@@ -6,7 +6,8 @@ use yii\helpers\Url;
     $this->params['breadcrumbs'][] = '计划任务列表';
     $this->params['breadcrumbs'][] = $this->title;
     $curPageUrl = Url::current();
-    $scheJs = <<<JS
+    $this->beginBlock('scheJs');
+?>
     $.fn.serializeJson=function(){
         var serializeObj={};
         var array=this.serializeArray();
@@ -25,11 +26,12 @@ use yii\helpers\Url;
         return serializeObj;
     };
 
-    var pageNo = 1, pageSize = 10, pageCount = 0,  refreshUrl = "$curPageUrl";
+    var pageNo = 1, pageSize = 10, pageCount = 0,  refreshUrl = "<?= $curPageUrl ?>";
     goToPage();
     function goToPage(_pageNo = 1){
+    	var csrfToken = $('meta[name="csrf-token"]').attr("content");
     	var filterData = $("#filterFrm").serializeJson();
-    	var reqData = $.extend({}, filterData, {pageNo:pageNo, pageSize:pageSize});
+    	var reqData = $.extend({}, filterData, {pageNo:pageNo, pageSize:pageSize, _csrf:csrfToken});
     	$.ajax({
             crossDomain: true,
             url: refreshUrl,
@@ -37,15 +39,17 @@ use yii\helpers\Url;
             data: reqData,
             dataType: 'json',
             success: function (json_data) {
-            	console.log(json_data);
+            	// console.log(JSON.stringify(json_data));
+
             }
         });
 
     }
-JS;
-    // app\assets\SLAdminAsset::addScript($this, '@web/admin/js/echarts.common.min.js');
-    $this->registerJs($scheJs);
+<?php
+$this->endBlock();
+$this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);
 ?>
+
 <div class="block clearfix">
 				<div class="section clearfix">
 					<span class="title-prefix-md">任务运行状态</span>

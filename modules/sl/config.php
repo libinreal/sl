@@ -9,7 +9,7 @@ return [
             'username' => 'webspider',
             'password' => '$b1cFERT@!',
             'tablePrefix' => '',
-            'charset' => 'UTF-8',
+            'charset' => 'UTF8',
         ],
         //analysis database
         'mongodb' => [

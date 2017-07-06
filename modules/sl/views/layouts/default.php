@@ -8,7 +8,8 @@ use yii\helpers\Html;
 
     app\assets\SLAdminAsset::addScript($this, '@web/admin/lib/selectify/jquery.selectify.js');
     app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/sui/sui.js');
-    $slJs = <<<JS
+    $this->beginBlock('scheJs');
+?>
         $( ".prs__select" ).selectify({
             btnText: '',
             classes: {
@@ -27,11 +28,11 @@ use yii\helpers\Html;
         $( "select" ).on( "change", function ( ) {
             console.log( "Yes, these events work as they did on the native UI!" );
         });
-JS;
-    $this->registerJs($slJs);
-
-    ?>
-    <?php $this->beginPage() ?>
+<?php
+    $this->endBlock();
+    $this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);
+    $this->beginPage()
+?>
     <!DOCTYPE html>
     <html lang="<?= Yii::$app->language ?>">
     <head>
