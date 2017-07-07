@@ -2,9 +2,9 @@
 use app\modules\sl\models\SlTaskSchedule;
 use yii\helpers\Url;
     $this->title = '任务控制';
-    $this->params['breadcrumbs'][] = 'SL System';
+    /*$this->params['breadcrumbs'][] = 'SL System';
     $this->params['breadcrumbs'][] = '计划任务列表';
-    $this->params['breadcrumbs'][] = $this->title;
+    $this->params['breadcrumbs'][] = $this->title;*/
     $curPageUrl = Url::current();
     $this->beginBlock('scheJs');
 ?>
@@ -45,6 +45,7 @@ use yii\helpers\Url;
         });
 
     }
+
 <?php
 $this->endBlock();
 $this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);
@@ -52,7 +53,8 @@ $this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);
 
 <div class="block clearfix">
 				<div class="section clearfix">
-					<span class="title-prefix-md">任务运行状态</span>
+					<span class="title-prefix-md">计划任务列表</span>
+					<div class="sl-add-text fr" onclick="javascript:location.href='/sl/demo/add-schedule'">新增</div>
 				</div>
 				<div class="sl-query-wrapper sui-form clearfix">
 					<form id="filterFrm">

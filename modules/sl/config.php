@@ -20,5 +20,10 @@ return [
             'class' => 'yii\caching\Cache'
         ],
     ],
-    'params' => [],
+    'params' => [
+        'PLATFORM_LIST'=>[
+            'pf_jd' => '京东',
+            'pf_tmall' => '天猫',
+        ],
+    ],
 ];

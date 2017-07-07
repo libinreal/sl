@@ -7,13 +7,12 @@ return [
 		    'tablePrefix' => 'da_',
 		    'charset' => 'utf8',
     	];
-    	/*
+/*
 return [
-    'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=192.168.2.187;dbname=analyzedb',
-    'username' => 'root',
-    'password' => '3ti123',
-    'tablePrefix' => 'da_',
-    'charset' => 'utf8',
-];
-*/
+            'class' => '\yii\db\Connection',
+            'dsn' => 'mysql:host=61.155.169.179;port=23306;dbname=webspider',
+            'username' => 'webspider',
+            'password' => '$b1cFERT@!',
+            'tablePrefix' => '',
+            'charset' => 'UTF8',
+        ];*/

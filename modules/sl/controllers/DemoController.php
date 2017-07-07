@@ -6,7 +6,7 @@ use yii\data\ActiveDataProvider;
 use Yii;
 use app\modules\sl\models\SlTaskSchedule;
 use yii\web\Response;
-use yii\helpers\Json;
+use app\modules\sl\components\SettingHelper;
 
 /**
  * Default controller for the `sl` module
@@ -67,7 +67,34 @@ class DemoController extends \yii\web\Controller
     public function actionAddSchedule()
     {
 
-        return $this->render('add-schedule');
+        if( Yii::$app->request->isGet )
+        {
+
+            $pfArr = Yii::$app->getModule('sl')->params['PLATFORM_LIST'];
+            $pfSettings = SettingHelper::getPfSetting( array_keys( $pfArr ));
+
+            return $this->render('add-schedule', ['pfSettings' => $pfSettings]);
+
+        }
+        else if( Yii::$app->request->isAjax)
+        {
+            $scheModel = new SlTaskSchedule();
+            //数据验证失败
+            if ( !$scheModel->load( Yii::$app->request->queryParams ) || !$scheModel->validate() )
+            {
+                return $this->render('add-schedule');
+            }
+
+            $scheModel->save();
+
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return  [
+                    'code'=>0,
+                    'msg'=>'ok',
+                    'data'=>[]
+                    ];
+        }
+
     }
 
     /**

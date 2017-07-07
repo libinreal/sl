@@ -27,6 +27,10 @@ use Yii;
  */
 class SlTaskItem extends \yii\db\ActiveRecord
 {
+
+    const PAGING_NO = 0;
+    const PAGING_YES = 1;
+
     /**
      * @inheritdoc
      */
@@ -41,13 +45,21 @@ class SlTaskItem extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['sche_id', 'pf_name', 'dt_category', 'task_status', 'task_time', 'update_time', 'complete_time'], 'integer'],
-            [['name', 'cookie', 'user_agent'], 'required'],
+            [['sche_id', 'pf_name', 'dt_category', 'task_status', 'task_time', 'update_time', 'complete_time', 'paging'], 'integer'],
+            ['task_status', 'in', 'range' => [SlTaskSchedule::SCHE_STATUS_CLOSE, SlTaskSchedule::SCHE_STATUS_OPEN, SlTaskSchedule::SCHE_STATUS_COMPLETE]],
+            ['paging', 'in', 'range' => [self::PAGING_NO, self::PAGING_YES]],
             [['name', 'cookie', 'user_agent'], 'string'],
             [['task_progress', 'data_number'], 'number'],
             [['brand_name', 'class_name', 'key_words'], 'string', 'max' => 200],
             [['spider_name'], 'string', 'max' => 255],
         ];
+    }
+
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios['update'] = ['name', 'brand_name', 'class_name', 'cookie', 'user_agent'];
+        return $scenarios;
     }
 
     /**
