@@ -335,11 +335,12 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 														<button type="button" onclick="javascript:savePf('.$pfList[$pk].');" class="sui-btn btn-bordered btn-xlarge btn-primary">确定</button>
 													</div>
 												</div>
-
-											</div>
 										</div>';
+										$i++;
+									}
 									?>
 									<!-- tab-pane End -->
+									</div>
 								</div>
 							</div>
 							<div class="control-group" style="margin-bottom: 15px;">
@@ -358,7 +359,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 								<div class="controls">
 									<div>
 										<label data-toggle="radio" class="radio-pretty inline-block checked" style="margin-bottom: 0;line-height: 34px;">
-											<input type="radio" name="excuteTime" checked="checked"><span>定时</span>
+											<input type="radio" name="sche_type" checked="checked" value="1"><span>定时</span>
 										</label>
 										<input type="text" class="input-large"
 											data-toggle='datepicker' data-date-timepicker='true'
@@ -366,18 +367,18 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 									</div>
 									<div>
 										<label data-toggle="radio" class="radio-pretty inline-block" style="margin-bottom: 0;line-height: 34px;">
-											<input type="radio" name="excuteTime"><span>重复</span>
+											<input type="radio" name="sche_type" value="3"><span>重复</span>
 										</label>
-										<span class="sui-dropdown dropdown-bordered select--xsm">
+										<span class="sui-dropdown dropdown-bordered select--xsm select">
 											<span class="dropdown-inner">
 												<a role="button" data-toggle="dropdown" href="#" class="dropdown-toggle">
-													<input value="1" name="" type="hidden">
+													<input value="2" name="sche_type_repeat" type="hidden">
 													<i class="caret"></i><span>每天</span>
 												</a>
 												<ul role="menu" class="sui-dropdown-menu">
-													<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="1">每天</a> </li>
-													<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="2">每周</a> </li>
-													<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="2">每月</a> </li>
+													<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="2">每天</a> </li>
+													<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="4">每周</a> </li>
+													<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="3">每月</a> </li>
 												</ul>
 											</span>
 										</span>
@@ -385,7 +386,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 											data-toggle='timepicker' value="12:48" style="height: 24px;margin-left: 8px;">
 									</div>
 									<div class="sl-tags-wrapper">
-										<ul class="sui-tag tag-selected">
+										<ul id="sche_week_tags" class="sui-tag tag-selected">
 										  <li>周一</li>
 										  <li class="tag-selected">周二</li>
 										  <li>周三</li>
@@ -396,7 +397,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 										</ul>
 									</div>
 									<div class="sl-tags-wrapper">
-										<ul class="sui-tag tag-selected">
+										<ul id="sche_month_tags" class="sui-tag tag-selected">
 										  <li>1</li>
 										  <li class="tag-selected">2</li>
 										  <li>3</li>
