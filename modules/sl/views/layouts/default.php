@@ -10,6 +10,23 @@ use yii\helpers\Html;
     app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/sui/sui.js');
     $this->beginBlock('scheJs');
 ?>
+        $.fn.serializeObject = function(){
+            var o = {};
+            var a = this.serializeArray();
+            $.each(a, function() {
+
+                if (o[this.name] !== undefined) {
+                    if (!o[this.name].push) {
+                        o[this.name] = [o[this.name]];
+                    }
+                    o[this.name].push(this.value || '');
+                } else {
+                    o[this.name] = this.value || '';
+                }
+            });
+            return o;
+        }
+
         $( ".prs__select" ).selectify({
             btnText: '',
             classes: {
@@ -28,6 +45,8 @@ use yii\helpers\Html;
         $( "select" ).on( "change", function ( ) {
             console.log( "Yes, these events work as they did on the native UI!" );
         });
+
+        var csrfToken = $('meta[name="csrf-token"]').attr("content");
 <?php
     $this->endBlock();
     $this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);

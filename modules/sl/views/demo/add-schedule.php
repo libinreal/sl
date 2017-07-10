@@ -93,7 +93,7 @@ $this->beginBlock("addScheJs");
 				}else{
 					$('.'+ this._modalClass).css({'margin-left':'-'+(this.options.containerWidth*bodyWidth/2) + 'px','width':this.options.containerWidth*bodyWidth + 'px','left':'50%'});
 				}
-
+7
 			}
 
 		},
@@ -186,6 +186,145 @@ var modal1 = null,
 			}
 		})
 	})
+
+
+
+/**
+ * 保存渠道设置
+ * @param  string pk渠道键名
+ * @return void
+ */
+function savePf( pk ){
+	var pfData = $("#"+pk).find("input").serializeObject();
+	pfData = $.extend({}, pfData, {pk:pk, _csrf:csrfToken});
+
+	$.ajax({
+        url: '/sl/demo/update-schedule-settings',
+        type: 'post',
+        data: pfData,
+        dataType: 'json',
+        success: function (json_data) {
+        	if(json_data.code == '0')
+        	{
+        		alert('保存成功');
+        	}
+
+        }
+    });
+}
+
+/**
+ * 更改重复执行的周期触发
+ * @param _e input表单元素
+ * @return {[type]} [description]
+ */
+function onChangeRepeat(_e)
+{
+	var repeat_type = $(_e).val()
+	if(repeat_type == 2)//2 每天
+	{
+		$('#sche_week_tags').hide();
+		$('#sche_month_tags').hide();
+	}
+	else if(repeat_type == 3)//3 每月
+	{
+		$('#sche_week_tags').hide();
+		$('#sche_month_tags').show();
+	}
+	else if(repeat_type == 4)//4 每周
+	{
+		$('#sche_week_tags').show();
+		$('#sche_month_tags').hide();
+	}
+}
+
+/**
+ * 获取最新的产品分类列表
+ * @return void
+ */
+function getProductClass()
+{
+	$.ajax({
+        url: '/sl/demo/get-product-class',
+        type: 'post',
+        data: {_csrf:csrfToken},
+        dataType: 'json',
+        success: function (json_data) {
+        	if(json_data.code == '0')
+        	{
+        		var items = json_data.data;
+        		var items_len = items.length;
+        		var html_str = '';
+
+        		for(var i = 0;i < items_len;i++)
+        		{
+        			html_str += '<label class="checkbox-pretty inline-block"><input onchange="onCheckProductClass(\''+ items[i]['id'] +'\', this);" value="'+ items[i]['name'] +'" name="class_name[]" type="checkbox"><span>'+ items[i]['name'] +'</span></label>';
+        		}
+        		$('#product_brand_tags').html(html_str);
+        	}
+
+        }
+    });
+}
+
+/**
+ * 选择产品分类触发
+ * @param  cid 分类id
+ * @param  _input 分类选框
+ * @return
+ */
+function onCheckProductClass(cid, _input)
+{
+	var stat = !$(_input).parent().hasClass('checked');//当前选框状态
+	getProductBrand(cid, function(){
+		$('#product_brand_tags').children('#brand_cid_'+cid).find("checkbox-pretty").each(function(_e){
+			if( stat )
+				$(_e).checkbox("check")
+			else
+				$(_e).checkbox("uncheck")
+		});
+
+	});
+
+
+}
+
+/**
+ * 获取最新的产品品牌列表
+ * @param class_id class_id
+ * @return void
+ */
+function getProductBrand(class_id = '', func = null )
+{
+	$.ajax({
+        url: '/sl/demo/get-product-brand',
+        type: 'post',
+        data: {_csrf:csrfToken, class_id:class_id},
+        dataType: 'json',
+        success: function (json_data) {
+        	if(json_data.code == '0')
+        	{
+        		var items = json_data.data;
+        		var items_len = items.length;
+        		var html_str = '';
+
+        		for(var i in items)//类别
+        		{
+        			for(var j = 0;j< items[i].length;j++)//品牌
+        			{
+        				html_str += '<label class="checkbox-pretty inline-block"><input value="'+ items[i][j]['name'] +'" name="brand_name[]" type="checkbox"><span>'+ items[i][j]['name'] +'</span></label>';
+        			}
+        			$('#product_brand_tags').children('#brand_cid_'+i).html(html_str);
+        		}
+
+        		if(func) func();
+
+        	}
+
+        }
+    });
+}
+
 <?php
 $this->endBlock();
 $this->registerJs($this->blocks['addScheJs'], \yii\web\View::POS_END);
@@ -197,6 +336,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 				</div>
 				<div class="clearfix">
 					<div class="sl-left-half">
+						<form id="addFrm" action="/sl/demo/index">
 						<div class="sui-form form-horizontal">
 							<div class="control-group mb1">
 								<label class="control-label" style="min-width: 68px;">任务名</label>
@@ -228,13 +368,15 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 									</label>
 								</label>
 								<div class="controls controls--special" style="width: 100%;">
-									<div class="sl-checkbox-group" style="width: 100%; box-sizing: border-box;">
-										<label class="checkbox-pretty inline-block checked">
-											<input name="class_name" type="checkbox" checked="checked"><span>手机</span>
-										</label>
-										<label class="checkbox-pretty inline-block">
-											<input type="checkbox"><span>电脑</span>
-										</label>
+									<div class="sl-checkbox-group" id="product_class_tags" style="width: 100%; box-sizing: border-box;">
+										<!--label class="checkbox-pretty inline-block">
+											<input name="class_name[]" type="checkbox" checked="checked"><span>手机</span>
+										</label-->
+										<?php
+											foreach ($productClassArr as $k => $v) {
+												echo '<label class="checkbox-pretty inline-block"><input onchange="onCheckProductClass(\''. $v['id'] . '\', this);" name="class_name[]" type="checkbox" value="'.$v['name'].'"><span>'.$v['name'].'</span></label>';
+											}
+										?>
 									</div>
 								</div>
 							</div>
@@ -253,15 +395,18 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 									</label>
 								</label>
 								<div class="controls controls--special" style="width: 100%;">
-									<div class="sl-checkbox-group" style="width: 100%; box-sizing: border-box;">
-										<label class="checkbox-pretty inline-block checked">
-											<input type="checkbox" name="brand_name" checked="checked"><span>苹果</span>
-										</label>
+									<div class="sl-checkbox-group" id="product_brand_tags" style="width: 100%; box-sizing: border-box;">
+										<?php
+											foreach ($productClassArr as $k => $v) {
+												echo '<div class="brand_cid_'. $v['id'] .'"></div>';
+											}
+										?>
 									</div>
 								</div>
 							</div>
 
 						</div>
+						</form>
 					</div>
 					<div class="sl-right-half">
 						<div class="sui-form form-horizontal label-left-align">
@@ -295,7 +440,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 												$_cls_str = '';
 											echo '<div class="tab-pane'.$_cls_str.'" id="'.$pk.'">
 												<label class="checkbox-pretty inline-block">
-													<input name="pf_name" value="" type="checkbox"><span>'.$pfList[$pk].'</span>
+													<input name="pf_name[]" value="'.$pfList[$pk].'" type="checkbox"><span>'.$pfList[$pk].'</span>
 												</label>
 												<div class="sl-channel-wrapper">
 													<div class="sl-channel-title">设置渠道: <span>'.$pfList[$pk].'</span></div>
@@ -310,8 +455,8 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 																	<input type="text" class="input-medium input-key" placeholder="名" />
 																</div>
 																<div class="param__value fl">
-																	<input type="text" value= "'. $pv[$pk.'_cookie'].'" class="input-xlarge input-value" placeholder="值" />
-																	<div class="sl-icon-trash"></div>
+																	<input type="text" name="'.$pk.'_cookie" value= "'. $pv[$pk.'_cookie'].'" class="input-xlarge input-value" placeholder="值" />
+																	<div class="sl-i2con-trash"></div>
 																</div>
 															</div>
 														</div>
@@ -325,14 +470,14 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 																	<input type="text" class="input-medium input-key" placeholder="名" />
 																</div>
 																<div class="param__value fl">
-																	<input type="text" value="'. $pv[$pk.'_ua'].'" class="input-xlarge input-value" placeholder="值" />
+																	<input type="text" name="'.$pk.'_ua" value="'. $pv[$pk.'_ua'].'" class="input-xlarge input-value" placeholder="值" />
 																	<div class="sl-icon-trash"></div>
 																</div>
 															</div>
 														</div>
 													</div>
 													<div class="channel__btn-center">
-														<button type="button" onclick="javascript:savePf('.$pfList[$pk].');" class="sui-btn btn-bordered btn-xlarge btn-primary">确定</button>
+														<button type="button" onclick="javascript:savePf(\''.$pk.'\');" class="sui-btn btn-bordered btn-xlarge btn-primary">确定</button>
 													</div>
 												</div>
 										</div>';
@@ -347,10 +492,10 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 								<label class="control-label" style="min-width: 68px;padding-right: 10px;">抓取内容</label>
 								<div class="controls">
 									<label class="checkbox-pretty inline-block" style="margin-bottom: 0;line-height: 34px;">
-										<input type="checkbox"><span>商品</span>
+										<input value="商品" name="dt_category[]" type="checkbox"><span>商品</span>
 									</label>
 									<label class="checkbox-pretty inline-block" style="margin-bottom: 0;">
-										<input type="checkbox"><span>评论</span>
+										<input value="评论" name="dt_category[]" type="checkbox"><span>评论</span>
 									</label>
 								</div>
 							</div>
@@ -372,7 +517,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 										<span class="sui-dropdown dropdown-bordered select--xsm select">
 											<span class="dropdown-inner">
 												<a role="button" data-toggle="dropdown" href="#" class="dropdown-toggle">
-													<input value="2" name="sche_type_repeat" type="hidden">
+													<input value="2" name="sche_type_repeat"  onchange="onChangeRepeat(this);" type="hidden">
 													<i class="caret"></i><span>每天</span>
 												</a>
 												<ul role="menu" class="sui-dropdown-menu">
@@ -385,8 +530,8 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 										<input type="text" class="input-medium"
 											data-toggle='timepicker' value="12:48" style="height: 24px;margin-left: 8px;">
 									</div>
-									<div class="sl-tags-wrapper">
-										<ul id="sche_week_tags" class="sui-tag tag-selected">
+									<div class="sl-tags-wrapper" id="sche_week_tags" style="display: none;">
+										<ul class="sui-tag tag-selected">
 										  <li>周一</li>
 										  <li class="tag-selected">周二</li>
 										  <li>周三</li>
@@ -396,8 +541,8 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 										  <li class="tag-selected">周日</li>
 										</ul>
 									</div>
-									<div class="sl-tags-wrapper">
-										<ul id="sche_month_tags" class="sui-tag tag-selected">
+									<div class="sl-tags-wrapper" id="sche_month_tags" style="display: none;">
+										<ul class="sui-tag tag-selected">
 										  <li>1</li>
 										  <li class="tag-selected">2</li>
 										  <li>3</li>

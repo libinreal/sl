@@ -47,4 +47,22 @@ class SlScheduleProductClassBrand extends \yii\db\ActiveRecord
     {
         return Yii::$app->getModule('sl')->db;
     }
+
+    /**
+     * * 获取关联品牌名
+     * @return [type] [description]
+     */
+    public function getProductBrand()
+    {
+        return $this->hasMany(SlScheduleProductBrand::className(), ['id' => 'brand_id']);
+    }
+
+    /**
+     * 获取关联分类名
+     * @return [type] [description]
+     */
+    public function getProductClass()
+    {
+        return $this->hasMany(SlScheduleProductClass::className(), ['id' => 'class_id']);
+    }
 }
