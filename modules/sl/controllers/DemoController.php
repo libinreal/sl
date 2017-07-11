@@ -129,12 +129,18 @@ class DemoController extends \yii\web\Controller
                 $q->where([SlScheduleProductClassBrand::tableName().'.class_id' => $post['class_id']]);
 
             $items = $q->joinWith('productBrand')
-                        ->indexBy('class_id')
                         ->asArray()
                         ->all();
-            // var_dump($items);exit;
             /*$commandQuery = clone $q;
             echo $commandQuery->createCommand()->getRawSql();exit;*/
+
+
+
+            foreach ($items as &$v) {
+                unset($v['productBrand']);
+            }
+            unset($v);
+
 
             return  [
                 'code' => '0',
@@ -183,16 +189,25 @@ class DemoController extends \yii\web\Controller
         }
         else if( Yii::$app->request->isAjax)
         {
+            Yii::$app->response->format = Response::FORMAT_JSON;
             $scheModel = new SlTaskSchedule();
+            $post = Yii::$app->request->post();
+
+
             //数据验证失败
-            if ( !$scheModel->load( Yii::$app->request->queryParams ) || !$scheModel->validate() )
+            if ( !$scheModel->load( $post, '' ) || !$scheModel->validate() )
             {
-                return $this->render('add-schedule');
+                // var_dump( $scheModel->getErrors());exit;
+                return [
+                    'code' => -1,
+                    'msg' => 'Data not invalid',
+                    'data' => []
+                ];
             }
 
             $scheModel->save();
 
-            Yii::$app->response->format = Response::FORMAT_JSON;
+
             return  [
                     'code'=>0,
                     'msg'=>'ok',

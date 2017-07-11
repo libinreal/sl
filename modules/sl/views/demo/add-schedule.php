@@ -142,7 +142,7 @@ $this->beginBlock("addScheJs");
 })(jQuery)
 
 var modal1 = null,
-		modal2 = null;
+	modal2 = null;
 	function editCategory(){
 		modal1 = new ModalBuilder('template1', {
 			title: '新增分类',
@@ -277,11 +277,18 @@ function onCheckProductClass(cid, _input)
 {
 	var stat = !$(_input).parent().hasClass('checked');//当前选框状态
 	getProductBrand(cid, function(){
-		$('#product_brand_tags').children('#brand_cid_'+cid).find("checkbox-pretty").each(function(_e){
+		$('#product_brand_tags').children('#brand_cid_'+cid).find(".checkbox-pretty").each(function(){
+			_e = $(this)
 			if( stat )
-				$(_e).checkbox("check")
+			{
+				_e.addClass('checked')
+				_e.find('input').attr('checked', true)
+			}
 			else
-				$(_e).checkbox("uncheck")
+			{
+				_e.removeClass('checked')
+				_e.find('input').attr('checked', false)
+			}
 		});
 
 	});
@@ -294,7 +301,7 @@ function onCheckProductClass(cid, _input)
  * @param class_id class_id
  * @return void
  */
-function getProductBrand(class_id = '', func = null )
+function getProductBrand(class_id = null, func = null )
 {
 	$.ajax({
         url: '/sl/demo/get-product-brand',
@@ -308,14 +315,12 @@ function getProductBrand(class_id = '', func = null )
         		var items_len = items.length;
         		var html_str = '';
 
-        		for(var i in items)//类别
-        		{
-        			for(var j = 0;j< items[i].length;j++)//品牌
-        			{
-        				html_str += '<label class="checkbox-pretty inline-block"><input value="'+ items[i][j]['name'] +'" name="brand_name[]" type="checkbox"><span>'+ items[i][j]['name'] +'</span></label>';
-        			}
-        			$('#product_brand_tags').children('#brand_cid_'+i).html(html_str);
-        		}
+
+    			for(var j = 0;j< items_len;j++)//品牌
+    			{
+    				html_str += '<label class="checkbox-pretty inline-block"><input value="'+ items[j]['name'] +'" name="brand_name[]" type="checkbox"><span>'+ items[j]['name'] +'</span></label>';
+    			}
+    			$('#product_brand_tags').children('#brand_cid_'+class_id).html(html_str);
 
         		if(func) func();
 
@@ -325,6 +330,143 @@ function getProductBrand(class_id = '', func = null )
     });
 }
 
+//全选
+$('#class_all_select').on('click', 'input', function(e){
+	<!-- e.preventDefault(); -->
+	$('#product_class_tags').find('.checkbox-pretty').each(function(){
+		_e = $(this)
+		if(!_e.hasClass('checked')){
+			_e.addClass('checked');
+			_e.find('input').attr('checked', true);
+		}
+	})
+})
+//反选
+$('#class_all_cancel').on('click', 'input', function(e){
+	<!-- e.preventDefault(); -->
+	$('#product_class_tags').find('.checkbox-pretty').each(function(){
+		_e = $(this)
+		if(_e.hasClass('checked')){
+			_e.removeClass('checked');
+			_e.find('input').attr('checked', false);
+		}
+		else if(!_e.hasClass('checked'))
+		{
+			_e.addClass('checked');
+			_e.find('input').attr('checked', true);
+		}
+	})
+})
+
+//全选
+$('#brand_all_select').on('click', 'input', function(e){
+	<!-- e.preventDefault(); -->
+	$('#product_brand_tags').find('.checkbox-pretty').each(function(){
+		_e = $(this)
+		if(!_e.hasClass('checked')){
+			_e.addClass('checked');
+			_e.find('input').attr('checked', true);
+		}
+	})
+})
+//反选
+$('#brand_all_cancel').on('click', 'input', function(e){
+	<!-- e.preventDefault(); -->
+	$('#product_brand_tags').find('.checkbox-pretty').each(function(){
+		_e = $(this)
+		if(_e.hasClass('checked')){
+			_e.removeClass('checked');
+			_e.find('input').attr('checked', false);
+		}
+		else if(!_e.hasClass('checked'))
+		{
+			_e.addClass('checked');
+			_e.find('input').attr('checked', true);
+		}
+	})
+})
+
+
+//周点击
+$("#sche_week_tags").on("click", "li", function(_e){
+	var _w = $(_e.currentTarget);
+	var week_days = $("input[name='week_days']").val();
+	var _i, arr = (week_days && week_days.split(',')) || [];
+
+	_i = $.inArray(_w.attr('data-index'), arr)
+	if( _i >= 0 )
+	{
+		arr.splice(_i, 1)
+		$("input[name='week_days']").first().val(arr.join(','))
+		_w.removeClass('tag-selected');
+	}
+	else
+	{
+		arr.push(_w.attr('data-index'))
+		arr.sort(function(a, b){ return a - b;})
+		$("input[name='week_days']").first().val(arr.join(','))
+		_w.addClass('tag-selected');
+	}
+})
+
+//月点击
+$("#sche_month_tags").on("click", "li", function(_e){
+	var _m = $(_e.currentTarget);
+	var month_days = $("input[name='month_days']").val();
+	var _i, arr = (month_days && month_days.split(',')) || [];
+
+	_i = $.inArray(_m.attr('data-index'), arr)
+	if( _i >= 0 )
+	{
+		arr.splice(_i, 1)
+		$("input[name='month_days']").first().val(arr.join(','))
+		_m.removeClass('tag-selected');
+	}
+	else
+	{
+		arr.push(_m.attr('data-index'))
+		arr.sort(function(a, b){ return a - b;})
+		$("input[name='month_days']").first().val(arr.join(','))
+		_m.addClass('tag-selected');
+	}
+})
+
+function submitAddFrm(){
+	var sche_type = $("input[name='sche_type']:checked").val();
+	var sche_time = '';
+	if(sche_type == 1)
+	{
+		sche_time = $("input[name='sche_start_time1']").val()
+	}
+	else
+	{
+		sche_time = $("input[name='sche_start_time2']").val()
+	}
+
+	var frmData = $('#addFrm').serializeObject();
+	frmData = $.extend({}, frmData, { _csrf:csrfToken}, {sche_time:sche_time});
+
+	delete frmData.sche_start_time1
+	delete frmData.sche_start_time2
+
+	$.ajax({
+        url: $('#addFrm').attr('action'),
+        type: 'post',
+        data: frmData,
+        dataType: 'json',
+        success: function (json_data) {
+        	if(json_data.code == '0')
+        	{
+        		alert('数据提交成功');
+        	}
+        	else
+        	{
+        		alert(msg);
+        	}
+
+        }
+    });
+}
 <?php
 $this->endBlock();
 $this->registerJs($this->blocks['addScheJs'], \yii\web\View::POS_END);
@@ -335,8 +477,9 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 					<span class="title-prefix-md">新增计划任务</span>
 				</div>
 				<div class="clearfix">
+					<form id="addFrm" method="POST" action="/sl/demo/add-schedule">
 					<div class="sl-left-half">
-						<form id="addFrm" action="/sl/demo/index">
+
 						<div class="sui-form form-horizontal">
 							<div class="control-group mb1">
 								<label class="control-label" style="min-width: 68px;">任务名</label>
@@ -360,11 +503,11 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 							</div>
 							<div class="control-group mb1">
 								<label class="control-label sl-label-special" style="min-width: 76px;">
-									<label class="checkbox-pretty checked">
-										<input type="checkbox" checked="checked"><span>全选</span>
+									<label id="class_all_select" class="checkbox-pretty ">
+										<input type="checkbox"><span>全选</span>
 									</label>
-									<label class="checkbox-pretty checked">
-										<input type="checkbox" checked="checked"><span>反选</span>
+									<label id="class_all_cancel" class="checkbox-pretty ">
+										<input type="checkbox"><span>反选</span>
 									</label>
 								</label>
 								<div class="controls controls--special" style="width: 100%;">
@@ -387,18 +530,18 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 							</div>
 							<div class="control-group mb1">
 								<label class="control-label sl-label-special" style="min-width: 76px;">
-									<label class="checkbox-pretty checked">
-										<input type="checkbox" checked="checked"><span>全选</span>
+									<label  id="brand_all_select" class="checkbox-pretty ">
+										<input type="checkbox"><span>全选</span>
 									</label>
-									<label class="checkbox-pretty checked">
-										<input type="checkbox" checked="checked"><span>反选</span>
+									<label  id="brand_all_cancel" class="checkbox-pretty ">
+										<input type="checkbox"><span>反选</span>
 									</label>
 								</label>
 								<div class="controls controls--special" style="width: 100%;">
 									<div class="sl-checkbox-group" id="product_brand_tags" style="width: 100%; box-sizing: border-box;">
 										<?php
 											foreach ($productClassArr as $k => $v) {
-												echo '<div class="brand_cid_'. $v['id'] .'"></div>';
+												echo '<div id="brand_cid_'. $v['id'] .'"></div>';
 											}
 										?>
 									</div>
@@ -406,7 +549,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 							</div>
 
 						</div>
-						</form>
+
 					</div>
 					<div class="sl-right-half">
 						<div class="sui-form form-horizontal label-left-align">
@@ -506,9 +649,9 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 										<label data-toggle="radio" class="radio-pretty inline-block checked" style="margin-bottom: 0;line-height: 34px;">
 											<input type="radio" name="sche_type" checked="checked" value="1"><span>定时</span>
 										</label>
-										<input type="text" class="input-large"
+										<input name="sche_start_time1" type="text" class="input-large"
 											data-toggle='datepicker' data-date-timepicker='true'
-											value="2017-07-05 12:48" style="height: 24px;">
+											value="" style="height: 24px;">
 									</div>
 									<div>
 										<label data-toggle="radio" class="radio-pretty inline-block" style="margin-bottom: 0;line-height: 34px;">
@@ -528,51 +671,27 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 											</span>
 										</span>
 										<input type="text" class="input-medium"
-											data-toggle='timepicker' value="12:48" style="height: 24px;margin-left: 8px;">
+											data-toggle='timepicker' name="sche_start_time2" value="" style="height: 24px;margin-left: 8px;">
 									</div>
 									<div class="sl-tags-wrapper" id="sche_week_tags" style="display: none;">
+										<input value="" name="week_days" type="hidden"/>
 										<ul class="sui-tag tag-selected">
-										  <li>周一</li>
-										  <li class="tag-selected">周二</li>
-										  <li>周三</li>
-										  <li class="tag-selected">周四</li>
-										  <li>周五</li>
-										  <li class="tag-selected">周六</li>
-										  <li class="tag-selected">周日</li>
+										  <li data-index="1">周一</li>
+										  <li data-index="2">周二</li>
+										  <li data-index="3">周三</li>
+										  <li data-index="4">周四</li>
+										  <li data-index="5">周五</li>
+										  <li data-index="6">周六</li>
+										  <li data-index="7">周日</li>
 										</ul>
 									</div>
 									<div class="sl-tags-wrapper" id="sche_month_tags" style="display: none;">
+										<input value="" name="month_days" type="hidden"/>
 										<ul class="sui-tag tag-selected">
-										  <li>1</li>
-										  <li class="tag-selected">2</li>
-										  <li>3</li>
-										  <li class="tag-selected">4</li>
-										  <li>5</li>
-										  <li class="tag-selected">6</li>
-										  <li class="tag-selected">7</li>
-										  <li>8</li>
-										  <li class="tag-selected">9</li>
-										  <li class="tag-selected">10</li>
-										  <li>1</li>
-										  <li class="tag-selected">2</li>
-										  <li>3</li>
-										  <li class="tag-selected">4</li>
-										  <li>5</li>
-										  <li class="tag-selected">6</li>
-										  <li class="tag-selected">7</li>
-										  <li>8</li>
-										  <li class="tag-selected">9</li>
-										  <li class="tag-selected">10</li>
-										  <li>1</li>
-										  <li class="tag-selected">2</li>
-										  <li>3</li>
-										  <li class="tag-selected">4</li>
-										  <li>5</li>
-										  <li class="tag-selected">6</li>
-										  <li class="tag-selected">7</li>
-										  <li>8</li>
-										  <li class="tag-selected">9</li>
-										  <li class="tag-selected">10</li>
+										<?php
+											for($i = 1; $i < 32;$i++)
+										  		echo '<li data-index="'.$i.'">'.$i.'</li>';
+										?>
 										</ul>
 									</div>
 								</div>
@@ -581,9 +700,10 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 					</div>
 
 				</div>
+				</form>
 				<div class="sl-btns-wrapper">
 					<div class="sl-btns clearfix">
-						<button type="button" class="sui-btn btn-primary btn-borderadius fl sl-btn--md">提交</button>
+						<button type="button" class="sui-btn btn-primary btn-borderadius fl sl-btn--md" onclick="submitAddFrm();">提交</button>
 						<button type="button" class="sui-btn btn-borderadius fr sl-btn--md">返回</button>
 					</div>
 				</div>

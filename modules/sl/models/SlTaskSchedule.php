@@ -3,7 +3,8 @@
 namespace app\modules\sl\models;
 
 use Yii;
-
+use yii\helpers\Json;
+use app\modules\sl\components\SettingHelper;
 /**
  * This is the model class for table "sl_task_schedule".
  *
@@ -37,7 +38,6 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
     const SCHE_TYPE_MONTH = 3;
     const SCHE_TYPE_WEEK = 4;
 
-
     /**
      * @inheritdoc
      */
@@ -52,16 +52,16 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'brand_name', 'class_name', 'cookie', 'user_agent'], 'required', 'on' => 'update'],
-            // [['name', 'brand_name', 'class_name', 'cookie', 'user_agent'], 'required', 'on' = 'update'],
-            [['name', 'brand_name', 'class_name', 'cookie', 'user_agent'], 'string'],
+            [['name', 'brand_name', 'class_name', 'cookie', 'user_agent', 'sche_type', 'pf_name', 'sche_time', 'dt_category' ], 'required', 'on' => 'update'],
+            // [['key_words'], 'defaultKeyWords'],
+            [['name', 'brand_name', 'class_name', 'cookie', 'user_agent', 'week_days', 'month_days'], 'string'],
             [['sche_status', 'sche_type', 'update_time', 'task_number'], 'integer'],
             ['sche_status', 'in', 'range' => [self::SCHE_STATUS_CLOSE, self::SCHE_STATUS_OPEN, self::SCHE_STATUS_COMPLETE]],
             ['sche_type', 'in', 'range' => [self::SCHE_TYPE_NONE, self::SCHE_TYPE_ONCE, self::SCHE_TYPE_DAY, self::SCHE_TYPE_MONTH, self::SCHE_TYPE_WEEK]],
             [['sche_progress', 'data_number'], 'number'],
-            [['pf_name', 'dt_category'], 'string', 'max' => 100],
+            [['pf_name', 'dt_category', 'month_days'], 'string', 'max' => 100],
             [['key_words'], 'string', 'max' => 200],
-            [['sche_time'], 'string', 'max' => 8],
+            [['sche_time'], 'string', 'max' => 20],
         ];
     }
 
@@ -87,7 +87,9 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
             'sche_status' => '任务状态(0:未启动1:已启动2:已完成)',
             'sche_progress' => '任务进度,最小值0.0000,最大值1.0000',
             'sche_type' => '计划执行分类(0不执行1一次2按日3按月4按周)',
-            'sche_time' => '计划每次执行的时间(00:00:00)',
+            'week_days' => '按周执行的配置',
+            'month_days' => '按月执行的配置',
+            'sche_time' => '计划每次执行的时间(0000-00-00 00:00:00)',
             'dt_category' => '数据类型(商品,评论等)',
             'update_time' => '最后更新时间',
             'data_number' => '已经抓取数据总数',
@@ -136,5 +138,87 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
             ->andFilterWhere(['like', 'name', $this->name]);
 
         return $query;
+    }
+
+    public function defaultKeyWords($attribute, $params)
+    {
+        return '';//不做验证
+        if(empty($this->key_words)) return $this->brand_name;
+    }
+
+    public function beforeValidate()
+    {
+        $post = Yii::$app->request->post();
+
+        if( is_array( $this->class_name ) )
+            $this->class_name = Json::encode($this->class_name);
+
+        if( is_array( $this->brand_name ) )
+            $this->brand_name = Json::encode($this->brand_name);
+
+        if( is_array( $this->pf_name ) )
+            $this->pf_name = Json::encode($this->pf_name);
+
+        if( is_array( $this->dt_category ) )
+            $this->dt_category = Json::encode($this->dt_category);
+
+        return parent::beforeValidate();
+    }
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+
+            //cookie && user_agent save
+            $post = Yii::$app->request->post();
+            $cookie = [];
+            $user_agent = [];
+
+            foreach (Yii::$app->getModule('sl')->params['PLATFORM_LIST'] as $pf => $pf_name)
+            {
+                $childrenSettings = SettingHelper::getPfSetting( $pf, '');
+
+                foreach ($childrenSettings[$pf] as $childrenKey => $childrenVal)
+                {
+                   if( isset($post[$childrenKey]) )
+                   {
+                        if( strpos($childrenKey, '_cookie') !== false )
+                            $cookie[$childrenKey] = $post[$childrenKey];
+                        else if( strpos($childrenKey, '_ua') !== false )
+                            $user_agent[$childrenKey] = $post[$childrenKey];
+                   }
+                }
+            }
+
+            $this->setAttributes([
+                'cookie' => Json::encode( $cookie ),
+                'user_agent' => Json::encode( $user_agent ),
+                'update_time' => time()
+            ]);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function afterFind()
+    {
+        $class_name = Json::decode( $this->getAttribute('class_name') );
+        $brand_name = Json::decode( $this->getAttribute('brand_name') );
+        $pf_name = Json::decode( $this->getAttribute('pf_name') );
+
+        $dt_category = Json::decode( $this->getAttribute('dt_category') );
+        $cookie = Json::decode( $this->getAttribute('cookie') );
+        $user_agent = Json::decode( $this->getAttribute('user_agent') );
+
+        $this->setAttributes([
+            'class_name' => $class_name,
+            'brand_name' => $brand_name,
+            'pf_name' => $pf_name,
+
+            'dt_category' => $dt_category,
+            'cookie' => $cookie,
+            'user_agent' => $user_agent,
+        ]);
     }
 }
