@@ -117,7 +117,7 @@ $this->beginBlock("addScheJs");
 	        	p.y = ev.pageY - $(this).parents(".sui-modal")[0].offsetTop;
 	        	p.x = ev.pageX - $(this).parents(".sui-modal")[0].offsetLeft;
 
-	            $(document).on("mousemove",function(ev){console.log("a");
+	            $(document).on("mousemove",function(ev){
 	        		var oEvent = ev || event;
 	                var pos = getXY(oEvent);
 	                $(".sui-modal:last").css({left:(pos.x-p.x) + "px",top:(pos.y-p.y) + "px","margin-left":"10px","margin-top":"10px"});
@@ -258,7 +258,7 @@ function getProductClass()
 
         		for(var i = 0;i < items_len;i++)
         		{
-        			html_str += '<label class="checkbox-pretty inline-block"><input onchange="onCheckProductClass(\''+ items[i]['id'] +'\', this);" value="'+ items[i]['name'] +'" name="class_name[]" type="checkbox"><span>'+ items[i]['name'] +'</span></label>';
+        			html_str += '<label class="checkbox-pretty inline-block"><input data-index="'+ items[i]['id'] +'" onclick="onCheckProductClass(\''+ items[i]['id'] +'\', this);" value="'+ items[i]['name'] +'" name="class_name[]" type="checkbox"><span>'+ items[i]['name'] +'</span></label>';
         		}
         		$('#product_brand_tags').html(html_str);
         	}
@@ -275,24 +275,36 @@ function getProductClass()
  */
 function onCheckProductClass(cid, _input)
 {
-	var stat = !$(_input).parent().hasClass('checked');//当前选框状态
+	_input = $(_input)
+	var stat = $.inArray(cid, class_select) < 0//不在列表中 值为true
+
 	getProductBrand(cid, function(){
-		$('#product_brand_tags').children('#brand_cid_'+cid).find(".checkbox-pretty").each(function(){
-			_e = $(this)
-			if( stat )
-			{
+		//console.log(' getProductBrand stat aft '+ stat);
+		if( stat )
+		{
+			$('#product_brand_tags').children('#brand_cid_'+cid).find(".checkbox-pretty").each(function(){
+
+				_e = $(this)
 				_e.addClass('checked')
 				_e.find('input').attr('checked', true)
-			}
-			else
-			{
-				_e.removeClass('checked')
-				_e.find('input').attr('checked', false)
-			}
-		});
+
+			});
+
+			class_select.push(cid);
+			_input.attr('checked', true)
+			_input.parent().hasClass('checked') || _input.parent().addClass('checked')
+		}
+		else
+		{
+			var _i = $.inArray(cid, class_select)
+			class_select.splice(_i, 1);
+			$('#brand_cid_'+cid).html('');
+
+			_input.attr('checked', false)
+			_input.parent().hasClass('checked') && _input.parent().removeClass('checked')
+		}
 
 	});
-
 
 }
 
@@ -301,7 +313,7 @@ function onCheckProductClass(cid, _input)
  * @param class_id class_id
  * @return void
  */
-function getProductBrand(class_id = null, func = null )
+function getProductBrand(class_id, func )
 {
 	$.ajax({
         url: '/sl/demo/get-product-brand',
@@ -318,7 +330,7 @@ function getProductBrand(class_id = null, func = null )
 
     			for(var j = 0;j< items_len;j++)//品牌
     			{
-    				html_str += '<label class="checkbox-pretty inline-block"><input value="'+ items[j]['name'] +'" name="brand_name[]" type="checkbox"><span>'+ items[j]['name'] +'</span></label>';
+    				html_str += '<label class="checkbox-pretty inline-block"><input value="'+ items[j]['name'] +'" name="brand_name[]" type="checkbox" data-rules="required"><span>'+ items[j]['name'] +'</span></label>';
     			}
     			$('#product_brand_tags').children('#brand_cid_'+class_id).html(html_str);
 
@@ -330,48 +342,101 @@ function getProductBrand(class_id = null, func = null )
     });
 }
 
+var class_stat = [true,true],
+	brand_stat = [true,true],
+	class_select = []
 //全选
 $('#class_all_select').on('click', 'input', function(e){
-	<!-- e.preventDefault(); -->
+	var stat = class_stat[0]
+
+	if(stat)
+		$(this).addClass('checked');
+	else
+		$(this).removeClass('checked');
+
 	$('#product_class_tags').find('.checkbox-pretty').each(function(){
+
 		_e = $(this)
-		if(!_e.hasClass('checked')){
-			_e.addClass('checked');
-			_e.find('input').attr('checked', true);
-		}
-	})
-})
-//反选
-$('#class_all_cancel').on('click', 'input', function(e){
-	<!-- e.preventDefault(); -->
-	$('#product_class_tags').find('.checkbox-pretty').each(function(){
-		_e = $(this)
-		if(_e.hasClass('checked')){
-			_e.removeClass('checked');
-			_e.find('input').attr('checked', false);
-		}
-		else if(!_e.hasClass('checked'))
+		var _ei = $.inArray(_e.find('input').attr('data-index'), class_select)
+
+		if(_ei < 0 )
 		{
 			_e.addClass('checked');
-			_e.find('input').attr('checked', true);
+			var _input = _e.find('input')
+			_input.attr('checked', true);
+
+			onCheckProductClass(_input.attr('data-index'), _input);
+		}
+		else
+		{
+			_e.removeClass('checked');
+			var _input = _e.find('input')
+			_input.attr('checked', false);
+
+			onCheckProductClass(_input.attr('data-index'), _input);
 		}
 	})
+
+	class_stat[0] = !stat
+})
+//反选
+$('#class_all_cancel').on('click', 'input',  function(e){
+
+	var stat = class_stat[1]
+
+	if(stat)
+		$(this).addClass('checked');
+	else
+		$(this).removeClass('checked');
+
+	$('#product_class_tags').find('.checkbox-pretty').each(function(){
+		_e = $(this)
+
+		if(!_e.hasClass('checked'))
+		{
+			_e.addClass('checked');
+			var _input = _e.find('input')
+			_input.attr('checked', true);
+
+			onCheckProductClass(_input.attr('data-index'), _input);
+		}
+		else
+		{
+			_e.removeClass('checked');
+			var _input = _e.find('input')
+			_input.attr('checked', false);
+
+			onCheckProductClass(_input.attr('data-index'), _input);
+		}
+	})
+
+	class_stat[1] = !stat
 })
 
 //全选
 $('#brand_all_select').on('click', 'input', function(e){
-	<!-- e.preventDefault(); -->
+
+	var stat = brand_stat[0]
+
 	$('#product_brand_tags').find('.checkbox-pretty').each(function(){
 		_e = $(this)
-		if(!_e.hasClass('checked')){
+		if(!_e.hasClass('checked'))
+		{
 			_e.addClass('checked');
 			_e.find('input').attr('checked', true);
 		}
+		else
+		{
+			_e.removeClass('checked');
+			_e.find('input').attr('checked', false);
+		}
 	})
+	brand_stat[0] = !stat
 })
 //反选
 $('#brand_all_cancel').on('click', 'input', function(e){
-	<!-- e.preventDefault(); -->
+	var stat = brand_stat[1]
+
 	$('#product_brand_tags').find('.checkbox-pretty').each(function(){
 		_e = $(this)
 		if(_e.hasClass('checked')){
@@ -384,6 +449,7 @@ $('#brand_all_cancel').on('click', 'input', function(e){
 			_e.find('input').attr('checked', true);
 		}
 	})
+	brand_stat[1] = !stat
 })
 
 
@@ -432,24 +498,27 @@ $("#sche_month_tags").on("click", "li", function(_e){
 })
 
 function submitAddFrm(){
-	var sche_type = $("input[name='sche_type_repeat']:checked").val();
-	var sche_time = '';
-	if(sche_type == 0)//Only once
+	var sche_time,
+		sche_type_repeat = $("input[name='sche_type_repeat']:checked").val(),
+	 	sche_type = $("input[name='sche_type']").val();
+	if(sche_type_repeat == 0)//Only once
 	{
-		sche_time = $("input[name='sche_start_time1']").val()
-		$("input[name='sche_type']").val('1')
+		sche_time = $("input[name='sche_start_time']:eq(0)").val()
+		sche_type = 1
 	}
 	else//Repeat
 	{
-		sche_time = $("input[name='sche_start_time2']").val()
+		sche_time = $("input[name='sche_start_time']:eq(1)").val()
 	}
 
 	var frmData = $('#addFrm').serializeObject();
-	frmData = $.extend({}, frmData, { _csrf:csrfToken}, {sche_time:sche_time});
 
-	delete frmData.sche_start_time1
-	delete frmData.sche_start_time2
+	frmData['_csrf'] = csrfToken
+	frmData['sche_time'] = sche_time
+	frmData['sche_type'] = sche_type
 
+	//console.log(JSON.stringify(frmData));
+	//return;
 	$.ajax({
         url: $('#addFrm').attr('action'),
         type: 'post',
@@ -474,11 +543,11 @@ $this->registerJs($this->blocks['addScheJs'], \yii\web\View::POS_END);
 app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 ?>
 <div class="block clearfix">
+				<form id="addFrm" class="sui-validate sui-form" method="POST" action="/sl/demo/add-schedule" onsubmit="javascript:submitAddFrm();return false;">
 				<div class="section clearfix">
 					<span class="title-prefix-md">新增计划任务</span>
 				</div>
 				<div class="clearfix">
-					<form id="addFrm" method="POST" action="/sl/demo/add-schedule">
 					<div class="sl-left-half">
 
 						<div class="sui-form form-horizontal">
@@ -487,7 +556,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 								<div class="controls" style="width: 100%;">
 									<input type="text" name="name" value="" class="input-xxlarge"
 										placeholder="在此输入任务名称"
-										style="width: 100%; box-sizing: border-box;height: 34px;">
+										style="width: 100%; box-sizing: border-box;height: 34px;" data-rules="required">
 								</div>
 							</div>
 							<div class="control-group mb1">
@@ -495,7 +564,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 								<div class="controls" style="width: 100%;">
 									<input type="text" name="key_words" value="" class="input-xxlarge"
 										placeholder="在此输入关键字"
-										style="width: 100%; box-sizing: border-box;height: 34px;">
+										style="width: 100%; box-sizing: border-box;height: 34px;" data-rules="required">
 								</div>
 							</div>
 							<div class="sl-row--normal clearfix">
@@ -513,12 +582,9 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 								</label>
 								<div class="controls controls--special" style="width: 100%;">
 									<div class="sl-checkbox-group" id="product_class_tags" style="width: 100%; box-sizing: border-box;">
-										<!--label class="checkbox-pretty inline-block">
-											<input name="class_name[]" type="checkbox" checked="checked"><span>手机</span>
-										</label-->
 										<?php
 											foreach ($productClassArr as $k => $v) {
-												echo '<label class="checkbox-pretty inline-block"><input onchange="onCheckProductClass(\''. $v['id'] . '\', this);" name="class_name[]" type="checkbox" value="'.$v['name'].'"><span>'.$v['name'].'</span></label>';
+												echo '<label class="checkbox-pretty inline-block"><input data-index="'. $v['id'] . '" onclick="onCheckProductClass(\''. $v['id'] . '\', this);" name="class_name[]" type="checkbox" value="'.$v['name'].'"  data-rules="required"><span>'.$v['name'].'</span></label>';
 											}
 										?>
 									</div>
@@ -584,7 +650,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 												$_cls_str = '';
 											echo '<div class="tab-pane'.$_cls_str.'" id="'.$pk.'">
 												<label class="checkbox-pretty inline-block">
-													<input name="pf_name[]" value="'.$pfList[$pk].'" type="checkbox"><span>'.$pfList[$pk].'</span>
+													<input name="pf_name[]" value="'.$pfList[$pk].'" type="checkbox" data-rules="required"><span>'.$pfList[$pk].'</span>
 												</label>
 												<div class="sl-channel-wrapper">
 													<div class="sl-channel-title">设置渠道: <span>'.$pfList[$pk].'</span></div>
@@ -596,7 +662,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 														<div class="sl-params params--cookie clearfix">
 															<div class="sl-param clearfix">
 																<div class="param__key fl">
-																	<input type="text" name="'.$pk.'_cookie" value= "'. $pv[$pk.'_cookie'].'" class="input-xlarge input-value" placeholder="值" />
+																	<input type="text" name="'.$pk.'_cookie" value= "'. $pv[$pk.'_cookie'].'" class="input-xlarge input-value" placeholder="值"/>
 																	<div class="sl-i2con-trash"></div>
 																</div>
 															</div>
@@ -608,10 +674,10 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 														<div class="sl-params params--cookie clearfix">
 															<div class="sl-param clearfix">
 																<div class="param__key fl">
-																	<input type="text" class="input-medium input-key" placeholder="名" />
+																	<input type="text" class="input-medium input-key" placeholder="名"/>
 																</div>
 																<div class="param__value fl">
-																	<input type="text" name="'.$pk.'_ua" value="'. $pv[$pk.'_ua'].'" class="input-xlarge input-value" placeholder="值" />
+																	<input type="text" name="'.$pk.'_ua" value="'. $pv[$pk.'_ua'].'" class="input-xlarge input-value" placeholder="值"/>
 																	<div class="sl-icon-trash"></div>
 																</div>
 															</div>
@@ -633,7 +699,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 								<label class="control-label" style="min-width: 68px;padding-right: 10px;">抓取内容</label>
 								<div class="controls">
 									<label class="checkbox-pretty inline-block" style="margin-bottom: 0;line-height: 34px;">
-										<input value="商品" name="dt_category[]" type="checkbox"><span>商品</span>
+										<input value="商品" name="dt_category[]" type="checkbox" data-rules="required"><span>商品</span>
 									</label>
 									<!--label class="checkbox-pretty inline-block" style="margin-bottom: 0;">
 										<input value="评论" name="dt_category[]" type="checkbox"><span>评论</span>
@@ -647,9 +713,9 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 										<label data-toggle="radio" class="radio-pretty inline-block checked" style="margin-bottom: 0;line-height: 34px;">
 											<input type="radio" name="sche_type_repeat" checked="checked" value="0"><span>定时</span>
 										</label>
-										<input name="sche_start_time1" type="text" class="input-large"
+										<input name="sche_start_time" type="text" class="input-large"
 											data-toggle='datepicker' data-date-timepicker='true'
-											value="" style="height: 24px;">
+											value="" style="height: 24px;" data-rules="required">
 									</div>
 									<div>
 										<label data-toggle="radio" class="radio-pretty inline-block" style="margin-bottom: 0;line-height: 34px;">
@@ -658,7 +724,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 										<span class="sui-dropdown dropdown-bordered select--xsm select">
 											<span class="dropdown-inner">
 												<a role="button" data-toggle="dropdown" href="#" class="dropdown-toggle">
-													<input value="" name="sche_type"  onchange="onChangeRepeat(this);" type="hidden">
+													<input value="2" name="sche_type"  onchange="onChangeRepeat(this);" type="hidden">
 													<i class="caret"></i><span>每天</span>
 												</a>
 												<ul role="menu" class="sui-dropdown-menu">
@@ -669,7 +735,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 											</span>
 										</span>
 										<input type="text" class="input-medium"
-											data-toggle='timepicker' name="sche_start_time2" value="" style="height: 24px;margin-left: 8px;">
+											data-toggle='timepicker' name="sche_start_time" value="" style="height: 24px;margin-left: 8px;">
 									</div>
 									<div class="sl-tags-wrapper" id="sche_week_tags" style="display: none;">
 										<input value="" name="week_days" type="hidden"/>
@@ -696,15 +762,14 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 							</div>
 						</div>
 					</div>
-
-				</div>
-				</form>
+			</div>
 				<div class="sl-btns-wrapper">
 					<div class="sl-btns clearfix">
-						<button type="button" class="sui-btn btn-primary btn-borderadius fl sl-btn--md" onclick="submitAddFrm();">提交</button>
+						<button type="submit" class="sui-btn btn-primary btn-borderadius fl sl-btn--md">提交</button>
 						<button type="button" class="sui-btn btn-borderadius fr sl-btn--md">返回</button>
 					</div>
 				</div>
+				</form>
 			</div>
 <script id="template1" type="text/html">
 			<div id="myModal1" tabindex="-1" role="dialog" data-hasfoot="false" class="sui-modal hide fade">

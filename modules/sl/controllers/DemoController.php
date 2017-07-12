@@ -183,12 +183,13 @@ class DemoController extends \yii\web\Controller
             $pfArr = Yii::$app->getModule('sl')->params['PLATFORM_LIST'];
             $pfSettings = SettingHelper::getPfSetting( array_keys( $pfArr ));
 
-            $productClassArr = SlScheduleProductClass::find()->orderBy('id')->asArray()->all();
+            $productClassArr = SlScheduleProductClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
             return $this->render('add-schedule', ['pfSettings' => $pfSettings, 'productClassArr' => $productClassArr]);
 
         }
         else if( Yii::$app->request->isAjax)
         {
+            exit;
             Yii::$app->response->format = Response::FORMAT_JSON;
             $scheModel = new SlTaskSchedule();
             $post = Yii::$app->request->post();
