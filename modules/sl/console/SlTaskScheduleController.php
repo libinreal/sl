@@ -40,8 +40,22 @@ class SlTaskScheduleController extends Controller
         	->asArray()
         	->all();
 
-        $taskItemArr = (new \yii\db\Query())->select(['COUNT(*)', 'sche_id'])->from(SlTaskItemConsole::tableName())->indexBy('sche_id')->groupBy('sche_id')->all();
+        $taskItemArr = (new \yii\db\Query())
+        				->select(['COUNT(*)', 'sche_id'])
+        				->from(SlTaskItemConsole::tableName())
+        				->indexBy('sche_id')
+        				->groupBy('sche_id')
+        				->all();//Only once tasks
 
+       	$qTaskItem1 = SlTaskItemConsole::find();
+       	$hasExplodedTaskItemArr = $qTaskItem1
+       							->select('sche_id')
+       							->where(['>=', 'create_time', strtotime('today')])
+       							->indexBy('sche_id')
+       							->asArray()
+       							->all();//Exploded task_items from `sl_task_schedule` today
+		/*$commandQuery = clone $qTaskItem1;
+        print_r($hasExplodedTaskItemArr);exit;*/
 
         $pfSpiderArr = [];
         foreach ($pfSettings as $pfSetting)
@@ -66,7 +80,7 @@ class SlTaskScheduleController extends Controller
             'class_name',
             'dt_category',
             'key_words',
-            'task_status',//默认启动
+            'task_status',
             'task_time',
             'create_time',
             'update_time',
@@ -91,18 +105,41 @@ class SlTaskScheduleController extends Controller
 
 			$insertList = [];
 
-			//Only once
-			if( $schType == 1 && !isset($taskItemArr[$sche['id']]))//未生成过任务
+			foreach ($pfNameArr as $pfName)
 			{
-				foreach ($pfNameArr as $pfName)
+				foreach ($classArr as $className)
 				{
-					foreach ($classArr as $className)
+					foreach ($brandArr as $brandName)
 					{
-						foreach ($brandArr as $brandName)
+						foreach ($catArr as $catName)
 						{
-							foreach ($catArr as $catName)
+							$pfKey = $pfKeyArr[$pfName];
+
+							if( $schType == 1 && !isset($taskItemArr[$sche['id']]))//Only once 未生成过任务
 							{
-								$pfKey = $pfKeyArr[$pfName];
+								$insertList[] = [
+									$sche['id'],
+									$sche['name'],
+									$pfName,
+									$brandName,
+									$className,
+									$catName,
+									$sche['key_words'],
+									SlTaskItemConsole::TASK_STATUS_CLOSE,//默认关闭
+									strtotime( $sche['sche_time'] ),
+									time(),
+									time(),
+									isset( $cookie[ $pfKey.'_cookie' ] ) ? $cookie[ $pfKey.'_cookie' ] : '',
+									isset( $user_agent[ $pfKey.'_ua' ] ) ? $user_agent[ $pfKey.'_ua' ] : '',
+									$pfSpiderArr[$pfKey]
+								];
+							}
+							else if( $schType == 2 )//everyday repeat
+							{
+								if( isset( $hasExplodedTaskItemArr[$sche['id']] ) )
+									break 4;//Task schedule has been exploded
+
+								$taskTime = strtotime( date('Y-m-d').' '.$sche['sche_time'] );
 
 								$insertList[] = [
 									$sche['id'],
@@ -112,8 +149,66 @@ class SlTaskScheduleController extends Controller
 									$className,
 									$catName,
 									$sche['key_words'],
-									SlTaskItemConsole::TASK_STATUS_CLOSE,
-									strtotime( $sche['sche_time'] ),
+									SlTaskItemConsole::TASK_STATUS_CLOSE,//默认关闭
+									$taskTime,
+									time(),
+									time(),
+									isset( $cookie[ $pfKey.'_cookie' ] ) ? $cookie[ $pfKey.'_cookie' ] : '',
+									isset( $user_agent[ $pfKey.'_ua' ] ) ? $user_agent[ $pfKey.'_ua' ] : '',
+									$pfSpiderArr[$pfKey]
+								];
+							}
+							else if( $schType == 3 )//every month repeat
+							{
+								if( isset( $hasExplodedTaskItemArr[$sche['id']] ) )
+									break 4;//Task schedule has been exploded
+
+								$dayNo = date('j');//Day in this month
+								$scheDayNoArr = explode(',', $sche['month_days']);
+								if( !in_array( $dayNo, $scheDayNoArr ) )
+									break 4;//Not today to explode.
+
+								$taskTime = strtotime( date('Y-m-d').' '.$sche['sche_time'] );
+
+								$insertList[] = [
+									$sche['id'],
+									$sche['name'],
+									$pfName,
+									$brandName,
+									$className,
+									$catName,
+									$sche['key_words'],
+									SlTaskItemConsole::TASK_STATUS_CLOSE,//默认关闭
+									$taskTime,
+									time(),
+									time(),
+									isset( $cookie[ $pfKey.'_cookie' ] ) ? $cookie[ $pfKey.'_cookie' ] : '',
+									isset( $user_agent[ $pfKey.'_ua' ] ) ? $user_agent[ $pfKey.'_ua' ] : '',
+									$pfSpiderArr[$pfKey]
+								];
+							}
+							else if( $schType == 4 )//every week repeat
+							{
+								if( isset( $hasExplodedTaskItemArr[$sche['id']] ) )
+									break 4;//Task schedule has been exploded
+
+								$dayNo = date('N');//Day in this week
+								$scheDayNoArr = explode(',', $sche['week_days']);
+								if( !in_array( $dayNo, $scheDayNoArr ) )
+									break 4;//Not today to explode.
+
+								$taskTime = strtotime( date('Y-m-d').' '.$sche['sche_time'] );
+
+								$insertList[] = [
+									$sche['id'],
+									$sche['name'],
+									$pfName,
+									$brandName,
+									$className,
+									$catName,
+									$sche['key_words'],
+									SlTaskItemConsole::TASK_STATUS_CLOSE,//默认关闭
+									$taskTime,
 									time(),
 									time(),
 									isset( $cookie[ $pfKey.'_cookie' ] ) ? $cookie[ $pfKey.'_cookie' ] : '',
@@ -124,30 +219,16 @@ class SlTaskScheduleController extends Controller
 						}
 					}
 				}
-
 			}
-			else if( $schType == 2 )//everyday repeat
+
+			if( !empty( $insertList ) )
 			{
+				Yii::$app->db->createCommand()->batchInsert( SlTaskItemConsole::tableName(), $itemFields, $insertList)->execute();//Explode batch task items
+				Yii::$app->db->createCommand('UPDATE {{'.SlTaskScheduleConsole::tableName().'}} SET [[task_number]]= [[task_number]]+'.count($insertList).' WHERE [[id]]='.$sche['id'])
+	   				->execute();//Update `task_schedule` `task_number`
+	   		}
+		}//$scheArr foreach end
 
-			}
-			else if( $schType == 3 )//every month repeat
-			{
-
-			}
-			else if( $schType == 4 )//every week repeat
-			{
-
-			}
-
-			Yii::$app->db->createCommand()->batchInsert( SlTaskItemConsole::tableName(), $itemFields, $insertList)->execute();
-			Yii::$app->db->createCommand('UPDATE {{'.SlTaskScheduleConsole::tableName().'}} SET [[task_number]]= [[task_number]]+'.count($insertList).' WHERE [[id]]='.$sche['id'])
-   				->execute();
-		}
-
-
-
-
-		//Repeat
 		return 0;
 	}
 }

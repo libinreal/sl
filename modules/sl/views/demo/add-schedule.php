@@ -432,13 +432,14 @@ $("#sche_month_tags").on("click", "li", function(_e){
 })
 
 function submitAddFrm(){
-	var sche_type = $("input[name='sche_type']:checked").val();
+	var sche_type = $("input[name='sche_type_repeat']:checked").val();
 	var sche_time = '';
-	if(sche_type == 1)
+	if(sche_type == 0)//Only once
 	{
 		sche_time = $("input[name='sche_start_time1']").val()
+		$("input[name='sche_type']").val('1')
 	}
-	else
+	else//Repeat
 	{
 		sche_time = $("input[name='sche_start_time2']").val()
 	}
@@ -595,9 +596,6 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 														<div class="sl-params params--cookie clearfix">
 															<div class="sl-param clearfix">
 																<div class="param__key fl">
-																	<input type="text" class="input-medium input-key" placeholder="名" />
-																</div>
-																<div class="param__value fl">
 																	<input type="text" name="'.$pk.'_cookie" value= "'. $pv[$pk.'_cookie'].'" class="input-xlarge input-value" placeholder="值" />
 																	<div class="sl-i2con-trash"></div>
 																</div>
@@ -637,9 +635,9 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 									<label class="checkbox-pretty inline-block" style="margin-bottom: 0;line-height: 34px;">
 										<input value="商品" name="dt_category[]" type="checkbox"><span>商品</span>
 									</label>
-									<label class="checkbox-pretty inline-block" style="margin-bottom: 0;">
+									<!--label class="checkbox-pretty inline-block" style="margin-bottom: 0;">
 										<input value="评论" name="dt_category[]" type="checkbox"><span>评论</span>
-									</label>
+									</label-->
 								</div>
 							</div>
 							<div class="control-group" style="margin-bottom: 15px;">
@@ -647,7 +645,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 								<div class="controls">
 									<div>
 										<label data-toggle="radio" class="radio-pretty inline-block checked" style="margin-bottom: 0;line-height: 34px;">
-											<input type="radio" name="sche_type" checked="checked" value="1"><span>定时</span>
+											<input type="radio" name="sche_type_repeat" checked="checked" value="0"><span>定时</span>
 										</label>
 										<input name="sche_start_time1" type="text" class="input-large"
 											data-toggle='datepicker' data-date-timepicker='true'
@@ -655,12 +653,12 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 									</div>
 									<div>
 										<label data-toggle="radio" class="radio-pretty inline-block" style="margin-bottom: 0;line-height: 34px;">
-											<input type="radio" name="sche_type" value="3"><span>重复</span>
+											<input type="radio" name="sche_type_repeat" value="1"><span>重复</span>
 										</label>
 										<span class="sui-dropdown dropdown-bordered select--xsm select">
 											<span class="dropdown-inner">
 												<a role="button" data-toggle="dropdown" href="#" class="dropdown-toggle">
-													<input value="2" name="sche_type_repeat"  onchange="onChangeRepeat(this);" type="hidden">
+													<input value="" name="sche_type"  onchange="onChangeRepeat(this);" type="hidden">
 													<i class="caret"></i><span>每天</span>
 												</a>
 												<ul role="menu" class="sui-dropdown-menu">

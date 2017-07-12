@@ -10,7 +10,7 @@ use Yii;
  * @property integer $id
  * @property integer $sche_id
  * @property string $name
- * @property integer $pf_name
+ * @property string $pf_name
  * @property string $brand_name
  * @property string $class_name
  * @property string $dt_category
@@ -50,10 +50,10 @@ class SlTaskItem extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['sche_id', 'pf_name', , 'task_status', 'task_time', 'update_time', 'create_time', 'complete_time', 'paging'], 'integer'],
+            [['sche_id', 'task_status', 'task_time', 'update_time', 'create_time', 'complete_time', 'paging'], 'integer'],
             ['task_status', 'in', 'range' => [self::TASK_STATUS_CLOSE, self::TASK_STATUS_OPEN, self::TASK_STATUS_COMPLETE]],
             ['paging', 'in', 'range' => [self::PAGING_NO, self::PAGING_YES]],
-            [['name', 'cookie', 'user_agent', 'dt_category'], 'string'],
+            [['name', 'cookie', 'user_agent', 'dt_category', 'pf_name'], 'string'],
             [['task_progress', 'data_number'], 'number'],
             [['brand_name', 'class_name', 'key_words'], 'string', 'max' => 200],
             [['spider_name'], 'string', 'max' => 255],
@@ -76,7 +76,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
             'id' => '子任务id',
             'sche_id' => '主任务id',
             'name' => '任务名',
-            'pf_name' => '渠道id(tmall,jd )',
+            'pf_name' => '渠道名称(京东，天猫)',
             'brand_name' => '品牌名',
             'class_name' => '分类名',
             'dt_category' => '数据类型(商品,评论等)',
