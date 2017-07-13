@@ -31,6 +31,7 @@ class DemoController extends \yii\web\Controller
         }
         else if(Yii::$app->request->isPost)
         {
+            Yii::$app->response->format = Response::FORMAT_JSON;
             $post = Yii::$app->request->post();
 
             $pageNo = @$post['pageNo'];
@@ -47,8 +48,6 @@ class DemoController extends \yii\web\Controller
             $totals = $scheQuery->count();
 
             $data = $scheQuery->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->all();
-            // Yii::$app->response->format = Response::FORMAT_JSON;
-            Yii::$app->response->format = Response::FORMAT_JSON;
 
             /*$commandQuery = clone $scheQuery;
             echo $commandQuery->createCommand()->getRawSql();exit;*/
@@ -230,7 +229,7 @@ class DemoController extends \yii\web\Controller
     }
 
     /**
-     * 子任务
+     * 子任务以及任务运行状态
      * method: GET
      * @return string
      */

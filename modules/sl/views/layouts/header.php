@@ -8,7 +8,7 @@ use yii\helpers\Html;
 <header style="left: 0px;">
     <nav class="top-nav clearfix">
         <div class="nav-left">
-            <a href="javascript:">SL</a>
+            <a href="/sl/demo/index">SL</a>
         </div>
         <div class="btn-keys">
             <div class="triangle-down">

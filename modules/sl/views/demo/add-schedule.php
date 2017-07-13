@@ -1,7 +1,7 @@
 <?php
 use app\modules\sl\models\SlTaskSchedule;
 use yii\helpers\Url;
-$this->title = '任务控制';
+$this->title = '新增计划任务';
 $this->beginBlock("addScheJs");
 ?>
 
