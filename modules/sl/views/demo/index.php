@@ -21,7 +21,7 @@ EOT;
     function goToPage(_pageNo = 1){
     	var filterData = $("#filterFrm").find("input").serializeObject();
 
-    	filterData['pageNo'] = pageNo
+    	filterData['pageNo'] = _pageNo
     	filterData['pageSize'] = pageSize
     	filterData['_csrf'] = csrfToken
 
@@ -110,16 +110,48 @@ EOT;
     				+ '<td><span class="cell">'+ _rows[_i]['key_words'] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ scheStatArr[_rows[_i]['sche_status']] +'</span>'+ '</td>'
 
-    				+ '<td><span class="cell">'+ _rows[_i]['sche_progress'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ (_rows[_i]['sche_progress']) * 100 +'%</span>'+ '</td>'
     				+ '<td><span class="cell">'+ _rows[_i]['sche_time'] +'</span>'+ '</td>'
-    				+ '<td><span class="cell"><a href="javascript:updateScheStat( \''+ _rows[_i]['sche_status'] +'\', \''+<?php echo SlTaskSchedule::SCHE_STATUS_OPEN;?>+'\');" class="a--success">启动</a>'
-    				+ '<a href="javascript:updateScheStat(\''+ _rows[_i]['sche_status'] +'\', \''+<?php echo SlTaskSchedule::SCHE_STATUS_CLOSE;?>+'\');" class="a--danger">停止</a>'
-    				+ '<a href="javascript:editSche(\''+_rows[_i]['id']+'\');" class="a--edit">编辑</a>'
+    				+ '<td><span class="cell"><a href="javascript:updateScheStat( \''+ _rows[_i]['sche_status'] +'\', \''+<?php echo SlTaskSchedule::SCHE_STATUS_OPEN;?>+'\', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
+    				+ '<a href="javascript:updateScheStat(\''+ _rows[_i]['sche_status'] +'\', \''+<?php echo SlTaskSchedule::SCHE_STATUS_CLOSE;?>+'\', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
+    				+ '<a href="/sl/demo/edit-schedule/'+_rows[_i]['id']+'" class="a--edit">编辑</a>'
     				+ '<a href="javascript:deleteSche(\''+_rows[_i]['id']+'\');" class="a--danger">删除</a>'
-    				+ '<a href="javascript:viewSche(\''+_rows[_i]['id']+'\');" class="a--check">查看</a></span></td>'
+    				+ '<a href="/sl/demo/task-item/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td>'
     	}
     	_container.find('tr:gt(0)').remove();
     	_container.find('tr:eq(0)').after(_trStr);
+    }
+
+    /**
+     * 更改计划任务状态
+     * @param  string _curStat 当前任务计划状态
+     * @param  string _newStat 要更改的任务计划状态
+     * @param  string _id 要更改的任务计划id
+     * @return boolean
+     */
+    function updateScheStat(_curStat, _newStat, _id)
+    {
+    	return true;
+    }
+
+    /**
+     * 编辑计划任务
+     * @param  string _id 要编辑的任务计划id
+     * @return
+     */
+    function editSche(_id)
+    {
+
+    }
+
+    /**
+     * 删除计划任务
+     * @param  string _id 要删除的任务计划id
+     * @return
+     */
+    function deleteSche(_id)
+    {
+
     }
 
 <?php

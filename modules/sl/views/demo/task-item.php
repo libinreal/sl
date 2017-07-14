@@ -1,36 +1,134 @@
 <?php
-use app\modules\sl\models\SlTaskSchedule;
+use app\modules\sl\models\SlTaskItem;
 use yii\helpers\Url;
+use yii\helpers\Json;
+
     $this->title = '任务运行状态';
     /*$this->params['breadcrumbs'][] = 'SL System';
     $this->params['breadcrumbs'][] = '计划任务列表';
     $this->params['breadcrumbs'][] = $this->title;*/
     $curPageUrl = Url::current();
-    $this->beginBlock('scheJs');
+
+        $taskItemDataJs = <<<EOT
+    goToPage(1);
+EOT;
+	$this->registerJs($taskItemDataJs);
+    $this->beginBlock('taskJs');
 ?>
-    var pageNo = 1, pageSize = 10, pageCount = 0,  refreshUrl = "<?= $curPageUrl ?>";
-    goToPage();
+    var pageNo = 1, pageSize = 10, pageCount = 0,
+    	paginationLen = 5, refreshUrl = "<?php $taskUrl = strstr($curPageUrl, '?', true); echo $taskUrl.'/'.$sche_id;?>";
+
     function goToPage(_pageNo = 1){
-    	var csrfToken = $('meta[name="csrf-token"]').attr("content");
-    	var filterData = $("#filterFrm").serializeObject();
-    	var reqData = $.extend({}, filterData, {pageNo:pageNo, pageSize:pageSize, _csrf:csrfToken});
+    	var filterData = $("#filterFrm").find("input").serializeObject();
+
+    	filterData['pageNo'] = _pageNo
+    	filterData['pageSize'] = pageSize
+    	filterData['_csrf'] = csrfToken
+
+    	filterData['sche_id'] = <?php echo $sche_id; ?>
+
     	$.ajax({
             crossDomain: true,
             url: refreshUrl,
             type: 'post',
-            data: reqData,
+            data: filterData,
             dataType: 'json',
             success: function (json_data) {
             	// console.log(JSON.stringify(json_data));
 
+            	var _total = json_data.data.total
+            	pageCount = Math.ceil(_total / pageSize)
+            	makePagination(_pageNo, pageCount)//分页
+
+            	showTaskData(json_data.data.rows)//刷新数据
             }
         });
 
     }
 
+    function makePagination(_pageNo, _pageCount)
+    {
+    	var _paginationStr,
+    		_activeStr = '',
+    		_startPage = 1,
+    		_endPage = _pageCount,
+    		_pos = Math.floor(_pageNo / paginationLen),
+    		_pageContainer = $('.slpc__page-nums')
+
+    		_paginationStr = '<div class="first"><i class="sui-icon icon-step-backward"></i></div>' +
+    						 '<div class="prev"><i class="sui-icon icon-caret-left"></i></div>'
+
+    		//console.log('_pageCount - _pageNo - _pos + 1 >= 0  ' + (_pageCount - _pageNo - _pos + 1 ))
+
+    		if( _pageCount > paginationLen && _pageCount - _pageNo - _pos + 1 >= 0 )//When pageCount >= paginationLen
+			{
+				_startPage = _pageNo - _pos
+				_endPage = _startPage + paginationLen - 1
+			}
+
+    		for(var _i = _startPage; _i <= _endPage; _i++)
+    		{
+    			if(_i == _pageNo)
+    			{
+    				_activeStr = ' is-active'
+    			}
+    			else
+    			{
+    				_activeStr = ''
+    			}
+    			_paginationStr += '<div class="sl-page-num sui-icon' + _activeStr + '" onclick="goToPage(\''+_i+'\')">' + _i + '</div>'
+    		}
+
+    		_paginationStr += '<div class="next"><i class="sui-icon icon-caret-right"></i></div>'
+    						+ '<div class="last"><i class="sui-icon icon-step-forward"></i></div>'
+
+    		_pageContainer.html(_paginationStr);
+    }
+
+    var taskStatArr =<?php echo Json::encode([
+    	SlTaskItem::TASK_STATUS_CLOSE => '未启动',
+    	SlTaskItem::TASK_STATUS_OPEN => '已启动',
+    	SlTaskItem::TASK_STATUS_COMPLETE => '已完成',
+    ]) ?>;
+
+    /**
+     * 显示任务数据
+     * @param  array _rows 任务数组
+     * @return
+     */
+    function showTaskData( _rows )
+    {
+    	var _container = $('.task_tables'),
+    		_trStr = '',
+    		_trLen = _rows.length
+
+    	for(var _i = 0;_i < _trLen;_i++)
+    	{
+    		_trStr += '<tr task-id="'+_rows[_i]['id']+'"><td><span class="cell">'+ _rows[_i]['id'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['sche_id'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['name'] +'</span>'+ '</td>'
+
+    				+ '<td><span class="cell">'+ _rows[_i]['brand_name'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['key_words'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['pf_name'] +'</span>'+ '</td>'
+
+    				+ '<td><span class="cell">'+ _rows[_i]['dt_category'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ taskStatArr[_rows[_i]['task_status']] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ (_rows[_i]['task_progress']) * 100 +'%</span>'+ '</td>'
+
+    				+ '<td><span class="cell">'+ _rows[_i]['task_time'] +'</span>'+ '</td>'
+
+    				+ '<td><span class="cell"><a href="javascript:updateTaskStat( \''+ _rows[_i]['task_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_OPEN;?>+'\');" class="a--success">启动</a>'
+    				+ '<a href="javascript:updateTaskStat(\''+ _rows[_i]['task_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_CLOSE;?>+'\');" class="a--danger">停止</a>'
+    				+ '<a href="javascript:deleteTask(\''+_rows[_i]['id']+'\');" class="a--danger">删除</a>'
+    	}
+    	_container.find('tr:gt(0)').remove();
+    	_container.find('tr:eq(0)').after(_trStr);
+    }
+
 <?php
 $this->endBlock();
-$this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);
+$this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
 ?>
 
 <div class="block clearfix">
@@ -58,7 +156,7 @@ $this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);
 							<span class="sui-dropdown dropdown-bordered select">
 									<span class="dropdown-inner">
 										<a role="button" data-toggle="dropdown" href="#" class="dropdown-toggle">
-											<input value="" name="sche_status" type="hidden">
+											<input value="" name="task_status" type="hidden">
 											<i class="caret"></i><span>全部</span>
 										</a>
 										<ul role="menu" class="sui-dropdown-menu">
@@ -90,16 +188,16 @@ $this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);
 						</div>
 					</div>
 					<div class="sl-query input-daterange" data-toggle="datepicker">
-						<div class="sl-query__label">修改时间</div>
+						<div class="sl-query__label">开始时间</div>
 						<div class="sl-query__control">
-							<input type="text" name="update_time_s" class="input-medium input-date"><span>-</span>
-      						<input type="text" name="update_time_e" class="input-medium input-date">
+							<input type="text" name="task_time_s" class="input-medium input-date"><span>-</span>
+      						<input type="text" name="task_time_e" class="input-medium input-date">
 						</div>
 					</div>
 					<button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;">搜索</button>
 				</form>
 				</div>
-				<div class="sl-table-wrapper">
+				<div class="task_tables sl-table-wrapper">
 					<table class="sl-table">
 						<tbody><tr class="sl-table__header">
 							<th><span class="cell">任务ID</span></th>
@@ -110,64 +208,9 @@ $this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);
 							<th><span class="cell">渠道</span></th>
 							<th><span class="cell">抓取内容</span></th>
 							<th><span class="cell">状态</span></th>
-							<th><span class="cell">状态</span></th>
 							<th><span class="cell">任务进度</span></th>
-							<th><span class="cell">更新时间</span></th>
+							<th><span class="cell">开始时间</span></th>
 							<th><span class="cell">操作</span></th>
-						</tr>
-						<tr class="sl-table__row">
-							<td><span class="cell">1</span></td>
-							<td><span class="cell">1</span></td>
-							<td><span class="cell">京东华为手机详情和评论内容</span></td>
-							<td><span class="cell">华为</span></td>
-							<td><span class="cell">手机安静了开发经费放假啊可怜的放假啊来看</span></td>
-							<td><span class="cell">京东</span></td>
-							<td><span class="cell">商品</span></td>
-							<td><span class="cell">未启动</span></td>
-							<td><span class="cell">662331</span></td>
-							<td><span class="cell">99%</span></td>
-							<td><span class="cell">2017/6/26 14:09</span></td>
-							<td><span class="cell">
-								<a href="javascript:" class="a--success">启动</a>
-								<a href="javascript:" class="a--danger">停止</a>
-								<a href="javascript:" class="a--danger">删除</a>
-							</span></td>
-						</tr>
-						<tr class="sl-table__row">
-							<td><span class="cell">1</span></td>
-							<td><span class="cell">1</span></td>
-							<td><span class="cell">京东华为手机详情和评论内容</span></td>
-							<td><span class="cell">华为</span></td>
-							<td><span class="cell">手机安静了开发经费放假啊可怜的放假啊来看</span></td>
-							<td><span class="cell">京东</span></td>
-							<td><span class="cell">商品</span></td>
-							<td><span class="cell">未启动</span></td>
-							<td><span class="cell">662331</span></td>
-							<td><span class="cell">99%</span></td>
-							<td><span class="cell">2017/6/26 14:09</span></td>
-							<td><span class="cell">
-								<a href="javascript:" class="a--success">启动</a>
-								<a href="javascript:" class="a--danger">停止</a>
-								<a href="javascript:" class="a--danger">删除</a>
-							</span></td>
-						</tr>
-						<tr class="sl-table__row">
-							<td><span class="cell">1</span></td>
-							<td><span class="cell">1</span></td>
-							<td><span class="cell">京东华为手机详情和评论内容</span></td>
-							<td><span class="cell">华为</span></td>
-							<td><span class="cell">手机安静了开发经费放假啊可怜的放假啊来看</span></td>
-							<td><span class="cell">京东</span></td>
-							<td><span class="cell">商品</span></td>
-							<td><span class="cell">未启动</span></td>
-							<td><span class="cell">662331</span></td>
-							<td><span class="cell">99%</span></td>
-							<td><span class="cell">2017/6/26 14:09</span></td>
-							<td><span class="cell">
-								<a href="javascript:" class="a--success">启动</a>
-								<a href="javascript:" class="a--danger">停止</a>
-								<a href="javascript:" class="a--danger">删除</a>
-							</span></td>
 						</tr>
 					</tbody></table>
 					<div class="sl-pagination">

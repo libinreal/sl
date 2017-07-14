@@ -5,6 +5,7 @@ namespace app\modules\sl\controllers;
 use yii\data\ActiveDataProvider;
 use Yii;
 use app\modules\sl\models\SlTaskSchedule;
+use app\modules\sl\models\SlTaskItem;
 use app\modules\sl\models\SlGlobalSettings;
 use app\modules\sl\models\SlScheduleProductClass;
 use app\modules\sl\models\SlScheduleProductBrand;
@@ -189,7 +190,7 @@ class DemoController extends \yii\web\Controller
         else if( Yii::$app->request->isAjax)
         {
             Yii::$app->response->format = Response::FORMAT_JSON;
-            $scheModel = new SlTaskSchedule();
+            $scheModel = new SlTaskSchedule(['scenario'=>'update']);
             $post = Yii::$app->request->post();
 
 
@@ -199,7 +200,7 @@ class DemoController extends \yii\web\Controller
                 // var_dump( $scheModel->getErrors());exit;
                 return [
                     'code' => -1,
-                    'msg' => 'Data not invalid',
+                    'msg' => 'Submit data error',
                     'data' => []
                 ];
             }
@@ -209,7 +210,7 @@ class DemoController extends \yii\web\Controller
 
             return  [
                     'code'=>0,
-                    'msg'=>'ok',
+                    'msg'=>'Success',
                     'data'=>[]
                     ];
         }
@@ -223,8 +224,49 @@ class DemoController extends \yii\web\Controller
      */
     public function actionUpdateSchedule()
     {
+        if(Yii::$app->request->isGet)
+        {
+            $get = Yii::$app->request->get();
 
-        return $this->render('update-schedule');
+            $scheEditData = SlTaskSchedule::findOne($get['sche_id']);
+
+            $pfArr = Yii::$app->getModule('sl')->params['PLATFORM_LIST'];
+            $pfSettings = SettingHelper::getPfSetting( array_keys( $pfArr ));
+
+            $productClassArr = SlScheduleProductClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
+
+            return $this->render('add-schedule', ['pfSettings' => $pfSettings,
+                                                    'productClassArr' => $productClassArr,
+                                                    'scheEditData' => $scheEditData
+                                                    ]);
+        }
+        else if(Yii::$app->request->isAjax)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            $scheModel = new SlTaskSchedule(['scenario'=>'update']);
+            $post = Yii::$app->request->post();
+
+
+            //数据验证失败
+            if ( !$scheModel->load( $post, '' ) || !$scheModel->validate() )
+            {
+                // var_dump( $scheModel->getErrors());exit;
+                return [
+                    'code' => -1,
+                    'msg' => 'Submit data error',
+                    'data' => []
+                ];
+            }
+
+            $scheModel->save();
+
+
+            return  [
+                    'code'=>0,
+                    'msg'=>'Success',
+                    'data'=>[]
+                    ];
+        }
     }
 
     /**
@@ -234,7 +276,41 @@ class DemoController extends \yii\web\Controller
      */
     public function actionTaskItem()
     {
-        return $this->render('task-item');
+        if(Yii::$app->request->isGet)
+        {
+            $get = Yii::$app->request->get();
+
+            return $this->render('task-item', ['sche_id' => $get['sche_id']]);
+        }
+        else if(Yii::$app->request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            $post = Yii::$app->request->post();
+
+            $pageNo = @$post['pageNo'];
+            $pageSize = @$post['pageSize'];
+
+            $taskModel = new SlTaskItem();
+            $taskQuery = $taskModel->getSearchQuery();
+
+            if(!$taskQuery)
+            {
+                return ['code'=>-1, 'msg'=>'Input data invalid'];
+            }
+
+            $totals = $taskQuery->count();
+
+            $data = $taskQuery->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->all();
+
+            /*$commandQuery = clone $scheQuery;
+            echo $commandQuery->createCommand()->getRawSql();exit;*/
+
+             return  [
+                    'code'=>0,
+                    'msg'=>'ok',
+                    'data'=>[ 'total' => $totals, 'rows' => $data]
+                    ];
+        }
     }
 
     /**

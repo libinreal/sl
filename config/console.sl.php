@@ -16,7 +16,7 @@ $config = [
                     'levels' => ['error', 'warning','info'],
                     'logVars'=>[],
                     'categories'=>['yii\db\*','app\models\*'],
-                    'logFile'=>'@runtime/logs/sql/sql.log'.date('Ymd'),
+                    'logFile'=>'@runtime/logs/sql/sql.console.sl.log'.date('Ymd'),
                 ],
             ],
         ],

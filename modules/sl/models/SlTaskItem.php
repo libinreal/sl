@@ -100,4 +100,41 @@ class SlTaskItem extends \yii\db\ActiveRecord
     {
         return Yii::$app->getModule('sl')->db;
     }
+
+    public function getSearchQuery()
+    {
+        $query = static::find();
+
+        $this->load( Yii::$app->request->queryParams, '' );
+        if (!$this->validate())
+        {
+            // var_dump( $this->getErrors());exit;
+            return false;
+        }
+
+        if( isset( $post['task_time_s'] ) && !empty( $post['task_time_s'] ) )
+        {
+            $query->andFilterWhere(['>=', 'task_time', strtotime($post['task_time_s'])]);
+        }
+        else if( isset( $post['task_time_e'] ) && !empty( $post['task_time_e'] ) )
+        {
+            $query->andFilterWhere(['<=', 'task_time', strtotime($post['task_time_e'])]);
+        }
+
+        $query->andFilterWhere(['sche_id' => $this->sche_id])
+                ->andFilterWhere(['like', 'brand_name', $this->brand_name])
+                ->andFilterWhere(['like', 'key_words', $this->key_words])
+                ->andFilterWhere(['like', 'task_status', $this->task_status])
+                ->andFilterWhere(['like', 'dt_category', $this->dt_category])
+                ->andFilterWhere(['like', 'pf_name', $this->pf_name])
+                ->andFilterWhere(['like', 'class_name', $this->class_name])
+
+                ->andFilterWhere(['like', 'name', $this->name]);
+
+
+        /*$commandQuery = clone $query;
+    echo $commandQuery->createCommand()->getRawSql();*/
+
+        return $query;
+    }
 }

@@ -52,7 +52,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'brand_name', 'class_name', 'cookie', 'user_agent', 'sche_type', 'pf_name', 'sche_time', 'dt_category' ], 'required', 'on' => 'update'],
+            [['name', 'brand_name', 'class_name', 'sche_type', 'pf_name', 'sche_time', 'dt_category' ], 'required', 'on' => 'update'],
             // [['key_words'], 'defaultKeyWords'],
             [['name', 'brand_name', 'class_name', 'cookie', 'user_agent', 'week_days', 'month_days'], 'string'],
             [['sche_status', 'sche_type', 'update_time', 'task_number'], 'integer'],
@@ -68,7 +68,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios['update'] = ['name', 'brand_name', 'class_name', 'cookie', 'user_agent'];
+        $scenarios['update'] = ['name', 'brand_name', 'class_name', 'sche_type', 'pf_name', 'sche_time', 'dt_category'];
         return $scenarios;
     }
 

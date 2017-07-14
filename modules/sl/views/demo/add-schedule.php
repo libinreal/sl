@@ -527,11 +527,11 @@ function submitAddFrm(){
         success: function (json_data) {
         	if(json_data.code == '0')
         	{
-        		alert('数据提交成功');
+        		alert(json_data.msg);
         	}
         	else
         	{
-        		alert(msg);
+        		alert(json_data.msg);
         	}
 
         }
