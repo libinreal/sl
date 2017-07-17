@@ -103,6 +103,12 @@ class SlTaskScheduleController extends Controller
 			if( !is_array($cookie) || empty( $cookie ) ) $cookie = [];
 			if( !is_array($user_agent) || empty( $user_agent ) ) $user_agent = [];
 
+			if( !is_array($pfNameArr) ) $pfNameArr = [];
+			if( !is_array($brandArr) ) $brandArr = [];
+			if( !is_array($classArr) ) $classArr = [];
+
+			if( !is_array($catArr) ) $catArr = [];
+
 			$insertList = [];
 
 			foreach ($pfNameArr as $pfName)
