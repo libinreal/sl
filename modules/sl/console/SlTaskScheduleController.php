@@ -278,7 +278,7 @@ class SlTaskScheduleController extends Controller
 		$cronFields = [
 			'name',
 			'start_time',
-			'task_progresss',
+			'task_progress',
 			'sche_id',
 			'task_status',
 			'control_status',
