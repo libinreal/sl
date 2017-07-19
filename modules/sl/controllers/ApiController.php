@@ -15,6 +15,7 @@ use yii\helpers\Json;
  */
 class ApiController extends \yii\web\Controller
 {
+	public $enableCsrfValidation = false;
 	/**
 	 * 接口作用：获取某天任务的状态和存放数据表名
 	 * 接口地址：http://sl.3tichina.com/sl/api/task-state
@@ -57,9 +58,9 @@ class ApiController extends \yii\web\Controller
 		{
 			Yii::$app->response->format = Response::FORMAT_JSON;
 
-			$post = Yii::$app->request->post();
-			$start_date = $post['date'];
-			$name = $post['name'];
+			$request = Yii::$app->request;
+			$start_date = $request->post('date');
+			$name = $request->post('name', '');
 
 			$q = SlTaskScheduleCrontab::find();
 
@@ -86,7 +87,7 @@ class ApiController extends \yii\web\Controller
 									'table' => '',
 									'name' => '',
 									'start_time' => '',
-									'task_progresss' => '',
+									'task_progress' => '',
 									'task_status' => SlTaskScheduleCrontab::TASK_STATUS_UNSTARTED,
 									'control_status' => SlTaskScheduleCrontab::CONTROL_STOPPED,
 								],

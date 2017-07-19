@@ -11,7 +11,7 @@ use Yii;
  * @property string $name
  * @property string $start_time
  * @property integer $create_time
- * @property double $task_progresss
+ * @property double $task_progress
  * @property integer $sche_id
  * @property integer $task_status
  * @property integer $control_status
@@ -42,7 +42,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
             [['name', 'start_time'], 'required'],
             [['name'], 'string'],
             [['start_time'], 'safe'],
-            [['task_progresss'], 'number'],
+            [['task_progress'], 'number'],
             [['create_time'], 'integer'],
             [['sche_id', 'task_status', 'control_status'], 'integer'],
         ];
@@ -58,7 +58,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
             'name' => '每日任务名',
             'start_time' => '任务开始的时刻',
             'create_time' => '任务生成时间戳',
-            'task_progresss' => '任务进度',
+            'task_progress' => '任务进度',
             'sche_id' => '计划id',
             'task_status' => '任务状态(0:未启动1:正在进行2:已完成)',
             'control_status' => '控制开关(0:停止1:运行)',
