@@ -12,7 +12,7 @@ use app\modules\sl\models\SlScheduleProductBrand;
 use app\modules\sl\models\SlScheduleProductClassBrand;
 use yii\web\Response;
 use app\modules\sl\components\SettingHelper;
-
+use yii\helpers\Json;
 /**
  * Default controller for the `sl` module
  */
@@ -190,7 +190,7 @@ class DemoController extends \yii\web\Controller
         else if( Yii::$app->request->isAjax)
         {
             Yii::$app->response->format = Response::FORMAT_JSON;
-            $scheModel = new SlTaskSchedule(['scenario'=>'update']);
+            $scheModel = new SlTaskSchedule();
             $post = Yii::$app->request->post();
 
 
@@ -228,7 +228,58 @@ class DemoController extends \yii\web\Controller
         {
             $get = Yii::$app->request->get();
 
-            $scheEditData = SlTaskSchedule::findOne($get['sche_id']);
+            $scheEditData = SlTaskSchedule::find()->where(['id' => $get['sche_id'] ])->asArray()->one();
+
+            $pfNameArr = Json::decode( $scheEditData['pf_name'] );
+            $brandArr = Json::decode( $scheEditData['brand_name'] );
+            $classArr = Json::decode( $scheEditData['class_name'] );
+
+            $catArr = Json::decode( $scheEditData['dt_category'] );
+            $cookie = Json::decode( $scheEditData['cookie'] );
+            $user_agent = Json::decode( $scheEditData['user_agent'] );
+
+            if( !is_array($cookie) || empty( $cookie ) ) $cookie = [];
+            if( !is_array($user_agent) || empty( $user_agent ) ) $user_agent = [];
+
+            if( !is_array($pfNameArr) ) $pfNameArr = [];
+            if( !is_array($brandArr) ) $brandArr = [];
+            if( !is_array($classArr) ) $classArr = [];
+
+            if( !is_array($catArr) ) $catArr = [];
+
+            $scheEditData['pfNameArr'] = $pfNameArr;
+            $scheEditData['brandArr'] = $brandArr;
+            $scheEditData['classArr'] = $classArr;
+
+            $scheEditData['catArr'] = $catArr;
+            $scheEditData['cookie'] = $cookie;
+            $scheEditData['user_agent'] = $user_agent;
+
+            $classSelect = SlScheduleProductClass::find()->select('id')->indexBy('id')->where(['in', 'name', $classArr])->asArray()->all();
+            $brandSelect = SlScheduleProductBrand::find()->select('id')->indexBy('id')->where(['in', 'name', $brandArr])->asArray()->all();
+            $classMap = SlScheduleProductClassBrand::find()
+                        ->select(SlScheduleProductClass::tableName().'.id, brand_id,class_id,'.SlScheduleProductBrand::tableName().'.name')
+                        ->joinWith('productClass')
+                        ->joinWith('productBrand')
+                        ->where(['in', SlScheduleProductClass::tableName().'.name', $classArr])
+                        ->orderBy(SlScheduleProductClass::tableName().'.id')
+                        ->asArray()->all();
+
+            foreach ($classMap as &$c)
+            {
+                unset($c['productClass']);
+                unset($c['productBrand']);
+            }
+
+            unset($c);
+
+            $funcElementStr = function(&$_ele, $_ele_key){$_ele = strval($_ele);};
+
+            $classSelectIds = array_keys($classSelect);
+            $brandSelectIds = array_keys($brandSelect);
+
+            array_walk( $classSelectIds, $funcElementStr );
+            array_walk( $brandSelectIds, $funcElementStr );
 
             $pfArr = Yii::$app->getModule('sl')->params['PLATFORM_LIST'];
             $pfSettings = SettingHelper::getPfSetting( array_keys( $pfArr ));
@@ -237,7 +288,10 @@ class DemoController extends \yii\web\Controller
 
             return $this->render('add-schedule', ['pfSettings' => $pfSettings,
                                                     'productClassArr' => $productClassArr,
-                                                    'scheEditData' => $scheEditData
+                                                    'scheEditData' => $scheEditData,
+                                                    'classSelectIds' => $classSelectIds,
+                                                    'brandSelectIds' => $brandSelectIds,
+                                                    'classMap' => $classMap,
                                                     ]);
         }
         else if(Yii::$app->request->isAjax)

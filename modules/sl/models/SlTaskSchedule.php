@@ -53,7 +53,6 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
     {
         return [
             [['name', 'brand_name', 'class_name', 'sche_type', 'pf_name', 'sche_time', 'dt_category' ], 'required', 'on' => 'update'],
-            // [['key_words'], 'defaultKeyWords'],
             [['name', 'brand_name', 'class_name', 'cookie', 'user_agent', 'week_days', 'month_days'], 'string'],
             [['sche_status', 'sche_type', 'update_time', 'task_number'], 'integer'],
             ['sche_status', 'in', 'range' => [self::SCHE_STATUS_CLOSE, self::SCHE_STATUS_OPEN, self::SCHE_STATUS_COMPLETE]],
@@ -69,6 +68,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios['update'] = ['name', 'brand_name', 'class_name', 'sche_type', 'pf_name', 'sche_time', 'dt_category'];
+
         return $scenarios;
     }
 
@@ -138,12 +138,6 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
             ->andFilterWhere(['like', 'name', $this->name]);
 
         return $query;
-    }
-
-    public function defaultKeyWords($attribute, $params)
-    {
-        return '';//不做验证
-        if(empty($this->key_words)) return $this->brand_name;
     }
 
     public function beforeValidate()

@@ -1,6 +1,8 @@
 <?php
 use app\modules\sl\models\SlTaskSchedule;
 use yii\helpers\Url;
+use yii\helpers\Json;
+
 $this->title = '新增计划任务';
 $this->beginBlock("addScheJs");
 ?>
@@ -344,7 +346,10 @@ function getProductBrand(class_id, func )
 
 var class_stat = [true,true],
 	brand_stat = [true,true],
-	class_select = []
+	class_select = <?php if(isset($classSelectIds)): echo Json::encode($classSelectIds); else: echo '[]'; endif;?>,
+	brand_select = <?php if(isset($brandSelectIds)): echo Json::encode($brandSelectIds); else: echo '[]'; endif;?>,
+	class_map = <?php if(isset($classMap)): echo Json::encode($classMap);else:echo '[]';endif;?>;
+
 //全选
 $('#class_all_select').on('click', 'input', function(e){
 	var stat = class_stat[0]
@@ -541,6 +546,38 @@ function submitAddFrm(){
 $this->endBlock();
 $this->registerJs($this->blocks['addScheJs'], \yii\web\View::POS_END);
 app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
+
+$readyJs =<<<EOT
+	$('#product_class_tags').find("input").each(function(){
+		var _e = $(this)
+		var cid = _e.attr('data-index')
+		var cbStr//类下的品牌
+		if($.inArray(cid, class_select) > -1)
+		{
+			_e.attr('checked', true)
+			_e.parent().addClass('checked');
+
+			cbObj = {};
+			for(var cb in class_map)
+			{
+				if( class_map[cb]['id'] == cid )
+				{
+					if( cbObj[cid] )
+						cbObj[cid] += '<label class="checkbox-pretty inline-block checked"><input value="'+ class_map[cb]['name'] +'" name="brand_name[]" type="checkbox" data-rules="required" checked="true"><span>'+ class_map[cb]['name'] +'</span></label>';
+					else
+						cbObj[cid] = '<label class="checkbox-pretty inline-block checked"><input value="'+ class_map[cb]['name'] +'" name="brand_name[]" type="checkbox" data-rules="required" checked="true"><span>'+ class_map[cb]['name'] +'</span></label>';
+				}
+			}
+
+			for(var b in  cbObj)//品牌
+			{
+				$('#brand_cid_'+b).html(cbObj[b])
+			}
+		}
+	})
+
+EOT;
+$this->registerJs($readyJs);
 ?>
 <div class="block clearfix">
 				<form id="addFrm" class="sui-validate sui-form" method="POST" action="/sl/demo/add-schedule" onsubmit="javascript:submitAddFrm();return false;">
@@ -554,7 +591,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 							<div class="control-group mb1">
 								<label class="control-label" style="min-width: 68px;">任务名</label>
 								<div class="controls" style="width: 100%;">
-									<input type="text" name="name" value="" class="input-xxlarge"
+									<input type="text" name="name" value="<?php if(isset($scheEditData)): echo $scheEditData["name"];endif; ?>" class="input-xxlarge"
 										placeholder="在此输入任务名称"
 										style="width: 100%; box-sizing: border-box;height: 34px;" data-rules="required">
 								</div>
@@ -562,7 +599,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 							<div class="control-group mb1">
 								<label class="control-label" style="min-width: 68px;">关键字</label>
 								<div class="controls" style="width: 100%;">
-									<input type="text" name="key_words" value="" class="input-xxlarge"
+									<input type="text" name="key_words" value="<?php if(isset($scheEditData)): echo $scheEditData["key_words"]; endif;?>" class="input-xxlarge"
 										placeholder="在此输入关键字"
 										style="width: 100%; box-sizing: border-box;height: 34px;" data-rules="required">
 								</div>
