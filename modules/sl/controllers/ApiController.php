@@ -64,8 +64,8 @@ class ApiController extends \yii\web\Controller
 
 			$q = SlTaskScheduleCrontab::find();
 
-			$q->select('name, start_time, task_progress, task_status, control_status')
-				->where('start_time like \':start_time%\'', [':start_time' => $start_date]);
+			$q->select('id, name, sche_id,start_time, task_progress, task_status, control_status')
+				->where('start_time like :start_time', [':start_time' => $start_date.'%']);
 
 			if($name)
 				$q->andWhere('name like \':name\'', [':name' => $name]);
@@ -74,6 +74,8 @@ class ApiController extends \yii\web\Controller
 
 			if( $crontabData )
 			{
+				$crontabData['table'] = 'ws_' . $crontabData['sche_id']. '_'.date('Ymd').'_'.$crontabData['id'];
+
 				return [
 					'data' 	=> $crontabData,
 					'msg'  	=> 'Success',

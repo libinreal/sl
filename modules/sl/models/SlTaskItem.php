@@ -9,6 +9,7 @@ use Yii;
  *
  * @property integer $id
  * @property integer $sche_id
+ * @property integer $cron_id
  * @property string $name
  * @property string $pf_name
  * @property string $brand_name
@@ -50,7 +51,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['sche_id', 'task_status', 'task_time', 'update_time', 'create_time', 'complete_time', 'paging'], 'integer'],
+            [['sche_id', 'cron_id', 'task_status', 'task_time', 'update_time', 'create_time', 'complete_time', 'paging'], 'integer'],
             ['task_status', 'in', 'range' => [self::TASK_STATUS_CLOSE, self::TASK_STATUS_OPEN, self::TASK_STATUS_COMPLETE]],
             ['paging', 'in', 'range' => [self::PAGING_NO, self::PAGING_YES]],
             [['name', 'cookie', 'user_agent', 'dt_category', 'pf_name'], 'string'],
@@ -60,12 +61,6 @@ class SlTaskItem extends \yii\db\ActiveRecord
         ];
     }
 
-    public function scenarios()
-    {
-        $scenarios = parent::scenarios();
-        $scenarios['update'] = ['name', 'brand_name', 'class_name', 'cookie', 'user_agent'];
-        return $scenarios;
-    }
 
     /**
      * @inheritdoc
@@ -74,7 +69,8 @@ class SlTaskItem extends \yii\db\ActiveRecord
     {
         return [
             'id' => '子任务id',
-            'sche_id' => '主任务id',
+            'sche_id' => '计划id',
+            'cron_id' => '每日任务id',
             'name' => '任务名',
             'pf_name' => '渠道名称(京东，天猫)',
             'brand_name' => '品牌名',
@@ -122,6 +118,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
         }
 
         $query->andFilterWhere(['sche_id' => $this->sche_id])
+        $query->andFilterWhere(['cron_id' => $this->cron_id])
                 ->andFilterWhere(['like', 'brand_name', $this->brand_name])
                 ->andFilterWhere(['like', 'key_words', $this->key_words])
                 ->andFilterWhere(['like', 'task_status', $this->task_status])
