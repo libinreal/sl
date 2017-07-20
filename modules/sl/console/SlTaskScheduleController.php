@@ -387,21 +387,20 @@ class SlTaskScheduleController extends Controller
 							->joinWith('schedule')
 							->select('sche.sche_type, sche.pf_name, sche.brand_name, sche.class_name, sche.dt_category, sche.cookie, sche.user_agent, sche.key_words, sche.week_days, sche.month_days, sche.sche_time, cron.id, cron.sche_id, cron.name')
 							->where(['>=', 'cron.create_time', strtotime('today')])
-							->indexBy('sche_id')
 							->asArray()->all();
 
         $taskItemArr = (new \yii\db\Query())
-        				->select(['COUNT(*)', 'sche_id'])
+        				->select(['COUNT(*)', 'cron_id'])
         				->from(SlTaskItemConsole::tableName())
-        				->indexBy('sche_id')
-        				->groupBy('sche_id')
+        				->indexBy('cron_id')
+        				->groupBy('cron_id')
         				->all();//Only once tasks
 
        	$hasExplodedTaskItemArr = SlTaskItemConsole::find()
-       								->select('sche_id')
+       								->select('cron_id')
 	       							->where(['>=', 'create_time', strtotime('today')])
-	       							->indexBy('sche_id')
-	       							->groupBy('sche_id')
+	       							->indexBy('cron_id')
+	       							->groupBy('cron_id')
 	       							->asArray()
 	       							->all();//Exploded task_items from `sl_task_schedule` today
 		/*$commandQuery = clone $qTaskItem1;
@@ -424,6 +423,7 @@ class SlTaskScheduleController extends Controller
 
 		$itemFields = [
 			'sche_id',
+			'cron_id',
 			'name',
 			'pf_name',
             'brand_name',
@@ -475,6 +475,7 @@ class SlTaskScheduleController extends Controller
 							if( $schType == SlTaskScheduleConsole::SCHE_TYPE_ONCE && !isset($taskItemArr[$cron['id']]))//Only once 未生成过任务
 							{
 								$insertList[] = [
+									$cron['sche_id'],
 									$cron['id'],
 									$cron['name'],
 									$pfName,
@@ -499,6 +500,7 @@ class SlTaskScheduleController extends Controller
 								$taskTime = strtotime( date('Y-m-d').' '.$cron['sche_time'] );
 
 								$insertList[] = [
+									$cron['sche_id'],
 									$cron['id'],
 									$cron['name'],
 									$pfName,
@@ -528,6 +530,7 @@ class SlTaskScheduleController extends Controller
 								$taskTime = strtotime( date('Y-m-d').' '.$cron['sche_time'] );
 
 								$insertList[] = [
+									$cron['sche_id'],
 									$cron['id'],
 									$cron['name'],
 									$pfName,
@@ -557,6 +560,7 @@ class SlTaskScheduleController extends Controller
 								$taskTime = strtotime( date('Y-m-d').' '.$cron['sche_time'] );
 
 								$insertList[] = [
+									$cron['sche_id'],
 									$cron['id'],
 									$cron['name'],
 									$pfName,

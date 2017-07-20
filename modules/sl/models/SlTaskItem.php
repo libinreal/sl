@@ -118,7 +118,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
         }
 
         $query->andFilterWhere(['sche_id' => $this->sche_id])
-        $query->andFilterWhere(['cron_id' => $this->cron_id])
+                ->andFilterWhere(['cron_id' => $this->cron_id])
                 ->andFilterWhere(['like', 'brand_name', $this->brand_name])
                 ->andFilterWhere(['like', 'key_words', $this->key_words])
                 ->andFilterWhere(['like', 'task_status', $this->task_status])
