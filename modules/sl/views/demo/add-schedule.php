@@ -332,7 +332,7 @@ function getProductBrand(class_id, func )
 
     			for(var j = 0;j< items_len;j++)//品牌
     			{
-    				html_str += '<label class="checkbox-pretty inline-block"><input value="'+ items[j]['name'] +'" name="brand_name[]" type="checkbox" data-rules="required"><span>'+ items[j]['name'] +'</span></label>';
+    				html_str += '<label class="checkbox-pretty inline-block"><input value="'+ items[j]['name'] +'" name="brand_name[]" type="checkbox"><span>'+ items[j]['name'] +'</span></label>';
     			}
     			$('#product_brand_tags').children('#brand_cid_'+class_id).html(html_str);
 
@@ -348,7 +348,16 @@ var class_stat = [true,true],
 	brand_stat = [true,true],
 	class_select = <?php if(isset($classSelectIds)): echo Json::encode($classSelectIds); else: echo '[]'; endif;?>,
 	brand_select = <?php if(isset($brandSelectIds)): echo Json::encode($brandSelectIds); else: echo '[]'; endif;?>,
-	class_map = <?php if(isset($classMap)): echo Json::encode($classMap);else:echo '[]';endif;?>;
+	class_map = <?php if(isset($classMap)): echo Json::encode($classMap);else:echo '[]';endif;?>,
+		//编辑-渠道设置-初始化
+	pf_select = <?php if(isset($scheEditData)):echo $scheEditData["pf_name"];else: echo '[]';endif;?>,
+	ua_set = <?php if(isset($scheEditData)): echo $scheEditData["user_agent"];else: echo '[]';endif;?>,
+	cookie_set = <?php if(isset($scheEditData)): echo $scheEditData["cookie"];else: echo '[]';endif;?>,
+	dt_select = <?php if(isset($scheEditData)): echo $scheEditData["dt_category"];else: echo '[]';endif;?>,
+	sche_type_set = <?php if(isset($scheEditData)): echo $scheEditData["sche_type"];else: echo 1;endif;?>,
+	sche_time_set = <?php if(isset($scheEditData)): echo $scheEditData["sche_time"];else: echo "\"\"";endif;?>,
+	week_days_set = <?php if(isset($scheEditData)): echo $scheEditData["week_days"];else: echo "\"\"";endif;?>,
+	month_days_set = <?php if(isset($scheEditData)): echo $scheEditData["month_days"];else: echo "\"\"";endif;?>;
 
 //全选
 $('#class_all_select').on('click', 'input', function(e){
@@ -548,11 +557,12 @@ $this->registerJs($this->blocks['addScheJs'], \yii\web\View::POS_END);
 app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 
 $readyJs =<<<EOT
+	//编辑-品牌-初始化
 	$('#product_class_tags').find("input").each(function(){
 		var _e = $(this)
 		var cid = _e.attr('data-index')
 		var cbStr//类下的品牌
-		if($.inArray(cid, class_select) > -1)
+		if( $.inArray(cid, class_select) > -1)
 		{
 			_e.attr('checked', true)
 			_e.parent().addClass('checked');
@@ -560,7 +570,7 @@ $readyJs =<<<EOT
 			cbObj = {};
 			for(var cb in class_map)
 			{
-				if( class_map[cb]['id'] == cid )
+				if( class_map[cb]['id'] == cid && $.inArray(class_map[cb]['brand_id'], brand_select) > -1 )
 				{
 					if( cbObj[cid] )
 						cbObj[cid] += '<label class="checkbox-pretty inline-block checked"><input value="'+ class_map[cb]['name'] +'" name="brand_name[]" type="checkbox" data-rules="required" checked="true"><span>'+ class_map[cb]['name'] +'</span></label>';
@@ -576,6 +586,77 @@ $readyJs =<<<EOT
 		}
 	})
 
+	//渠道-初始化
+	$(".tab-pane").find("input[name='pf_name[]']").each(function(){
+		var _pfCookie,
+			_pfUa = '',
+			_e = $(this),
+			_pfDiv = _e.parent().parent(),
+			_pfId = _pfDiv.attr('id')
+
+
+		if( $.inArray(_e.val(), pf_select ) > -1 )
+		{
+			_e.attr('checked', true);
+			_e.parent().addClass('checked');
+
+			_pfCookie = _pfId + '_cookie'
+
+			$("input[name='" + _pfCookie +"']").val(cookie_set[_pfCookie])
+
+			$("input[name='" + _pfCookie +"']").val(cookie_set[_pfCookie])
+
+		}
+
+		if( ua_set[_pfId+'_ua'] !== undefined )
+		{
+			for(var uak in ua_set[_pfId+'_ua'] )
+			{
+				_pfUa += '<div class="sl-param clearfix"><div class="param__key fl">'
+				+'<input type="text" name="pf_jd_ua_uak[]" value="'+ uak +'" class="input-medium input-key" placeholder="名"/></div>'
+				+'<div class="param__value fl"><input type="text" name="pf_jd_ua_uav[]" value="'+ ua_set[_pfId+'_ua'][uak] +'" class="input-xlarge input-value" placeholder="值"/>'
+				+'<div class="sl-icon-trash"></div></div></div>'
+			}
+
+			_pfDiv.find(".sl-params:eq(1)").html( _pfUa )
+
+		}
+
+	});
+
+	//内容复选框 初始化
+	var sche_type_repeat_set = ( sche_type_set == 1 ) ? 0 : 1
+	$("input[name='sche_type_repeat'][value='"+sche_type_repeat_set+"']").attr('checked', true)
+	if( sche_type_repeat_set == 0 )//定时
+	{
+		$("input[name='sche_start_time']:eq(0)").val(sche_time_set)
+	}
+	else//重复
+	{
+		$("input[name='sche_type']").val(sche_type_set)
+		$("input[name='sche_start_time']:eq(1)").val(sche_time_set)
+
+		// arr.push(_m.attr('data-index'))
+		// arr.sort(function(a, b){ return a - b;})
+		// $("input[name='month_days']").first().val(arr.join(','))
+		// _m.addClass('tag-selected');
+
+		// arr.push(_w.attr('data-index'))
+		// arr.sort(function(a, b){ return a - b;})
+		// $("input[name='week_days']").first().val(arr.join(','))
+		// _w.addClass('tag-selected');
+
+		$("input[name='week_days']").val(week_days_set);
+		$("input[name='month_days']").val(month_days_set);
+
+		$("#sche_month_tags").find("li").each(function(){
+
+		})
+
+		$("#sche_month_tags").find("li").each(function(){
+
+		})
+	}
 EOT;
 $this->registerJs($readyJs);
 ?>
@@ -601,7 +682,7 @@ $this->registerJs($readyJs);
 								<div class="controls" style="width: 100%;">
 									<input type="text" name="key_words" value="<?php if(isset($scheEditData)): echo $scheEditData["key_words"]; endif;?>" class="input-xxlarge"
 										placeholder="在此输入关键字"
-										style="width: 100%; box-sizing: border-box;height: 34px;" data-rules="required">
+										style="width: 100%; box-sizing: border-box;height: 34px;">
 								</div>
 							</div>
 							<div class="sl-row--normal clearfix">
@@ -711,10 +792,10 @@ $this->registerJs($readyJs);
 														<div class="sl-params params--cookie clearfix">
 															<div class="sl-param clearfix">
 																<div class="param__key fl">
-																	<input type="text" class="input-medium input-key" placeholder="名"/>
+																	<input type="text" name="'.$pk.'_ua_uak[]" class="input-medium input-key" placeholder="名"/>
 																</div>
 																<div class="param__value fl">
-																	<input type="text" name="'.$pk.'_ua" value="'. $pv[$pk.'_ua'].'" class="input-xlarge input-value" placeholder="值"/>
+																	<input type="text" name="'.$pk.'_ua_uav[]" value="'. $pv[$pk.'_ua'].'" class="input-xlarge input-value" placeholder="值"/>
 																	<div class="sl-icon-trash"></div>
 																</div>
 															</div>

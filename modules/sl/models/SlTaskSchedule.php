@@ -52,7 +52,6 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'brand_name', 'class_name', 'sche_type', 'pf_name', 'sche_time', 'dt_category' ], 'required', 'on' => 'update'],
             [['name', 'brand_name', 'class_name', 'cookie', 'user_agent', 'week_days', 'month_days'], 'string'],
             [['sche_status', 'sche_type', 'update_time', 'task_number'], 'integer'],
             ['sche_status', 'in', 'range' => [self::SCHE_STATUS_CLOSE, self::SCHE_STATUS_OPEN, self::SCHE_STATUS_COMPLETE]],
@@ -64,14 +63,6 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
         ];
     }
 
-    public function scenarios()
-    {
-        $scenarios = parent::scenarios();
-        $scenarios['update'] = ['name', 'brand_name', 'class_name', 'sche_type', 'pf_name', 'sche_time', 'dt_category'];
-
-        return $scenarios;
-    }
-
     /**
      * @inheritdoc
      */
@@ -80,7 +71,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
         return [
             'id' => '主任务id',
             'name' => '主任务名',
-            'pf_name' => '渠道id(0:tmall 1:jd )',
+            'pf_name' => '渠道名(天猫,京东 )',
             'brand_name' => '品牌名',
             'class_name' => '分类名',
             'key_words' => '关键字',
@@ -168,20 +159,44 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
             $cookie = [];
             $user_agent = [];
 
-            foreach (Yii::$app->getModule('sl')->params['PLATFORM_LIST'] as $pf => $pf_name)
-            {
-                $childrenSettings = SettingHelper::getPfSetting( $pf, '');
+            $user_agent_k = [];
+            $user_agent_v = [];
 
-                foreach ($childrenSettings[$pf] as $childrenKey => $childrenVal)
+            foreach ($post as $pk => $pv)
+            {
+                if(is_array($pv))
                 {
-                   if( isset($post[$childrenKey]) )
-                   {
-                        if( strpos($childrenKey, '_cookie') !== false )
-                            $cookie[$childrenKey] = $post[$childrenKey];
-                        else if( strpos($childrenKey, '_ua') !== false )
-                            $user_agent[$childrenKey] = $post[$childrenKey];
-                   }
+                    $pv_new = [];
+                    foreach ($pv as $pvk=>$pvv)
+                    {
+                        if($pvv)
+                            $pv_new[] = $pvv;
+                    }
+                    $pv = $pv_new;
                 }
+
+                if(empty($pv))
+                    continue;
+
+                if( substr($pk, -7) == '_cookie' )
+                {
+                    $cookie[$pk] = $pv;
+                }
+                else if( substr($pk, -4) == '_uak' )
+                {
+
+                    $user_agent_k[substr($pk, 0, -4)] = $pv;
+                }
+                else if( substr($pk, -4) == '_uav' )
+                {
+                    $user_agent_v[substr($pk, 0, -4)] = $pv;
+                }
+            }
+
+            $user_agent = [];
+            foreach ($user_agent_k as $pfk => $pfv)
+            {
+                $user_agent[$pfk] = array_combine( $pfv, $user_agent_v[$pfk] );
             }
 
             $this->setAttributes([
@@ -202,8 +217,6 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
         $pf_name = Json::decode( $this->getAttribute('pf_name') );
 
         $dt_category = Json::decode( $this->getAttribute('dt_category') );
-        $cookie = Json::decode( $this->getAttribute('cookie') );
-        $user_agent = Json::decode( $this->getAttribute('user_agent') );
 
         $this->setAttributes([
             'class_name' => $class_name,
@@ -211,8 +224,6 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
             'pf_name' => $pf_name,
 
             'dt_category' => $dt_category,
-            'cookie' => $cookie,
-            'user_agent' => $user_agent,
         ]);
     }
 }

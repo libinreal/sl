@@ -59,22 +59,23 @@ class ApiController extends \yii\web\Controller
 			Yii::$app->response->format = Response::FORMAT_JSON;
 
 			$request = Yii::$app->request;
-			$start_date = $request->post('date');
+			$start_date = $request->post('date', '');
 			$name = $request->post('name', '');
+
+			$create_time_start = strtotime($start_date);
+			$create_time_end = $create_time_start + 3600 * 24;
 
 			$q = SlTaskScheduleCrontab::find();
 
 			$q->select('id, name, sche_id,start_time, task_progress, task_status, control_status')
-				->where('start_time like :start_time', [':start_time' => $start_date.'%']);
-
-			if($name)
-				$q->andWhere('name like \':name\'', [':name' => $name]);
+				->where('create_time >= :create_time_start and create_time <= :create_time_end', [':create_time_start' => $create_time_start, ':create_time_end' => $create_time_end])
+				->andWhere('name = :name', [':name' => $name]);
 
 			$crontabData = $q->asArray()->one();
 
 			if( $crontabData )
 			{
-				$crontabData['table'] = 'ws_' . $crontabData['sche_id']. '_'.date('Ymd').'_'.$crontabData['id'];
+				$crontabData['table'] = 'ws_' . $crontabData['sche_id']. '_'.date('Ymd', strtotime($crontabData['create_time'])).'_'.$crontabData['id'];
 
 				return [
 					'data' 	=> $crontabData,

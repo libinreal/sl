@@ -297,7 +297,7 @@ class DemoController extends \yii\web\Controller
         else if(Yii::$app->request->isAjax)
         {
             Yii::$app->response->format = Response::FORMAT_JSON;
-            $scheModel = new SlTaskSchedule(['scenario'=>'update']);
+            $scheModel = new SlTaskSchedule();
             $post = Yii::$app->request->post();
 
 
