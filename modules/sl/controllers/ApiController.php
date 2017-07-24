@@ -29,7 +29,7 @@ class ApiController extends \yii\web\Controller
 	 * 返回数据 : (Json)
 	 * 		"data"下面的各个字段说明:
 	 * 		<state>	任务状态用0-4共5个数字表示(0 未创建, 1 未启动, 2 执行中, 3 已完成, 4 已取消)
-	 * 		<table> 任务抓取的数据存放的表名
+	 * 		<table> 任务抓取的数据存放的表名,格式为"ws_scheId_Ymd_cronId"
 	 * 		<name>	任务名称
 	 * 		<start_time>	任务开始时间
 	 * 		<task_progress> 任务进度(0~1之间的带4位有效数字的浮点数)
@@ -38,8 +38,7 @@ class ApiController extends \yii\web\Controller
 	 *  示例：
 	 * 	{
 	 * 		"data" : {
-	 * 					"state":1
-	 * 					"table":"ws_1_1_20170718",
+	 * 					"table":"ws_1_20170718_1000",
 	 * 					"name":"dmp抓取任务",
 	 * 					"start_time":"2017-07-18",
 	 * 					"task_progress":"0.3300",
@@ -62,6 +61,22 @@ class ApiController extends \yii\web\Controller
 			$start_date = $request->post('date', '');
 			$name = $request->post('name', '');
 
+			$emptyRet = [
+				'data' 	=> [
+								'table' => '',
+								'name' => '',
+								'start_time' => '',
+								'task_progress' => '',
+								'task_status' => SlTaskScheduleCrontab::TASK_STATUS_UNSTARTED,
+								'control_status' => SlTaskScheduleCrontab::CONTROL_STOPPED,
+							],
+				'msg'  	=> 'Success',
+				'code'	=>	'0'
+			];
+
+			if(!$name || !$start_date)
+				return $emptyRet;
+
 			$create_time_start = strtotime($start_date);
 			$create_time_end = $create_time_start + 3600 * 24;
 
@@ -75,7 +90,16 @@ class ApiController extends \yii\web\Controller
 
 			if( $crontabData )
 			{
-				$crontabData['table'] = 'ws_' . $crontabData['sche_id']. '_'.date('Ymd', strtotime($crontabData['create_time'])).'_'.$crontabData['id'];
+				$start_date_ret = preg_replace('/-/', '', substr($crontabData['start_time'], 0, 10));
+				$crontabData['table'] = 'ws_' . $crontabData['sche_id']. '_'.$start_date_ret.'_'.$crontabData['id'];
+
+				$tableCheck = Yii::$app->db->createCommand("SHOW TABLES LIKE '". $crontabData['table'] . "'" )->queryOne();//检查数据存放表是否存在
+
+				if(!$tableCheck)
+					return $emptyRet;
+
+				unset($crontabData['id']);
+				unset($crontabData['sche_id']);
 
 				return [
 					'data' 	=> $crontabData,
@@ -85,18 +109,7 @@ class ApiController extends \yii\web\Controller
 			}
 			else
 			{
-				return [
-					'data' 	=> [
-									'table' => '',
-									'name' => '',
-									'start_time' => '',
-									'task_progress' => '',
-									'task_status' => SlTaskScheduleCrontab::TASK_STATUS_UNSTARTED,
-									'control_status' => SlTaskScheduleCrontab::CONTROL_STOPPED,
-								],
-					'msg'  	=> 'Success',
-					'code'	=>	'0'
-				];
+				return $emptyRet;
 			}
 
 		}

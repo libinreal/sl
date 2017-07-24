@@ -19,6 +19,7 @@ use Yii;
  * @property integer $task_status
  * @property double $task_progress
  * @property integer $task_time
+ * @property string $task_date
  * @property integer $update_time
  * @property integer $complete_time
  * @property double $data_number
@@ -55,6 +56,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
             ['task_status', 'in', 'range' => [self::TASK_STATUS_CLOSE, self::TASK_STATUS_OPEN, self::TASK_STATUS_COMPLETE]],
             ['paging', 'in', 'range' => [self::PAGING_NO, self::PAGING_YES]],
             [['name', 'cookie', 'user_agent', 'dt_category', 'pf_name'], 'string'],
+            [['task_date'], 'safe'],
             [['task_progress', 'data_number'], 'number'],
             [['brand_name', 'class_name', 'key_words'], 'string', 'max' => 200],
             [['spider_name'], 'string', 'max' => 255],
@@ -80,6 +82,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
             'task_status' => '子任务状态(0:未启动1:已启动2:已完成)',
             'task_progress' => '任务进度,最小值0.0000,最大值1.0000',
             'task_time' => '开始时间',
+            'task_date' => '开始日期',
             'create_time' => '创建时间',
             'update_time' => '最后更新时间',
             'complete_time' => '任务完成时间',

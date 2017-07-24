@@ -2,11 +2,11 @@
 namespace app\modules\sl\console;
 
 use yii\console\Controller;
-use app\modules\sl\models\SlTaskItem;
 use app\modules\sl\models\SlTaskScheduleConsole;
 use app\modules\sl\models\SlTaskScheduleCrontabConsole;
 use app\modules\sl\models\SlTaskItemConsole;
 use app\modules\sl\models\SlGlobalSettingsConsole;
+use app\modules\sl\models\SlWsDataTaskPageConsole;
 use yii\helpers\Json;
 
 
@@ -168,8 +168,6 @@ class SlTaskScheduleController extends Controller
 	       							->groupBy('cron_id')
 	       							->asArray()
 	       							->all();//Exploded task_items from `sl_task_schedule` today
-		/*$commandQuery = clone $qTaskItem1;
-        print_r($hasExplodedTaskItemArr);exit;*/
 
         $pfSpiderArr = [];
         foreach ($pfSettings as $pfSetting)
@@ -197,6 +195,7 @@ class SlTaskScheduleController extends Controller
             'key_words',
             'task_status',
             'task_time',
+            'task_date',
             'create_time',
             'update_time',
             'cookie',
@@ -250,6 +249,7 @@ class SlTaskScheduleController extends Controller
 									$cron['key_words'],
 									SlTaskItemConsole::TASK_STATUS_CLOSE,//默认关闭
 									strtotime( $cron['sche_time'] ),
+									$cron['sche_time'],
 									time(),
 									time(),
 									isset( $cookie[ $pfKey.'_cookie' ] ) ? $cookie[ $pfKey.'_cookie' ] : '',
@@ -275,6 +275,7 @@ class SlTaskScheduleController extends Controller
 									$cron['key_words'],
 									SlTaskItemConsole::TASK_STATUS_CLOSE,//默认关闭
 									$taskTime,
+									date('Y-m-d').' '.$cron['sche_time'],
 									time(),
 									time(),
 									isset( $cookie[ $pfKey.'_cookie' ] ) ? $cookie[ $pfKey.'_cookie' ] : '',
@@ -305,6 +306,7 @@ class SlTaskScheduleController extends Controller
 									$cron['key_words'],
 									SlTaskItemConsole::TASK_STATUS_CLOSE,//默认关闭
 									$taskTime,
+									date('Y-m-d').' '.$cron['sche_time'],
 									time(),
 									time(),
 									isset( $cookie[ $pfKey.'_cookie' ] ) ? $cookie[ $pfKey.'_cookie' ] : '',
@@ -335,6 +337,7 @@ class SlTaskScheduleController extends Controller
 									$cron['key_words'],
 									SlTaskItemConsole::TASK_STATUS_CLOSE,//默认关闭
 									$taskTime,
+									date('Y-m-d').' '.$cron['sche_time'],
 									time(),
 									time(),
 									isset( $cookie[ $pfKey.'_cookie' ] ) ? $cookie[ $pfKey.'_cookie' ] : '',
@@ -356,5 +359,64 @@ class SlTaskScheduleController extends Controller
 		}
 		/***生成每日子任务 END***/
 		return 0;
+	}
+
+	/**
+	 * 每分钟执行每日任务以及子任务的进度、状态检查
+	 */
+	public function actionTrackProgress()
+	{
+		$crontabIdArr = SlTaskScheduleCrontabConsole::find()
+			->select('id')
+			->where('task_status='.SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING)
+			->asArray()
+			->indexBy('id')
+			->all();
+
+		$taskItemArr = SlTaskItemConsole::find()
+			->select('id, cron_id, paging')
+			->where(['in', 'cron_id', array_keys( $crontabIdArr )])
+			->asArray()
+			->indexBy('id')
+			->all();
+
+		$taskPageArr = SlWsDataTaskPageConsole::find()
+			->select('id, task_id, state')
+			->where(['in', 'task_id', array_keys($taskItemArr)])
+			->asArray()
+			->all();
+
+		$taskItemProgArr = [];
+
+		foreach ($taskPageArr as $pv)
+		{
+			if(!isset($taskItemProgArr[$pv['task_id']]))
+			{
+				$taskItemProgArr[$pv['task_id']] = [];
+			}
+
+			if($pv['state'] == SlWsDataTaskPageConsole::PAGE_STATE_COMPLETE)
+			{
+				$taskItemProgArr[$pv['task_id']][] = 1;
+			}
+			else
+			{
+				$taskItemProgArr[$pv['task_id']][] = 0;
+			}
+		}
+
+		foreach ($taskItemArr as $iv)
+		{
+			if(isset($taskItemProgArr[$iv['id']]))//check table `task_item_page`
+			{
+
+			}
+		}
+
+
+		$taskPageSql = 'INSERT INTO '.SlTaskScheduleCrontabConsole::tableName()
+				.' (id, task_progress, task_status) values ';
+		$taskPageSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), task_status = values(task_status)';
+		$values = '';
 	}
 }
