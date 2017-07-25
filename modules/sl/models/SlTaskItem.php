@@ -33,6 +33,9 @@ class SlTaskItem extends \yii\db\ActiveRecord
     const PAGING_NO = 0;
     const PAGING_YES = 1;
 
+    const CONTROL_STOPPED = 0;
+    const CONTROL_STARTED = 1;
+
     const TASK_STATUS_CLOSE = 0;
     const TASK_STATUS_OPEN = 1;
     const TASK_STATUS_COMPLETE = 2;
@@ -52,8 +55,9 @@ class SlTaskItem extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['sche_id', 'cron_id', 'task_status', 'task_time', 'update_time', 'create_time', 'complete_time', 'paging'], 'integer'],
+            [['sche_id', 'cron_id', 'task_status', 'control_status', 'task_time', 'update_time', 'create_time', 'complete_time', 'paging'], 'integer'],
             ['task_status', 'in', 'range' => [self::TASK_STATUS_CLOSE, self::TASK_STATUS_OPEN, self::TASK_STATUS_COMPLETE]],
+            ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_STARTED]],
             ['paging', 'in', 'range' => [self::PAGING_NO, self::PAGING_YES]],
             [['name', 'cookie', 'user_agent', 'dt_category', 'pf_name'], 'string'],
             [['task_date'], 'safe'],
@@ -80,6 +84,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
             'dt_category' => '数据类型(商品,评论等)',
             'key_words' => '关键字',
             'task_status' => '子任务状态(0:未启动1:已启动2:已完成)',
+            'control_status' => '子任务控制状态(0:停止1:运行)',
             'task_progress' => '任务进度,最小值0.0000,最大值1.0000',
             'task_time' => '开始时间',
             'task_date' => '开始日期',

@@ -41,6 +41,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
         return [
             [['name', 'start_time'], 'required'],
             [['name'], 'string'],
+            ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_STARTED]],
             [['start_time'], 'safe'],
             [['task_progress'], 'number'],
             [['create_time'], 'integer'],

@@ -32,3 +32,4 @@ tests/_support/_generated
 /runtime
 /tests
 sftp-config.json
+config/db.php

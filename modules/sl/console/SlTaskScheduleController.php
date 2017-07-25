@@ -362,6 +362,121 @@ class SlTaskScheduleController extends Controller
 	}
 
 	/**
+	 * 每分钟更新 task_schedule_crontab 表的 progress 、task_status两个字段(每日任务的进度和任务状态)
+	 * @return
+	 */
+	public function actionUpdateCrontabState()
+	{
+		$crontabIdArr = SlTaskScheduleCrontabConsole::find()
+			->select('id')
+			->where('task_status='.SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING)
+			->asArray()
+			->indexBy('id')
+			->all();
+
+		//page = 0 and cron_id in(111,167,990)
+		$cronUnpageArr = SlTaskItemConsole::find()
+			->select('id, cron_id, paging')
+			->where(['in', 'cron_id', array_keys( $crontabIdArr )])
+			->andWhere(array('paging' => SlTaskItemConsole::PAGING_NO))
+			->asArray()
+			->indexBy('cron_id')
+			->all();
+
+		$cronIds = array_keys($crontabIdArr);//所有正在执行的crontab的id
+		$cronUnpageIds = array_keys($cronUnpageArr);//未完成分页的crontab的id
+		$cronPageIds = array_diff($cronIds, $cronUnpageIds);//已完成分页的crontab的id
+		// var_dump($cronUnpageIds, $cronPageIds);
+
+		$taskPageArr = SlWsDataTaskPageConsole::find()
+			->select('id, task_id, state')
+			->where(['in', 'task_id', $cronPageIds])//此处 task_id 对应 task_schedule_crontab表的id 而不是 task_item的id
+			->asArray()
+			->all();
+
+		//开始计算已分页的crontab的进度和状态
+		$cronPageProgress = [];
+		foreach ($taskPageArr as $pVal)
+		{
+			if(!isset($cronPageProgress[$pVal['task_id']]))
+			{
+				$cronPageProgress[$pVal['task_id']] = [];
+			}
+
+			if($pVal['state'] == SlWsDataTaskPageConsole::PAGE_STATE_COMPLETE)
+			{
+				$cronPageProgress[$pVal['task_id']][] = 1;
+			}
+			else
+			{
+				$cronPageProgress[$pVal['task_id']][] = 0;
+			}
+		}
+
+		/***已完成分页的cron的进度和状态计算START***/
+		$cronProgressArr = [];
+		$cronStatArr = [];
+		foreach ($cronPageProgress as $cronId => $cronStateArr)
+		{
+			$cronProgressArr[$cronId] = round(array_sum($cronStateArr)/count($cronStateArr), 4);//cront的进度 = 已完成的page数/所有page数 ，保留4位小数
+			if($cronProgressArr[$cronId] == 1.0000)
+			{
+				$cronStatArr[$cronId] = SlTaskScheduleCrontabConsole::TASK_STATUS_COMPLETED;
+			}
+			else
+			{
+				$cronStatArr[$cronId] = SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING;
+			}
+		}
+
+		//在已分页的cron记录里，把进度为0的cron统一赋值为0.0100（1%）
+		foreach ($cronProgressArr as $cpKey => $cpVal)
+		{
+			if($cpVal==0.0000)
+			{
+				$cronProgressArr[$cpKey] == 0.0100;
+			}
+		}
+		/***已完成分页的cron的进度和状态计算END***/
+
+		/***未完成分页的cron的进度和状态计算START***/
+		//未完成分页的cron统一赋值为0.0050（0.5%）
+		$cronUnpageStatVals = array_fill(0, count($cronUnpageIds), SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING);
+		$cronUnpageProgressVals = array_fill(0, count($cronUnpageIds), 0.0050);
+
+		$cronUnpageStatArr = array_combine($cronUnpageIds, $cronUnpageStatVals);
+		$cronUnpageProgressArr = array_combine($cronUnpageIds, $cronUnpageProgressVals);
+		/***未完成分页的cron的进度和状态计算END***/
+
+		/***合并已完成和未完成的cron START***/
+		$crontabStatusArr = $cronStatArr + $cronUnpageStatArr;
+		$crontabProgressArr = $cronProgressArr + $cronUnpageProgressArr;
+		/***合并已完成和未完成的cron END***/
+
+		/***更新cron START***/
+		$taskCrontabValues = '';
+		foreach ($crontabStatusArr as $cId => $cState)
+		{
+			$taskCrontabValues .= '('.$cId.', '.$crontabProgressArr[$cId].', '.$cState.'),';
+		}
+
+		$scheCrontabSql = 'INSERT INTO ' . SlTaskScheduleCrontabConsole::tableName()
+				.' (id, task_progress, task_status) values ';
+		$scheCrontabSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), task_status = values(task_status);';
+
+		//update task_schedule_crontab proress & task_status
+		$exeUpdate = Yii::$app->db->createCommand($scheCrontabSql . substr($taskCrontabValues, 0, -1) . $scheCrontabSql1)->execute();
+		if(!$exeUpdate)
+		{
+			return 10;
+		}
+		/***更新cron END***/
+		return 0;
+	}
+
+	/**
+	 * 弃用 ：data_task_page 缺少和 task_item 的关联id，无法通过 前者计算 task_item的task_progress
+	 *
 	 * 每分钟执行每日任务以及子任务的进度、状态检查
 	 */
 	public function actionTrackProgress()
@@ -386,37 +501,118 @@ class SlTaskScheduleController extends Controller
 			->asArray()
 			->all();
 
-		$taskItemProgArr = [];
+		$taskItemPageStatArr = [];
 
 		foreach ($taskPageArr as $pv)
 		{
-			if(!isset($taskItemProgArr[$pv['task_id']]))
+			if(!isset($taskItemPageStatArr[$pv['task_id']]))
 			{
-				$taskItemProgArr[$pv['task_id']] = [];
+				$taskItemPageStatArr[$pv['task_id']] = [];
 			}
 
 			if($pv['state'] == SlWsDataTaskPageConsole::PAGE_STATE_COMPLETE)
 			{
-				$taskItemProgArr[$pv['task_id']][] = 1;
+				$taskItemPageStatArr[$pv['task_id']][] = 1;
 			}
 			else
 			{
-				$taskItemProgArr[$pv['task_id']][] = 0;
+				$taskItemPageStatArr[$pv['task_id']][] = 0;
 			}
 		}
+
+		// var_dump($taskPageArr, $taskItemPageStatArr);
+
+		$taskItemProgressArr = [];
+		$taskItemValues = '';
 
 		foreach ($taskItemArr as $iv)
 		{
-			if(isset($taskItemProgArr[$iv['id']]))//check table `task_item_page`
+			if(isset($taskItemPageStatArr[$iv['id']]))//check table `task_item_page`
 			{
+				$taskItemProgressArr[$iv['id']] = round(array_sum( $taskItemPageStatArr[$iv['id']] ) / count( $taskItemPageStatArr[$iv['id']] ), 4);
 
+				if($iv['paging'] == SlTaskItemConsole::PAGING_NO)
+				{
+					$taskItemProgressArr[$iv['id']] *= 0.5;
+				}
 			}
+			else
+			{
+				$taskItemProgressArr[$iv['id']] = 0;
+			}
+
+			if($taskItemProgressArr[$iv['id']] == 1.0000)
+				$taskItemValues .= '('.$iv['id'].', '.$taskItemProgressArr[$iv['id']] . ', ' . SlTaskItemConsole::TASK_STATUS_COMPLETE . '),';
+			else
+				$taskItemValues .= '('.$iv['id'].', '.$taskItemProgressArr[$iv['id']] . ', ' . SlTaskItemConsole::TASK_STATUS_OPEN . '),';
 		}
 
 
-		$taskPageSql = 'INSERT INTO '.SlTaskScheduleCrontabConsole::tableName()
+		$taskPageSql = 'INSERT INTO ' . SlTaskItemConsole::tableName()
 				.' (id, task_progress, task_status) values ';
-		$taskPageSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), task_status = values(task_status)';
-		$values = '';
+		$taskPageSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), task_status = values(task_status);';
+
+		//update task_item proress & state
+		$exeUpdate = Yii::$app->db->createCommand($taskPageSql . substr($taskItemValues, 0, -1) . $taskPageSql1)->execute();
+		if(!$exeUpdate)
+		{
+			return 10;
+		}
+
+		$taskItemStatArr = [];
+
+		foreach ($taskItemArr as $iv)
+		{
+			if(!isset($taskItemStatArr[$iv['cron_id']]))
+			{
+				$taskItemStatArr[$iv['cron_id']] = [];
+			}
+
+			if($taskItemProgressArr[$iv['id']] == 1)
+			{
+				$taskItemStatArr[$iv['cron_id']][] = 1;
+			}
+			else
+			{
+				$taskItemStatArr[$iv['cron_id']][] = 0;
+			}
+		}
+
+		$taskCrontabProgressArr = [];
+		$taskCrontabValues = '';
+
+		foreach ($crontabIdArr as $cv)
+		{
+			if( isset($taskItemStatArr[$cv['id']] ))
+			{
+				$taskCrontabProgressArr[$cv['id']] = round(array_sum($taskItemStatArr[$cv['id']]) / count($taskItemStatArr[$cv['id']]), 4);
+			}
+			else
+			{
+				$taskCrontabProgressArr[$cv['id']] = 0;
+			}
+
+			if($taskCrontabProgressArr[$cv['id']] == 1.0000)
+			{
+				$taskCrontabValues .= '('.$cv['id'] . ', 1.0000, ' . SlTaskScheduleCrontabConsole::TASK_STATUS_COMPLETED . '),';
+			}
+			else
+			{
+				$taskCrontabValues .= '('.$cv['id'] . ', '.$taskCrontabProgressArr[$cv['id']].', ' . SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING . '),';
+			}
+		}
+
+		$scheCrontabSql = 'INSERT INTO ' . SlTaskScheduleCrontabConsole::tableName()
+				.' (id, task_progress, task_status) values ';
+		$scheCrontabSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), task_status = values(task_status);';
+
+		//update task_item proress & state
+		$exeUpdate = Yii::$app->db->createCommand($scheCrontabSql . substr($taskCrontabValues, 0, -1) . $scheCrontabSql1)->execute();
+		if(!$scheCrontabSql1)
+		{
+			return 10;
+		}
+
+		return 0;
 	}
 }
