@@ -401,6 +401,11 @@ class DemoController extends \yii\web\Controller
 
             $data = $taskQuery->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->all();
 
+            foreach ($data as &$d)
+            {
+                $d['task_time'] = date('Y-m-d H:i:s', $d['task_time']);
+            }
+            unset($d);
             /*$commandQuery = clone $scheQuery;
             echo $commandQuery->createCommand()->getRawSql();exit;*/
 
@@ -445,7 +450,7 @@ class DemoController extends \yii\web\Controller
                         ->asArray()
                         ->all();
 
-            foreach ($data as $d)
+            foreach ($data as &$d)
             {
                 unset($d['schedule']);
             }
