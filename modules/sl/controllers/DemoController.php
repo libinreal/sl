@@ -379,7 +379,7 @@ class DemoController extends \yii\web\Controller
         {
             $get = Yii::$app->request->get();
 
-            return $this->render('task-item', ['sche_id' => $get['sche_id']]);
+            return $this->render('task-item', ['cron_id' => $get['cron_id']]);
         }
         else if(Yii::$app->request->isPost)
         {

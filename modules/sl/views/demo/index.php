@@ -210,6 +210,20 @@ EOT;
                 }
             })
         }
+        else if(_newStat == _startStat)
+        {
+            $.alert({
+                    title: '提示',
+                    body: '已启动!',
+                });
+        }
+        else if(_newStat == _unstartStat)
+        {
+            $.alert({
+                    title: '提示',
+                    body: '已停止!',
+                });
+        }
     }
 
     /**

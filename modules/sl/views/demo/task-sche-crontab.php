@@ -122,6 +122,7 @@ EOT;
     				+ '<td><span class="cell"><a href="javascript:updateCrontabStat( \''+ _rows[_i]['task_status'] +'\', \''+<?php echo SlTaskScheduleCrontab::CONTROL_STARTED;?>+'\', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
     				+ '<a href="javascript:updateCrontabStat(\''+ _rows[_i]['task_status'] +'\', \''+<?php echo SlTaskScheduleCrontab::CONTROL_STOPPED;?>+'\', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
     				+ '<a href="javascript:deleteCrontab(\''+_rows[_i]['id']+'\');" class="a--danger">删除</a>'
+    				+ '<a href="/sl/demo/task-item/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td>'
     	}
     	_container.find('tr:gt(0)').remove();
     	_container.find('tr:eq(0)').after(_trStr);

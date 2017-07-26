@@ -16,7 +16,7 @@ EOT;
     $this->beginBlock('taskJs');
 ?>
     var pageNo = 1, pageSize = 10, pageCount = 0,
-    	paginationLen = 5, refreshUrl = "<?php $taskUrl = strstr($curPageUrl, '?', true); echo $taskUrl.'/'.$sche_id;?>";
+    	paginationLen = 5, refreshUrl = "<?php $taskUrl = strstr($curPageUrl, '?', true); echo $taskUrl.'/'.$cron_id;?>";
 
     function goToPage(_pageNo = 1){
     	var filterData = $("#filterFrm").find("input").serializeObject();
@@ -25,7 +25,7 @@ EOT;
     	filterData['pageSize'] = pageSize
     	filterData['_csrf'] = csrfToken
 
-    	filterData['sche_id'] = <?php echo $sche_id; ?>
+    	filterData['cron_id'] = <?php echo $cron_id; ?>
 
     	$.ajax({
             crossDomain: true,
@@ -108,13 +108,13 @@ EOT;
     				+ '<td><span class="cell">'+ _rows[_i]['sche_id'] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ _rows[_i]['name'] +'</span>'+ '</td>'
 
-    				+ '<td><span class="cell">'+ _rows[_i]['brand_name'] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['key_words'] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['pf_name'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['brand_name'].substr(0, 5) +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['key_words'].substr(0, 5) +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['pf_name'].substr(0, 5) +'</span>'+ '</td>'
 
     				+ '<td><span class="cell">'+ _rows[_i]['dt_category'] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ taskStatArr[_rows[_i]['task_status']] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ (_rows[_i]['task_progress']) * 100 +'%</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ ((_rows[_i]['task_progress']) * 100).toFixed(2) +'%</span>'+ '</td>'
 
     				+ '<td><span class="cell">'+ _rows[_i]['task_time'] +'</span>'+ '</td>'
 

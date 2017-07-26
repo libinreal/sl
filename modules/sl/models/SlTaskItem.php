@@ -108,21 +108,22 @@ class SlTaskItem extends \yii\db\ActiveRecord
     public function getSearchQuery()
     {
         $query = static::find();
+        $request = Yii::$app->request;
 
-        $this->load( Yii::$app->request->queryParams, '' );
+        $this->load( $request->queryParams, '' );
         if (!$this->validate())
         {
             // var_dump( $this->getErrors());exit;
             return false;
         }
 
-        if( isset( $post['task_time_s'] ) && !empty( $post['task_time_s'] ) )
+        if( $request->post('task_time_s','') )
         {
-            $query->andFilterWhere(['>=', 'task_time', strtotime($post['task_time_s'])]);
+            $query->andFilterWhere(['>=', 'task_time', strtotime($request->post('task_time_s',''))]);
         }
-        else if( isset( $post['task_time_e'] ) && !empty( $post['task_time_e'] ) )
+        else if( $request->post('task_time_e','') )
         {
-            $query->andFilterWhere(['<=', 'task_time', strtotime($post['task_time_e'])]);
+            $query->andFilterWhere(['<=', 'task_time', strtotime($request->post('task_time_e',''))]);
         }
 
         $query->andFilterWhere(['sche_id' => $this->sche_id])
