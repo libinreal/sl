@@ -14,8 +14,12 @@ return [
 
     //sl
     'sl/<controller>/<action>' => 'sl/<controller>/<action>',
-    'sl/demo/task-item/<sche_id:\d+>' => 'sl/demo/task-item',
+
     'sl/demo/edit-schedule/<sche_id:\d+>' => 'sl/demo/update-schedule',
+
+    'sl/demo/task-sche-crontab/<sche_id:\d+>' => 'sl/demo/task-sche-crontab',
+
+    'sl/demo/task-item/<cron_id:\d+>' => 'sl/demo/task-item',
     // 'http://<_m:(sl|nlp)>.3tichina.com' => '<_m>'
     //RESTful API
     /*[ 'class' => 'yii\rest\UrlRule',

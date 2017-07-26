@@ -106,17 +106,14 @@ EOT;
     				+ '<td><span class="cell">'+ _rows[_i]['name'] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ _rows[_i]['pf_name'] +'</span>'+ '</td>'
 
-    				+ '<td><span class="cell">'+ _rows[_i]['brand_name'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['brand_name'].substr(0, 62) +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ _rows[_i]['key_words'] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ scheStatArr[_rows[_i]['sche_status']] +'</span>'+ '</td>'
-
-    				+ '<td><span class="cell">'+ (_rows[_i]['sche_progress']) * 100 +'%</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['sche_time'] +'</span>'+ '</td>'
     				+ '<td><span class="cell"><a href="javascript:updateScheStat( \''+ _rows[_i]['sche_status'] +'\', \''+<?php echo SlTaskSchedule::SCHE_STATUS_OPEN;?>+'\', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
     				+ '<a href="javascript:updateScheStat(\''+ _rows[_i]['sche_status'] +'\', \''+<?php echo SlTaskSchedule::SCHE_STATUS_CLOSE;?>+'\', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
     				+ '<a href="/sl/demo/edit-schedule/'+_rows[_i]['id']+'" class="a--edit">编辑</a>'
     				+ '<a href="javascript:deleteSche(\''+_rows[_i]['id']+'\');" class="a--danger">删除</a>'
-    				+ '<a href="/sl/demo/task-item/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td>'
+    				+ '<a href="/sl/demo/task-sche-crontab/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td>'
     	}
     	_container.find('tr:gt(0)').remove();
     	_container.find('tr:eq(0)').after(_trStr);
@@ -131,17 +128,88 @@ EOT;
      */
     function updateScheStat(_curStat, _newStat, _id)
     {
-    	return true;
-    }
+    	var _unstartStat = <?php echo SlTaskSchedule::SCHE_STATUS_CLOSE; ?>,
+        _startStat = <?php echo SlTaskSchedule::SCHE_STATUS_OPEN; ?>,
+        _okStat = <?php echo SlTaskSchedule::SCHE_STATUS_COMPLETE; ?>,
+        _updateScheUrl = '/sl/demo/update-schedule',
+        _container = $('.schedule_tables');
 
-    /**
-     * 编辑计划任务
-     * @param  string _id 要编辑的任务计划id
-     * @return
-     */
-    function editSche(_id)
-    {
+        if(_curStat == _okStat)
+        {
+            $.alert('已完成');
+            return;
+        }
 
+        if( _newStat == _startStat && _curStat == _unstartStat)//启动
+        {
+            var _updateScheData = {};
+            _updateScheData['_csrf'] = csrfToken;
+
+            _updateScheData['id'] = _id;
+            _updateScheData['sche_status'] = _newStat;
+
+            $.confirm({
+                title: '弹框',
+                body: '是否启动计划任务'+ _id +'?',
+                okHide: function(){
+                    $.ajax({
+                        crossDomain: true,
+                        url: _updateScheUrl,
+                        type: 'post',
+                        data: _updateScheData,
+                        dataType: 'json',
+                        success: function (json_data) {
+                            // console.log(JSON.stringify(json_data));
+                            if(json_data.code == '0')
+                            {
+                                _container.find("tr[sche-id='"+_id+"']").find("td:eq(5)").find("span").html("已启动");
+                                $.alert('启动计划任务'+_id+'成功');
+                            }
+                            else
+                            {
+                                $.alert('启动计划任务'+_id+'失败');
+                            }
+
+                        }
+                    });
+                }
+            })
+        }
+        else if( _newStat == _unstartStat && _curStat == _startStat)//停止
+        {
+            var _updateScheData = {};
+            _updateScheData['_csrf'] = csrfToken;
+
+            _updateScheData['id'] = _id;
+            _updateScheData['sche_status'] = _newStat;
+
+            $.confirm({
+                title: '弹框',
+                body: '是否停止计划任务'+ _id +'?',
+                okHide: function(){
+                    $.ajax({
+                        crossDomain: true,
+                        url: _updateScheUrl,
+                        type: 'post',
+                        data: _updateScheData,
+                        dataType: 'json',
+                        success: function (json_data) {
+                            // console.log(JSON.stringify(json_data));
+                            if(json_data.code == '0')
+                            {
+                                _container.find("tr[sche-id='"+_id+"']").find("td:eq(5)").find("span").html("未启动");
+                                $.alert('停止计划任务'+_id+'成功');
+                            }
+                            else
+                            {
+                                $.alert('停止计划任务'+_id+'失败');
+                            }
+
+                        }
+                    });
+                }
+            })
+        }
     }
 
     /**
@@ -151,7 +219,37 @@ EOT;
      */
     function deleteSche(_id)
     {
+        var _updateScheData = {},
+            _removeCrontabUrl = '/sl/demo/removeSche';
 
+        _updateScheData['_csrf'] = csrfToken;
+        _updateScheData['id'] = _id;
+
+        $.confirm({
+            title: '弹框',
+            body: '是否删除任务'+ _id +'?',
+            okHide: function(){
+                $.ajax({
+                    crossDomain: true,
+                    url: _removeCrontabUrl,
+                    type: 'post',
+                    data: _updateScheData,
+                    dataType: 'json',
+                    success: function (json_data) {
+                        if(json_data.code == '0')
+                        {
+                            _container.find("tr[sche-id='"+_id+"']").remove();
+                            $.alert('删除计划任务'+_id+'成功');
+                        }
+                        else
+                        {
+                            $.alert('删除计划任务'+_id+'失败');
+                        }
+
+                    }
+                });
+            }
+        })
     }
 
 <?php
@@ -234,8 +332,6 @@ $this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);
 							<th><span class="cell">品牌</span></th>
 							<th><span class="cell">关键字</span></th>
 							<th><span class="cell">状态</span></th>
-							<th><span class="cell">任务进度</span></th>
-							<th><span class="cell">执行时间</span></th>
 							<th><span class="cell">操作</span></th>
 						</tr>
 					</tbody></table>

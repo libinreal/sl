@@ -10,6 +10,7 @@ use app\modules\sl\models\SlGlobalSettings;
 use app\modules\sl\models\SlScheduleProductClass;
 use app\modules\sl\models\SlScheduleProductBrand;
 use app\modules\sl\models\SlScheduleProductClassBrand;
+use app\modules\sl\models\SlTaskScheduleCrontab;
 use yii\web\Response;
 use app\modules\sl\components\SettingHelper;
 use yii\helpers\Json;
@@ -43,7 +44,7 @@ class DemoController extends \yii\web\Controller
 
             if(!$scheQuery)
             {
-                return ['code'=>-1, 'msg'=>'Input data invalid'];
+                return ['code'=>'-1', 'msg'=>'Input data invalid'];
             }
 
             $totals = $scheQuery->count();
@@ -54,7 +55,7 @@ class DemoController extends \yii\web\Controller
             echo $commandQuery->createCommand()->getRawSql();exit;*/
 
              return  [
-                    'code'=>0,
+                    'code'=>'0',
                     'msg'=>'ok',
                     'data'=>[ 'total' => $totals, 'rows' => $data]
                     ];
@@ -199,7 +200,7 @@ class DemoController extends \yii\web\Controller
             {
                 // var_dump( $scheModel->getErrors());exit;
                 return [
-                    'code' => -1,
+                    'code' => '-1',
                     'msg' => 'Submit data error',
                     'data' => []
                 ];
@@ -209,7 +210,7 @@ class DemoController extends \yii\web\Controller
 
 
             return  [
-                    'code'=>0,
+                    'code'=>'0',
                     'msg'=>'Success',
                     'data'=>[]
                     ];
@@ -316,10 +317,54 @@ class DemoController extends \yii\web\Controller
 
 
             return  [
-                    'code'=>0,
+                    'code'=>'0',
                     'msg'=>'Success',
                     'data'=>[]
                     ];
+        }
+    }
+
+    /**
+     * 删除计划任务
+     * @return
+     */
+    public function actionRemoveSche()
+    {
+        $request = Yii::$app->request;
+
+        if($request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+
+            $id = $request->post('id', '');
+            $ret = SlTaskSchedule::findOne($id)->delete();
+            return  [
+                'code'=> $ret ? '0' : '1',
+                'msg'=>'',
+                'data'=>[]
+            ];
+        }
+    }
+
+    /**
+     * 删除每日任务
+     * @return
+     */
+    public function actionRemoveCrontab()
+    {
+        $request = Yii::$app->request;
+
+        if($request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+
+            $id = $request->post('id', '');
+            $ret = SlTaskScheduleCrontab::findOne($id)->delete();
+            return  [
+                'code'=>$ret ? '0' : '1',
+                'msg'=>'',
+                'data'=>[]
+            ];
         }
     }
 
@@ -360,7 +405,56 @@ class DemoController extends \yii\web\Controller
             echo $commandQuery->createCommand()->getRawSql();exit;*/
 
              return  [
-                    'code'=>0,
+                    'code'=>'0',
+                    'msg'=>'ok',
+                    'data'=>[ 'total' => $totals, 'rows' => $data]
+                    ];
+        }
+    }
+
+    public function actionTaskScheCrontab()
+    {
+        if(Yii::$app->request->isGet)
+        {
+            $get = Yii::$app->request->get();
+
+            return $this->render('task-sche-crontab', ['sche_id' => $get['sche_id']]);
+        }
+        else if(Yii::$app->request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            $request = Yii::$app->request;
+
+            $pageNo = $request->post('pageNo', '');
+            $pageSize = $request->post('pageSize', '');
+
+            $scheCronModel = new SlTaskScheduleCrontab();
+            $scheCronQuery = $scheCronModel->getSearchQuery();
+
+            if(!$scheCronQuery)
+            {
+                return ['code'=>-1, 'msg'=>'Input data invalid'];
+            }
+
+            $totals = $scheCronQuery->count();
+
+            $data = $scheCronQuery
+                        ->select('cron.id, cron.name, cron.start_time, cron.task_status, cron.control_status, cron.task_progress, cron.sche_id, sche.key_words, sche.dt_category, sche.pf_name, sche.brand_name')
+                        ->limit( $pageSize )
+                        ->offset( ($pageNo - 1) * $pageSize )
+                        ->asArray()
+                        ->all();
+
+            foreach ($data as $d)
+            {
+                unset($d['schedule']);
+            }
+            unset($d);
+            /*$commandQuery = clone $scheQuery;
+            echo $commandQuery->createCommand()->getRawSql();exit;*/
+
+             return  [
+                    'code'=>'0',
                     'msg'=>'ok',
                     'data'=>[ 'total' => $totals, 'rows' => $data]
                     ];
@@ -384,7 +478,7 @@ class DemoController extends \yii\web\Controller
             if ( !$cronModel->load( $post, '' ) || !$cronModel->validate() )
             {
                 return [
-                    'code' => -1,
+                    'code' => '-1',
                     'msg' => 'Crontab data error',
                     'data' => []
                 ];
@@ -394,7 +488,7 @@ class DemoController extends \yii\web\Controller
 
 
             return  [
-                    'code'=>0,
+                    'code'=>'0',
                     'msg'=>'Success',
                     'data'=>[]
                     ];

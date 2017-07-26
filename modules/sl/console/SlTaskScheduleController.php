@@ -68,8 +68,8 @@ class SlTaskScheduleController extends Controller
 					$startTime,
 					0,
 					$sche['id'],
-					SlTaskScheduleCrontabConsole::TASK_STATUS_UNSTARTED,
-					SlTaskScheduleCrontabConsole::CONTROL_STOPPED,
+					SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING,
+					SlTaskScheduleCrontabConsole::CONTROL_STARTED,
 					time()
 				];
 			}
@@ -83,8 +83,8 @@ class SlTaskScheduleController extends Controller
 					$startTime,
 					0,
 					$sche['id'],
-					SlTaskScheduleCrontabConsole::TASK_STATUS_UNSTARTED,
-					SlTaskScheduleCrontabConsole::CONTROL_STOPPED,
+					SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING,
+					SlTaskScheduleCrontabConsole::CONTROL_STARTED,
 					time()
 				];
 			}
@@ -103,8 +103,8 @@ class SlTaskScheduleController extends Controller
 					$startTime,
 					0,
 					$sche['id'],
-					SlTaskScheduleCrontabConsole::TASK_STATUS_UNSTARTED,
-					SlTaskScheduleCrontabConsole::CONTROL_STOPPED,
+					SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING,
+					SlTaskScheduleCrontabConsole::CONTROL_STARTED,
 					time()
 				];
 			}
@@ -123,8 +123,8 @@ class SlTaskScheduleController extends Controller
 					$startTime,
 					0,
 					$sche['id'],
-					SlTaskScheduleCrontabConsole::TASK_STATUS_UNSTARTED,
-					SlTaskScheduleCrontabConsole::CONTROL_STOPPED,
+					SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING,
+					SlTaskScheduleCrontabConsole::CONTROL_STARTED,
 					time()
 				];
 			}

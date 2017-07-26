@@ -346,18 +346,18 @@ function getProductBrand(class_id, func )
 
 var class_stat = [true,true],
 	brand_stat = [true,true],
-	class_select = <?php if(isset($classSelectIds)): echo Json::encode($classSelectIds); else: echo '[]'; endif;?>,
-	brand_select = <?php if(isset($brandSelectIds)): echo Json::encode($brandSelectIds); else: echo '[]'; endif;?>,
-	class_map = <?php if(isset($classMap)): echo Json::encode($classMap);else:echo '[]';endif;?>,
+	class_select = <?php if(!empty($classSelectIds)): echo Json::encode($classSelectIds); else: echo '[]'; endif;?>,
+	brand_select = <?php if(!empty($brandSelectIds)): echo Json::encode($brandSelectIds); else: echo '[]'; endif;?>,
+	class_map = <?php if(!empty($classMap)): echo Json::encode($classMap);else:echo '[]';endif;?>,
 		//编辑-渠道设置-初始化
-	pf_select = <?php if(isset($scheEditData)):echo $scheEditData["pf_name"];else: echo '[]';endif;?>,
-	ua_set = <?php if(isset($scheEditData)): echo $scheEditData["user_agent"];else: echo '[]';endif;?>,
-	cookie_set = <?php if(isset($scheEditData)): echo $scheEditData["cookie"];else: echo '[]';endif;?>,
-	dt_select = <?php if(isset($scheEditData)): echo $scheEditData["dt_category"];else: echo '[]';endif;?>,
-	sche_type_set = <?php if(isset($scheEditData)): echo $scheEditData["sche_type"];else: echo 1;endif;?>,
-	sche_time_set = <?php if(isset($scheEditData)): echo $scheEditData["sche_time"];else: echo "\"\"";endif;?>,
-	week_days_set = <?php if(isset($scheEditData)): echo $scheEditData["week_days"];else: echo "\"\"";endif;?>,
-	month_days_set = <?php if(isset($scheEditData)): echo $scheEditData["month_days"];else: echo "\"\"";endif;?>;
+	pf_select = <?php if(!empty($scheEditData)):echo $scheEditData["pf_name"];else: echo '[]';endif;?>,
+	ua_set = <?php if(!empty($scheEditData)): echo Json::encode($scheEditData["user_agent"]);else: echo '[]';endif;?>,
+	cookie_set = <?php if(!empty($scheEditData)): echo Json::encode($scheEditData["cookie"]);else: echo '[]';endif;?>,
+	dt_select = <?php if(!empty($scheEditData)): echo $scheEditData["dt_category"];else: echo '[]';endif;?>,
+	sche_type_set = <?php if(!empty($scheEditData)): echo $scheEditData["sche_type"];else: echo 1;endif;?>,
+	sche_time_set = <?php if(!empty($scheEditData)): echo "'".$scheEditData["sche_time"]."'";else: echo "\"\"";endif;?>,
+	week_days_set = <?php if(!empty($scheEditData)): echo "'".$scheEditData["week_days"]."'";else: echo "\"\"";endif;?>,
+	month_days_set = <?php if(!empty($scheEditData)): echo "'".$scheEditData["month_days"]."'";else: echo "\"\"";endif;?>;
 
 //全选
 $('#class_all_select').on('click', 'input', function(e){

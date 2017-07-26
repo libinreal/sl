@@ -39,7 +39,6 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'start_time'], 'required'],
             [['name'], 'string'],
             ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_STARTED]],
             [['start_time'], 'safe'],
@@ -74,5 +73,46 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
     public function getSchedule()
     {
         return $this->hasOne(SlTaskSchedule::className(), ['id' => 'sche_id'])->from(SlTaskSchedule::tableName() . ' sche');
+    }
+
+    public function getSearchQuery()
+    {
+        $query = static::find();
+        $request = Yii::$app->request;
+
+        $this->load( $request->queryParams, '' );
+        if (!$this->validate())
+        {
+            // var_dump( $this->getErrors());exit;
+            return false;
+        }
+
+        $query->alias('cron')->joinWith('schedule');
+
+        if( $request->post('start_time_s', '') )
+        {
+            $query->andFilterWhere(['>=', 'cron.start_time', strtotime($request->post('start_time_s', ''))]);
+        }
+        else if( $request->post('start_time_e', '') )
+        {
+            $query->andFilterWhere(['<=', 'cron.start_time', strtotime($request->post('start_time_e', ''))]);
+        }
+
+        $query->andFilterWhere(['cron.sche_id' => $this->sche_id])
+                ->andFilterWhere(['cron.id' => $this->id])
+                ->andFilterWhere(['like', 'sche.brand_name', $request->post('brand_name', '')])
+                ->andFilterWhere(['like', 'sche.key_words', $request->post('key_words', '')])
+                ->andFilterWhere(['like', 'cron.task_status', $this->task_status])
+                ->andFilterWhere(['like', 'sche.dt_category', $request->post('dt_category', '')])
+                ->andFilterWhere(['like', 'sche.pf_name', $request->post('pf_name', '')])
+                ->andFilterWhere(['like', 'sche.class_name', $request->post('class_name', '')])
+
+                ->andFilterWhere(['like', 'cron.name', $this->name]);
+
+
+        /*$commandQuery = clone $query;
+    echo $commandQuery->createCommand()->getRawSql();*/
+
+        return $query;
     }
 }
