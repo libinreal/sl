@@ -368,12 +368,36 @@ class DemoController extends \yii\web\Controller
     }
 
     /**
-     * 编辑子任务
+     * 更新每日任务
      * method: POST
      * @return string
      */
-    public function actionUpdateTaskItem()
+    public function actionUpdateTaskScheCrontab()
     {
+        if(Yii::$app->request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            $cronModel = new SlTaskScheduleCrontab();
+            $post = Yii::$app->request->post();
 
+            //数据验证失败
+            if ( !$cronModel->load( $post, '' ) || !$cronModel->validate() )
+            {
+                return [
+                    'code' => -1,
+                    'msg' => 'Crontab data error',
+                    'data' => []
+                ];
+            }
+
+            $cronModel->save();
+
+
+            return  [
+                    'code'=>0,
+                    'msg'=>'Success',
+                    'data'=>[]
+                    ];
+        }
     }
 }
