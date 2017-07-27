@@ -416,11 +416,14 @@ class SlTaskScheduleController extends Controller
 		/***已完成分页的cron的进度和状态计算START***/
 		$cronProgressArr = [];
 		$cronStatArr = [];
+		$cronCompleteIds = [];//已完成的每日任务id
+
 		foreach ($cronPageProgress as $cronId => $cronStateArr)
 		{
 			$cronProgressArr[$cronId] = round(array_sum($cronStateArr)/count($cronStateArr), 4);//cront的进度 = 已完成的page数/所有page数 ，保留4位小数
 			if($cronProgressArr[$cronId] == 1.0000)
 			{
+				$cronCompleteIds[] = $cronId;
 				$cronStatArr[$cronId] = SlTaskScheduleCrontabConsole::TASK_STATUS_COMPLETED;
 			}
 			else
@@ -471,6 +474,19 @@ class SlTaskScheduleController extends Controller
 			return 10;
 		}
 		/***更新cron END***/
+
+		/***更新task_item START***/
+		//update task_item proress & task_status
+		if(!empty($cronCompleteIds))
+		{
+			$exeUpdate = Yii::$app->db->createCommand('UPDATE '.SlTaskItemConsole::tableName().' SET [[task_progress]] = 1.0000 AND [[task_status]] = '.SlTaskItemConsole::TASK_STATUS_COMPLETE.' WHERE [[cron_id]] IN ('. implode($cronCompleteIds) .');' )->execute();
+			if(!$exeUpdate)
+			{
+				return 11;
+			}
+		}
+		/***更新task_item END***/
+
 		return 0;
 	}
 

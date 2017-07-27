@@ -4,7 +4,7 @@ use app\modules\sl\models\SlTaskScheduleCrontab;
 use yii\helpers\Url;
 use yii\helpers\Json;
 
-    $this->title = '任务运行状态';
+    $this->title = '实际任务运行状态';
     /*$this->params['breadcrumbs'][] = 'SL System';
     $this->params['breadcrumbs'][] = '计划任务列表';
     $this->params['breadcrumbs'][] = $this->title;*/
@@ -288,7 +288,7 @@ $this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
 
 <div class="block clearfix">
 				<div class="section clearfix">
-					<span class="title-prefix-md">任务运行状态</span>
+					<span class="title-prefix-md"><?php echo $this->title; ?></span>
 					<div class="sl-add-text fr" style="display: none;" onclick="javascript:location.href='/sl/demo/add-schedule'">新增</div>
 				</div>
 				<div class="sl-query-wrapper sui-form clearfix">

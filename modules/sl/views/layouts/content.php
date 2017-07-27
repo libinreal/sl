@@ -9,7 +9,7 @@
 
 			<div class="breadcrumb fl">
 				<div class="breadcrumb-item">
-					任务运行状态
+					<?php echo $this->title; ?>
 				</div>
 			</div>
 		</div>
