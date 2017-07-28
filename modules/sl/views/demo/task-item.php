@@ -119,8 +119,8 @@ EOT;
     				+ '<td><span class="cell">'+ _rows[_i]['task_time'] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ _rows[_i]['complete_time'] +'</span>'+ '</td>'
 
-    				+ '<td><span class="cell"><a href="javascript:updateTaskStat( \''+ _rows[_i]['task_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_OPEN;?>+'\');" class="a--success">启动</a>'
-    				+ '<a href="javascript:updateTaskStat(\''+ _rows[_i]['task_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_CLOSE;?>+'\');" class="a--danger">停止</a>'
+    				+ '<td><span class="cell"><a href="javascript:updateTaskStat( \''+ _rows[_i]['complete_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_OPEN;?>+'\');" class="a--success">启动</a>'
+    				+ '<a href="javascript:updateTaskStat(\''+ _rows[_i]['complete_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_CLOSE;?>+'\');" class="a--danger">停止</a>'
     				+ '<a href="javascript:deleteTask(\''+_rows[_i]['id']+'\');" class="a--danger">删除</a>'
     	}
     	_container.find('tr:gt(0)').remove();

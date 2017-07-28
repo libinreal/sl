@@ -573,8 +573,8 @@ class SlTaskScheduleController extends Controller
 
 
 		$taskPageSql = 'INSERT INTO ' . SlTaskItemConsole::tableName()
-				.' (id, task_progress, task_status) values ';
-		$taskPageSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), task_status = values(task_status);';
+				.' (id, task_progress, complete_status) values ';
+		$taskPageSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), complete_status = values(complete_status);';
 
 		//update task_item proress & state
 		$exeUpdate = Yii::$app->db->createCommand($taskPageSql . substr($taskItemValues, 0, -1) . $taskPageSql1)->execute();
