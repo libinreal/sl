@@ -119,15 +119,16 @@ class DemoController extends \yii\web\Controller
         {
             Yii::$app->response->format = Response::FORMAT_JSON;
             $post = Yii::$app->request->post();
-            $q = SlScheduleProductClassBrand::find();
+            $q = SlScheduleProductClassBrand::find()->alias('cb');
 
             $q->select([
-                SlScheduleProductClassBrand::tableName().'.class_id',
-                SlScheduleProductClassBrand::tableName().'.brand_id',
-                SlScheduleProductBrand::tableName().'.name',
+
+                'cb.class_id',
+                'cb.brand_id',
+                'b.name',
             ]);
             if(!empty( $post['class_id']))
-                $q->where([SlScheduleProductClassBrand::tableName().'.class_id' => $post['class_id']]);
+                $q->where(['cb.class_id' => $post['class_id']]);
 
             $items = $q->joinWith('productBrand')
                         ->asArray()
@@ -266,11 +267,12 @@ class DemoController extends \yii\web\Controller
             $classSelect = SlScheduleProductClass::find()->select('id')->indexBy('id')->where(['in', 'name', $classArr])->asArray()->all();
             $brandSelect = SlScheduleProductBrand::find()->select('id')->indexBy('id')->where(['in', 'name', $brandArr])->asArray()->all();
             $classMap = SlScheduleProductClassBrand::find()
-                        ->select(SlScheduleProductClass::tableName().'.id, brand_id,class_id,'.SlScheduleProductBrand::tableName().'.name')
+                        ->alias('cb')
+                        ->select('c.id, cb.brand_id, cb.class_id, b.name')
                         ->joinWith('productClass')
                         ->joinWith('productBrand')
-                        ->where(['in', SlScheduleProductClass::tableName().'.name', $classArr])
-                        ->orderBy(SlScheduleProductClass::tableName().'.id')
+                        ->where(['in', 'c.name', $classArr])
+                        ->orderBy('c.id')
                         ->asArray()->all();
 
             foreach ($classMap as &$c)
@@ -367,6 +369,30 @@ class DemoController extends \yii\web\Controller
                     'data'=>[]
                     ];;
         }
+    }
+
+    /**
+     * 获取所有分类下的品牌
+     *
+     */
+    private function _classBrandManage()
+    {
+        SlScheduleProductClass::find()
+            ->alias('p')
+            ->joinWith('productBrand')
+            ->select('p.name,')
+            ->asArray()
+            ->all();
+    }
+
+
+    /**
+     * 获取所有品牌所属的分类
+     *
+     */
+    private function _brandClassManage()
+    {
+
     }
 
     /**

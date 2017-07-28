@@ -48,6 +48,6 @@ class SlScheduleProductClass extends \yii\db\ActiveRecord
 
     public function getProductBrand()
     {
-        return $this->hasMany(SlScheduleProductClassBrand::className(), ['class_id' => 'id']);
+        return $this->hasMany(SlScheduleProductClassBrand::className(), ['class_id' => 'id'])->from(SlScheduleProductClassBrand::tableName() . ' b');
     }
 }

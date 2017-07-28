@@ -95,7 +95,6 @@ $this->beginBlock("addScheJs");
 				}else{
 					$('.'+ this._modalClass).css({'margin-left':'-'+(this.options.containerWidth*bodyWidth/2) + 'px','width':this.options.containerWidth*bodyWidth + 'px','left':'50%'});
 				}
-7
 			}
 
 		},
@@ -944,7 +943,7 @@ $this->registerJs($readyJs);
 									<div class="cl-title__text fl">分类列表</div>
 									<div class="sl-icon--add fr"></div>
 								</div>
-								<input type="text" class="input-large" placeholder="搜索" />
+								<input id="cls_m_cls_search" type="text" class="input-large" placeholder="搜索" />
 								<div class="sl-list-block">
 									<div class="sl-list sl-list--category">
 										<div class="sl-list__item">手机</div>
@@ -981,7 +980,7 @@ $this->registerJs($readyJs);
 										<div class="cl-title clearfix">
 											<div class="cl-title__text fl">品牌列表</div>
 										</div>
-										<input type="text" class="input-large" placeholder="搜索" />
+										<input id="cls_m_brand_search" type="text" class="input-large" placeholder="搜索" />
 										<div class="sl-list-block">
 											<div class="sl-list sl-list--brand">
 												<div class="sl-list__item">资生堂</div>

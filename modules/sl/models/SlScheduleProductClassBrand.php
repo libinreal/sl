@@ -54,7 +54,7 @@ class SlScheduleProductClassBrand extends \yii\db\ActiveRecord
      */
     public function getProductBrand()
     {
-        return $this->hasMany(SlScheduleProductBrand::className(), ['id' => 'brand_id']);
+        return $this->hasMany(SlScheduleProductBrand::className(), ['id' => 'brand_id'])->from(SlScheduleProductBrand::tableName() . ' b');
     }
 
     /**
@@ -63,6 +63,6 @@ class SlScheduleProductClassBrand extends \yii\db\ActiveRecord
      */
     public function getProductClass()
     {
-        return $this->hasMany(SlScheduleProductClass::className(), ['id' => 'class_id']);
+        return $this->hasMany(SlScheduleProductClass::className(), ['id' => 'class_id'])->from(SlScheduleProductClass::tableName() . ' c');
     }
 }
