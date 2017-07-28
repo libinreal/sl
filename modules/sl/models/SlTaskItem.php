@@ -56,7 +56,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
     {
         return [
             [['sche_id', 'cron_id', 'task_status', 'control_status', 'task_time', 'update_time', 'create_time', 'complete_time', 'paging'], 'integer'],
-            ['task_status', 'in', 'range' => [self::TASK_STATUS_CLOSE, self::TASK_STATUS_OPEN, self::TASK_STATUS_COMPLETE]],
+            [['task_status', 'complete_status'], 'in', 'range' => [self::TASK_STATUS_CLOSE, self::TASK_STATUS_OPEN, self::TASK_STATUS_COMPLETE]],
             ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_STARTED]],
             ['paging', 'in', 'range' => [self::PAGING_NO, self::PAGING_YES]],
             [['name', 'cookie', 'user_agent', 'dt_category', 'pf_name'], 'string'],
@@ -83,7 +83,8 @@ class SlTaskItem extends \yii\db\ActiveRecord
             'class_name' => '分类名',
             'dt_category' => '数据类型(商品,评论等)',
             'key_words' => '关键字',
-            'task_status' => '子任务状态(0:未启动1:已启动2:已完成)',
+            'task_status' => '',
+            'complete_status' => '子任务状态(0:未启动1:已启动2:已完成)',
             'control_status' => '子任务控制状态(0:停止1:运行)',
             'task_progress' => '任务进度,最小值0.0000,最大值1.0000',
             'task_time' => '开始时间',
@@ -130,7 +131,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
                 ->andFilterWhere(['cron_id' => $this->cron_id])
                 ->andFilterWhere(['like', 'brand_name', $this->brand_name])
                 ->andFilterWhere(['like', 'key_words', $this->key_words])
-                ->andFilterWhere(['like', 'task_status', $this->task_status])
+                ->andFilterWhere(['like', 'complete_status', $this->complete_status])
                 ->andFilterWhere(['like', 'dt_category', $this->dt_category])
                 ->andFilterWhere(['like', 'pf_name', $this->pf_name])
                 ->andFilterWhere(['like', 'class_name', $this->class_name])

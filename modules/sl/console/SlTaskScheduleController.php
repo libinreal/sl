@@ -193,7 +193,7 @@ class SlTaskScheduleController extends Controller
             'class_name',
             'dt_category',
             'key_words',
-            'task_status',
+            'complete_status',
             'task_time',
             'task_date',
             'create_time',
@@ -487,7 +487,7 @@ class SlTaskScheduleController extends Controller
 		//update task_item proress & task_status
 		if(!empty($cronCompleteIds))
 		{
-			$exeUpdate = Yii::$app->db->createCommand('UPDATE '.SlTaskItemConsole::tableName().' SET [[task_progress]] = 1.0000, [[task_status]] = '.SlTaskItemConsole::TASK_STATUS_COMPLETE.', [[complete_time]] = '. time() .' WHERE [[cron_id]] IN ('. implode($cronCompleteIds) .');' )->execute();
+			$exeUpdate = Yii::$app->db->createCommand('UPDATE '.SlTaskItemConsole::tableName().' SET [[task_progress]] = 1.0000, [[complete_status]] = '.SlTaskItemConsole::TASK_STATUS_COMPLETE.', [[complete_time]] = '. time() .' WHERE [[cron_id]] IN ('. implode(',', $cronCompleteIds) .');' )->execute();
 			if(!$exeUpdate)
 			{
 				return 11;

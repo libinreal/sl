@@ -113,7 +113,7 @@ EOT;
     				+ '<td><span class="cell">'+ _rows[_i]['pf_name'].substr(0, 5) +'</span>'+ '</td>'
 
     				+ '<td><span class="cell">'+ _rows[_i]['dt_category'] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ taskStatArr[_rows[_i]['task_status']] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ taskStatArr[_rows[_i]['complete_status']] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ ((_rows[_i]['task_progress']) * 100).toFixed(2) +'%</span>'+ '</td>'
 
     				+ '<td><span class="cell">'+ _rows[_i]['task_time'] +'</span>'+ '</td>'
@@ -169,7 +169,7 @@ $this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
 							<span class="sui-dropdown dropdown-bordered select">
 									<span class="dropdown-inner">
 										<a role="button" data-toggle="dropdown" href="#" style="width: 79px;" class="dropdown-toggle">
-											<input value="" name="task_status" type="hidden">
+											<input value="" name="complete_status" type="hidden">
 											<i class="caret"></i><span>全部</span>
 										</a>
 										<ul role="menu" class="sui-dropdown-menu">
