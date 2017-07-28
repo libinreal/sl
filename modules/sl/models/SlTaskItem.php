@@ -110,7 +110,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
         $query = static::find();
         $request = Yii::$app->request;
 
-        $this->load( $request->queryParams, '' );
+        $this->load( $request->post(), '' );
         if (!$this->validate())
         {
             // var_dump( $this->getErrors());exit;
@@ -121,7 +121,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
         {
             $query->andFilterWhere(['>=', 'task_time', strtotime($request->post('task_time_s',''))]);
         }
-        else if( $request->post('task_time_e','') )
+        if( $request->post('task_time_e','') )
         {
             $query->andFilterWhere(['<=', 'task_time', strtotime($request->post('task_time_e',''))]);
         }

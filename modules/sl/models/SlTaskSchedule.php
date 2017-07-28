@@ -99,7 +99,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
     {
         $query = static::find();
 
-        $this->load( Yii::$app->request->queryParams );
+        $this->load( Yii::$app->request->post(), '' );
         if (!$this->validate())
         {
             // var_dump( $this->getErrors());exit;
@@ -111,22 +111,20 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
         {
             $query->andFilterWhere(['>=', 'update_time', strtotime($post['update_time_s'])]);
         }
-        else if( isset( $post['update_time_e'] ) && !empty( $post['update_time_e'] ) )
+        if( isset( $post['update_time_e'] ) && !empty( $post['update_time_e'] ) )
         {
             $query->andFilterWhere(['<=', 'update_time', strtotime($post['update_time_e'])]);
         }
 
-        $query->andFilterWhere([
-            'brand_name' => $this->brand_name,
-            'key_words' => $this->key_words,
-            'sche_status' => $this->sche_status,
-            'dt_category' => $this->dt_category,
-            'pf_name' => $this->pf_name,
-            'class_name' => $this->class_name,
-        ]);
-
-        $query->andFilterWhere(['like', 'key_words', $this->key_words])
+        $query->andFilterWhere(['like', 'brand_name', $this->brand_name])
+            ->andFilterWhere(['like','key_words', $this->key_words])
+            ->andFilterWhere(['sche_status' => $this->sche_status])
+            ->andFilterWhere(['like', 'dt_category', $this->dt_category])
+            ->andFilterWhere(['like', 'pf_name', $this->pf_name])
+            ->andFilterWhere(['like', 'class_name', $this->class_name])
             ->andFilterWhere(['like', 'name', $this->name]);
+            /*$t = clone $query;
+        echo $t->createCommand()->getRawSql();exit;*/
 
         return $query;
     }
@@ -204,6 +202,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
                 'user_agent' => Json::encode( $user_agent ),
                 'update_time' => time()
             ]);
+
             return true;
         } else {
             return false;

@@ -117,6 +117,7 @@ EOT;
     				+ '<td><span class="cell">'+ ((_rows[_i]['task_progress']) * 100).toFixed(2) +'%</span>'+ '</td>'
 
     				+ '<td><span class="cell">'+ _rows[_i]['task_time'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['complete_time'] +'</span>'+ '</td>'
 
     				+ '<td><span class="cell"><a href="javascript:updateTaskStat( \''+ _rows[_i]['task_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_OPEN;?>+'\');" class="a--success">启动</a>'
     				+ '<a href="javascript:updateTaskStat(\''+ _rows[_i]['task_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_CLOSE;?>+'\');" class="a--danger">停止</a>'
@@ -134,10 +135,22 @@ $this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
 <div class="block clearfix">
 				<div class="section clearfix">
 					<span class="title-prefix-md"><?php echo $this->title; ?></span>
-					<div class="sl-add-text fr" onclick="javascript:location.href='/sl/demo/add-schedule'">新增</div>
+					<div class="sl-add-text fr" style="display: none;" onclick="javascript:location.href='/sl/demo/add-schedule'">新增</div>
 				</div>
 				<div class="sl-query-wrapper sui-form clearfix">
 					<form id="filterFrm">
+					<div class="sl-query">
+                        <div class="sl-query__label">名字</div>
+                        <div class="sl-query__control">
+                            <input type="text" name="name" class="input-medium">
+                        </div>
+                    </div>
+                    <div class="sl-query">
+                        <div class="sl-query__label">渠道</div>
+                        <div class="sl-query__control">
+                            <input type="text" name="pf_name" class="input-medium">
+                        </div>
+                    </div>
 					<div class="sl-query">
 						<div class="sl-query__label">品牌</div>
 						<div class="sl-query__control">
@@ -155,7 +168,7 @@ $this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
 						<div class="sl-query__control">
 							<span class="sui-dropdown dropdown-bordered select">
 									<span class="dropdown-inner">
-										<a role="button" data-toggle="dropdown" href="#" class="dropdown-toggle">
+										<a role="button" data-toggle="dropdown" href="#" style="width: 79px;" class="dropdown-toggle">
 											<input value="" name="task_status" type="hidden">
 											<i class="caret"></i><span>全部</span>
 										</a>
@@ -174,14 +187,14 @@ $this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
 						<div class="sl-query__control">
 							<span class="sui-dropdown dropdown-bordered select">
 									<span class="dropdown-inner">
-										<a role="button" data-toggle="dropdown" href="#" class="dropdown-toggle">
+										<a role="button" data-toggle="dropdown" href="#" style="width: 79px;" class="dropdown-toggle">
 											<input value="" name="dt_category" type="hidden">
 											<i class="caret"></i><span>全部</span>
 										</a>
 										<ul role="menu" class="sui-dropdown-menu">
 											<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="">全部</a> </li>
-											<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="0">商品</a> </li>
-											<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="1">评论</a> </li>
+											<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="商品">商品</a> </li>
+											<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="评论">评论</a> </li>
 										</ul>
 									</span>
 							</span>
@@ -194,7 +207,7 @@ $this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
       						<input type="text" name="task_time_e" class="input-medium input-date">
 						</div>
 					</div>
-					<button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;">搜索</button>
+					<button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:goToPage(1);">搜索</button>
 				</form>
 				</div>
 				<div class="task_tables sl-table-wrapper">
@@ -210,6 +223,7 @@ $this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
 							<th><span class="cell">状态</span></th>
 							<th><span class="cell">任务进度</span></th>
 							<th><span class="cell">开始时间</span></th>
+							<th><span class="cell">完成时间</span></th>
 							<th><span class="cell">操作</span></th>
 						</tr>
 					</tbody></table>

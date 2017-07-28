@@ -43,7 +43,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
             ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_STARTED]],
             [['start_time'], 'safe'],
             [['task_progress'], 'number'],
-            [['create_time'], 'integer'],
+            [['create_time', 'complete_time'], 'integer'],
             [['sche_id', 'task_status', 'control_status'], 'integer'],
         ];
     }
@@ -58,6 +58,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
             'name' => '每日任务名',
             'start_time' => '任务开始的时刻',
             'create_time' => '任务生成时间戳',
+            'complete_time' => '任务完成时间',
             'task_progress' => '任务进度',
             'sche_id' => '计划id',
             'task_status' => '任务状态(0:未启动1:正在进行2:已完成)',
@@ -80,7 +81,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
         $query = static::find();
         $request = Yii::$app->request;
 
-        $this->load( $request->queryParams, '' );
+        $this->load( $request->post(), '' );
         if (!$this->validate())
         {
             // var_dump( $this->getErrors());exit;
@@ -93,7 +94,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
         {
             $query->andFilterWhere(['>=', 'cron.start_time', strtotime($request->post('start_time_s', ''))]);
         }
-        else if( $request->post('start_time_e', '') )
+        if( $request->post('start_time_e', '') )
         {
             $query->andFilterWhere(['<=', 'cron.start_time', strtotime($request->post('start_time_e', ''))]);
         }
@@ -110,8 +111,8 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
                 ->andFilterWhere(['like', 'cron.name', $this->name]);
 
 
-        /*$commandQuery = clone $query;
-    echo $commandQuery->createCommand()->getRawSql();*/
+       /* $commandQuery = clone $query;
+    echo $commandQuery->createCommand()->getRawSql();exit;*/
 
         return $query;
     }

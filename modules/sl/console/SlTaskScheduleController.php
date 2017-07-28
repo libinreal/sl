@@ -418,6 +418,7 @@ class SlTaskScheduleController extends Controller
 		$cronStatArr = [];
 		$cronCompleteIds = [];//已完成的每日任务id
 
+		$cronCompleteTimeArr = [];//完成时间
 		foreach ($cronPageProgress as $cronId => $cronStateArr)
 		{
 			$cronProgressArr[$cronId] = round(array_sum($cronStateArr)/count($cronStateArr), 4);//cront的进度 = 已完成的page数/所有page数 ，保留4位小数
@@ -425,6 +426,7 @@ class SlTaskScheduleController extends Controller
 			{
 				$cronCompleteIds[] = $cronId;
 				$cronStatArr[$cronId] = SlTaskScheduleCrontabConsole::TASK_STATUS_COMPLETED;
+				$cronCompleteTimeArr[$cronId] = time();
 			}
 			else
 			{
@@ -446,21 +448,24 @@ class SlTaskScheduleController extends Controller
 		//未完成分页的cron统一赋值为0.0050（0.5%）
 		$cronUnpageStatVals = array_fill(0, count($cronUnpageIds), SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING);
 		$cronUnpageProgressVals = array_fill(0, count($cronUnpageIds), 0.0050);
+		$cronUnpageCompleteTimeVals = array_fill(0, count($cronUnpageIds), 0);
 
 		$cronUnpageStatArr = array_combine($cronUnpageIds, $cronUnpageStatVals);
 		$cronUnpageProgressArr = array_combine($cronUnpageIds, $cronUnpageProgressVals);
+		$cronUnpageCompleteTimeArr = array_combine($cronUnpageIds, $cronUnpageCompleteTimeVals);
 		/***未完成分页的cron的进度和状态计算END***/
 
 		/***合并已完成和未完成的cron START***/
 		$crontabStatusArr = $cronStatArr + $cronUnpageStatArr;
 		$crontabProgressArr = $cronProgressArr + $cronUnpageProgressArr;
+		$crontabCompleteTimeArr = $cronCompleteTimeArr + $cronUnpageCompleteTimeArr;
 		/***合并已完成和未完成的cron END***/
 
 		/***更新cron START***/
 		$taskCrontabValues = '';
 		foreach ($crontabStatusArr as $cId => $cState)
 		{
-			$taskCrontabValues .= '('.$cId.', '.$crontabProgressArr[$cId].', '.$cState.'),';
+			$taskCrontabValues .= '('.$cId.', '.$crontabProgressArr[$cId].', '.$cState. ', '. $crontabCompleteTimeArr[$cId] . '),';
 		}
 
 		$scheCrontabSql = 'INSERT INTO ' . SlTaskScheduleCrontabConsole::tableName()
@@ -468,10 +473,13 @@ class SlTaskScheduleController extends Controller
 		$scheCrontabSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), task_status = values(task_status);';
 
 		//update task_schedule_crontab proress & task_status
-		$exeUpdate = Yii::$app->db->createCommand($scheCrontabSql . substr($taskCrontabValues, 0, -1) . $scheCrontabSql1)->execute();
-		if(!$exeUpdate)
+		if(!empty($taskCrontabValues))
 		{
-			return 10;
+			$exeUpdate = Yii::$app->db->createCommand($scheCrontabSql . substr($taskCrontabValues, 0, -1) . $scheCrontabSql1)->execute();
+			if(!$exeUpdate)
+			{
+				return 10;
+			}
 		}
 		/***更新cron END***/
 
@@ -479,7 +487,7 @@ class SlTaskScheduleController extends Controller
 		//update task_item proress & task_status
 		if(!empty($cronCompleteIds))
 		{
-			$exeUpdate = Yii::$app->db->createCommand('UPDATE '.SlTaskItemConsole::tableName().' SET [[task_progress]] = 1.0000 AND [[task_status]] = '.SlTaskItemConsole::TASK_STATUS_COMPLETE.' WHERE [[cron_id]] IN ('. implode($cronCompleteIds) .');' )->execute();
+			$exeUpdate = Yii::$app->db->createCommand('UPDATE '.SlTaskItemConsole::tableName().' SET [[task_progress]] = 1.0000, [[task_status]] = '.SlTaskItemConsole::TASK_STATUS_COMPLETE.' WHERE [[cron_id]] IN ('. implode($cronCompleteIds) .');' )->execute();
 			if(!$exeUpdate)
 			{
 				return 11;

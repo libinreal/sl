@@ -355,7 +355,7 @@ var class_stat = [true,true],
 	cookie_set = <?php if(!empty($scheEditData)): echo Json::encode($scheEditData["cookie"]);else: echo '[]';endif;?>,
 	dt_select = <?php if(!empty($scheEditData)): echo $scheEditData["dt_category"];else: echo '[]';endif;?>,
 	sche_type_set = <?php if(!empty($scheEditData)): echo $scheEditData["sche_type"];else: echo 1;endif;?>,
-	sche_time_set = <?php if(!empty($scheEditData)): echo "'".$scheEditData["sche_time"]."'";else: echo "\"\"";endif;?>,
+	sche_time_set = <?php if(!empty($scheEditData)): /*var_dump($scheEditData);exit;*/echo "'".$scheEditData["sche_time"]."'";else: echo "\"\"";endif;?>,
 	week_days_set = <?php if(!empty($scheEditData)): echo "'".$scheEditData["week_days"]."'";else: echo "\"\"";endif;?>,
 	month_days_set = <?php if(!empty($scheEditData)): echo "'".$scheEditData["month_days"]."'";else: echo "\"\"";endif;?>;
 
@@ -513,6 +513,7 @@ $("#sche_month_tags").on("click", "li", function(_e){
 
 function submitAddFrm(){
 	var sche_time,
+		sche_id = <?php if(!empty($scheEditData)): echo $scheEditData["id"];else: echo "''";endif;?>,
 		sche_type_repeat = $("input[name='sche_type_repeat']:checked").val(),
 	 	sche_type = $("input[name='sche_type']").val();
 	if(sche_type_repeat == 0)//Only once
@@ -530,6 +531,8 @@ function submitAddFrm(){
 	frmData['_csrf'] = csrfToken
 	frmData['sche_time'] = sche_time
 	frmData['sche_type'] = sche_type
+
+	if(sche_id) frmData['id'] = sche_id;
 
 	//console.log(JSON.stringify(frmData));
 	//return;
@@ -625,15 +628,38 @@ $readyJs =<<<EOT
 	});
 
 	//内容复选框 初始化
+	for(var d in dt_select)
+	{
+		$("input[name='dt_category[]'][value='"+ dt_select[d] +"']").click();
+	}
+
 	var sche_type_repeat_set = ( sche_type_set == 1 ) ? 0 : 1
-	$("input[name='sche_type_repeat'][value='"+sche_type_repeat_set+"']").attr('checked', true)
+	$("input[name='sche_type_repeat']").each(function(){
+		var _radio = $(this)
+		if(_radio.val() == sche_type_repeat_set)
+		{
+			_radio.click();
+		}
+		else
+		{
+			_radio.attr('checked', false);
+			_radio.parent().removeClass('checked');
+		}
+	})
+
 	if( sche_type_repeat_set == 0 )//定时
 	{
 		$("input[name='sche_start_time']:eq(0)").val(sche_time_set)
 	}
 	else//重复
 	{
-		$("input[name='sche_type']").val(sche_type_set)
+		$('#repeat_options a').each(function(){
+			var _o = $(this)
+			if(_o.attr('value') == sche_type_set)
+			{
+				$(this).click();
+			}
+		});
 		$("input[name='sche_start_time']:eq(1)").val(sche_time_set)
 
 		// arr.push(_m.attr('data-index'))
@@ -646,16 +672,31 @@ $readyJs =<<<EOT
 		// $("input[name='week_days']").first().val(arr.join(','))
 		// _w.addClass('tag-selected');
 
-		$("input[name='week_days']").val(week_days_set);
-		$("input[name='month_days']").val(month_days_set);
+		$("input[name='week_days']").attr('value', week_days_set);
+		$("input[name='month_days']").attr('value', month_days_set);
+	}
 
-		$("#sche_month_tags").find("li").each(function(){
+	//周和月初始化
+	var week_days_set_arr = (week_days_set && week_days_set.split(',') ) || [];
+	var month_days_set_arr = (month_days_set && month_days_set.split(',') ) || [];
+	if(week_days_set_arr.length > 0)
+	{
+		var w
+		for(var i in week_days_set_arr)
+		{
+			w = $("#sche_week_tags li").eq(week_days_set_arr[i]-1);
+			w.addClass('tag-selected');
+		}
+	}
 
-		})
-
-		$("#sche_month_tags").find("li").each(function(){
-
-		})
+	if(month_days_set_arr.length > 0)
+	{
+		var m
+		for(var i in month_days_set_arr)
+		{
+			m = $("#sche_month_tags li").eq(month_days_set_arr[i]-1);
+			m.addClass('tag-selected');
+		}
 	}
 EOT;
 $this->registerJs($readyJs);
@@ -845,7 +886,7 @@ $this->registerJs($readyJs);
 													<input value="2" name="sche_type"  onchange="onChangeRepeat(this);" type="hidden">
 													<i class="caret"></i><span>每天</span>
 												</a>
-												<ul role="menu" class="sui-dropdown-menu">
+												<ul id="repeat_options" role="menu" class="sui-dropdown-menu">
 													<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="2">每天</a> </li>
 													<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="4">每周</a> </li>
 													<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="3">每月</a> </li>

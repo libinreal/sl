@@ -191,9 +191,16 @@ class DemoController extends \yii\web\Controller
         else if( Yii::$app->request->isAjax)
         {
             Yii::$app->response->format = Response::FORMAT_JSON;
-            $scheModel = new SlTaskSchedule();
             $post = Yii::$app->request->post();
 
+            if(!empty($post) && !empty($post['id']))
+            {
+                $scheModel = SlTaskSchedule::findOne($post['id']);
+            }
+            else
+            {
+                $scheModel = new SlTaskSchedule();
+            }
 
             //数据验证失败
             if ( !$scheModel->load( $post, '' ) || !$scheModel->validate() )
@@ -295,11 +302,21 @@ class DemoController extends \yii\web\Controller
                                                     'classMap' => $classMap,
                                                     ]);
         }
-        else if(Yii::$app->request->isAjax)
+        else if(Yii::$app->request->isPost)
         {
             Yii::$app->response->format = Response::FORMAT_JSON;
-            $scheModel = new SlTaskSchedule();
             $post = Yii::$app->request->post();
+
+            $defaultRet = [
+                    'code' => '-1',
+                    'msg' => 'Schedule data error',
+                    'data' => []
+            ];
+
+            if($post && !empty($post['id']))
+                $scheModel = SlTaskSchedule::findOne($post['id']);
+            else
+                return $defaultRet;
 
 
             //数据验证失败
@@ -315,12 +332,40 @@ class DemoController extends \yii\web\Controller
 
             $scheModel->save();
 
+            /*** 实际任务状态更新 ***/
+            if($scheModel->sche_status == SlTaskSchedule::SCHE_STATUS_CLOSE)
+            {
+                Yii::$app->getModule('sl')
+                    ->db
+                    ->createCommand('UPDATE '.SlTaskScheduleCrontab::tableName().' SET [[task_status]] = '.SlTaskScheduleCrontab::TASK_STATUS_UNSTARTED.', [[control_status]] = '.SlTaskScheduleCrontab::CONTROL_STOPPED.' WHERE [[sche_id]] = '. $scheModel->id. ' AND [[task_status]] <> '.SlTaskScheduleCrontab::TASK_STATUS_COMPLETED)
+                    ->execute();
 
-            return  [
+                Yii::$app->getModule('sl')
+                    ->db
+                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET [[task_status]] = '.SlTaskItem::TASK_STATUS_CLOSE.', [[control_status]] = '.SlTaskItem::CONTROL_STOPPED.' WHERE [[sche_id]] = '. $scheModel->id. ' AND [[task_status]] <> '.SlTaskItem::TASK_STATUS_COMPLETE)
+                    ->execute();
+
+            }
+            else
+            {
+                Yii::$app->getModule('sl')
+                    ->db
+                    ->createCommand('UPDATE '.SlTaskScheduleCrontab::tableName().' SET [[task_status]] = '.SlTaskScheduleCrontab::TASK_STATUS_EXECUTING.', [[control_status]] = '.SlTaskScheduleCrontab::CONTROL_STARTED.' WHERE [[sche_id]] = '. $scheModel->id. ' AND [[task_status]] <> '.SlTaskScheduleCrontab::TASK_STATUS_COMPLETED)
+                    ->execute();
+
+                Yii::$app->getModule('sl')
+                    ->db
+                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET [[task_status]] = '.SlTaskItem::TASK_STATUS_OPEN.', [[control_status]] = '.SlTaskItem::CONTROL_STARTED.' WHERE [[sche_id]] = '. $scheModel->id . ' AND [[task_status]] <> '.SlTaskItem::TASK_STATUS_COMPLETE)
+                    ->execute();
+            }
+            /*** 实际任务状态更新 ***/
+
+
+           return  [
                     'code'=>'0',
                     'msg'=>'Success',
                     'data'=>[]
-                    ];
+                    ];;
         }
     }
 
@@ -404,6 +449,11 @@ class DemoController extends \yii\web\Controller
             foreach ($data as &$d)
             {
                 $d['task_time'] = date('Y-m-d H:i:s', $d['task_time']);
+
+                if(!empty($d['complete_time']))
+                    $d['complete_time'] = date('Y-m-d H:i:s', $d['complete_time']);
+                else
+                    $d['complete_time'] = '';
             }
             unset($d);
             /*$commandQuery = clone $scheQuery;
@@ -444,7 +494,7 @@ class DemoController extends \yii\web\Controller
             $totals = $scheCronQuery->count();
 
             $data = $scheCronQuery
-                        ->select('cron.id, cron.name, cron.start_time, cron.task_status, cron.control_status, cron.task_progress, cron.sche_id, sche.key_words, sche.dt_category, sche.pf_name, sche.brand_name')
+                        ->select('cron.id, cron.name, cron.start_time, cron.complete_time, cron.task_status, cron.control_status, cron.task_progress, cron.sche_id, sche.key_words, sche.dt_category, sche.pf_name, sche.brand_name')
                         ->limit( $pageSize )
                         ->offset( ($pageNo - 1) * $pageSize )
                         ->asArray()
@@ -453,6 +503,11 @@ class DemoController extends \yii\web\Controller
             foreach ($data as &$d)
             {
                 unset($d['schedule']);
+
+                if(!empty($d['complete_time']))
+                    $d['complete_time'] = date('Y-m-d H:i:s', $d['complete_time']);
+                else
+                    $d['complete_time'] = '';
             }
             unset($d);
             /*$commandQuery = clone $scheQuery;
@@ -467,7 +522,7 @@ class DemoController extends \yii\web\Controller
     }
 
     /**
-     * 更新每日任务
+     * 更新每日任务(停止、启动)
      * method: POST
      * @return string
      */
@@ -476,21 +531,43 @@ class DemoController extends \yii\web\Controller
         if(Yii::$app->request->isPost)
         {
             Yii::$app->response->format = Response::FORMAT_JSON;
-            $cronModel = new SlTaskScheduleCrontab();
             $post = Yii::$app->request->post();
+
+            $defaultRet = [
+                    'code' => '-1',
+                    'msg' => 'Crontab data error',
+                    'data' => []
+            ];
+
+            if($post && !empty($post['id']))
+                $cronModel = SlTaskScheduleCrontab::findOne($post['id']);
+            else
+                return $defaultRet;
 
             //数据验证失败
             if ( !$cronModel->load( $post, '' ) || !$cronModel->validate() )
             {
-                return [
-                    'code' => '-1',
-                    'msg' => 'Crontab data error',
-                    'data' => []
-                ];
+                return $defaultRet;
             }
 
             $cronModel->save();
 
+            /*** 任务项状态更新 ***/
+            if($cronModel->control_status == SlTaskScheduleCrontab::CONTROL_STOPPED)
+            {
+                Yii::$app->getModule('sl')
+                    ->db
+                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET task_status = '.SlTaskItem::TASK_STATUS_CLOSE.', control_status = '.SlTaskItem::CONTROL_STOPPED.' WHERE cron_id = '. $cronModel->id. ' AND task_status <> '.SlTaskItem::TASK_STATUS_COMPLETE)
+                    ->execute();
+            }
+            else
+            {
+                Yii::$app->getModule('sl')
+                    ->db
+                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET task_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_STARTED.' WHERE cron_id = '. $cronModel->id. ' AND task_status <> '.SlTaskItem::TASK_STATUS_COMPLETE)
+                    ->execute();
+            }
+            /*** 任务项状态更新 ***/
 
             return  [
                     'code'=>'0',
