@@ -216,6 +216,34 @@ class DemoController extends \yii\web\Controller
 
             $scheModel->save();
 
+            if(!empty($post['name']))//edit schedule,delete all the crontab and item on this day
+            {
+                $cronId = SlTaskScheduleCrontab::find()
+                    ->select('id')
+                    ->where(['sche_id' => $scheModel->id])
+                    ->andWhere(['>', 'create_time', strtotime('today')])
+                    ->asArray()
+                    ->one();
+                //删除任务项
+                /*SlTaskItem::find()
+                    ->where(['cron_id' => $cronId])
+                    ->delete();*/
+
+                //清空然后删除数据存放表
+                /*Yii::$app->getModule('sl')->db->createCommand('TRUNCATE ' . 'ws_' . $scheModel->id . '_'. date('Ymd') . '_' . $cronId)->execute();
+                Yii::$app->getModule('sl')->db->createCommand('DROP TABLE ' . 'ws_' . $scheModel->id . '_'. date('Ymd') . '_' . $cronId)->execute();*/
+                //删除每日任务
+                if($cronId)
+                {
+                    Yii::$app->getModule('sl')->db->createCommand()->delete(SlTaskScheduleCrontab::tableName(), 'id = ' . $cronId['id'])->execute();
+
+                    return  [
+                        'code'=>'0',
+                        'msg'=>'Success',
+                        'data'=>[]
+                        ];
+                }
+            }
 
             return  [
                     'code'=>'0',
@@ -367,7 +395,7 @@ class DemoController extends \yii\web\Controller
                     'code'=>'0',
                     'msg'=>'Success',
                     'data'=>[]
-                    ];;
+                    ];
         }
     }
 

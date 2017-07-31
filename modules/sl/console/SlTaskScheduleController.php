@@ -28,7 +28,9 @@ class SlTaskScheduleController extends Controller
 		$scheQuery = SlTaskScheduleConsole::find();
 
 		$scheArr = $scheQuery
-				->asArray()->all();
+				->where(['in', 'sche_status', array(SlTaskScheduleConsole::SCHE_STATUS_OPEN, SlTaskScheduleConsole::SCHE_STATUS_COMPLETE)])
+				->asArray()
+				->all();
 
         $crontabByScheArr = SlTaskScheduleCrontabConsole::find()
         					->select('sche_id')
@@ -62,7 +64,7 @@ class SlTaskScheduleController extends Controller
 
 			if( $schType == SlTaskScheduleConsole::SCHE_TYPE_ONCE && !isset($crontabByScheArr[$sche['id']]))//Only once 未生成过任务
 			{
-
+				$startTime = $sche['sche_time'];
 				$cronInsertList[] = [
 					$sche['name'],
 					$startTime,
@@ -247,7 +249,7 @@ class SlTaskScheduleController extends Controller
 									$className,
 									$catName,
 									$cron['key_words'],
-									SlTaskItemConsole::TASK_STATUS_CLOSE,//默认关闭
+									SlTaskItemConsole::TASK_STATUS_OPEN,//默认打开
 									strtotime( $cron['sche_time'] ),
 									$cron['sche_time'],
 									time(),
@@ -273,7 +275,7 @@ class SlTaskScheduleController extends Controller
 									$className,
 									$catName,
 									$cron['key_words'],
-									SlTaskItemConsole::TASK_STATUS_CLOSE,//默认关闭
+									SlTaskItemConsole::TASK_STATUS_OPEN,//默认打开
 									$taskTime,
 									date('Y-m-d').' '.$cron['sche_time'],
 									time(),
@@ -304,7 +306,7 @@ class SlTaskScheduleController extends Controller
 									$className,
 									$catName,
 									$cron['key_words'],
-									SlTaskItemConsole::TASK_STATUS_CLOSE,//默认关闭
+									SlTaskItemConsole::TASK_STATUS_OPEN,//默认打开
 									$taskTime,
 									date('Y-m-d').' '.$cron['sche_time'],
 									time(),
@@ -335,7 +337,7 @@ class SlTaskScheduleController extends Controller
 									$className,
 									$catName,
 									$cron['key_words'],
-									SlTaskItemConsole::TASK_STATUS_CLOSE,//默认关闭
+									SlTaskItemConsole::TASK_STATUS_OPEN,//默认打开
 									$taskTime,
 									date('Y-m-d').' '.$cron['sche_time'],
 									time(),
@@ -386,7 +388,6 @@ class SlTaskScheduleController extends Controller
 		$cronIds = array_keys($crontabIdArr);//所有正在执行的crontab的id
 		$cronUnpageIds = array_keys($cronUnpageArr);//未完成分页的crontab的id
 		$cronPageIds = array_diff($cronIds, $cronUnpageIds);//已完成分页的crontab的id
-		// var_dump($cronUnpageIds, $cronPageIds);
 
 		$taskPageArr = SlWsDataTaskPageConsole::find()
 			->select('id, task_id, state')
@@ -431,6 +432,7 @@ class SlTaskScheduleController extends Controller
 			else
 			{
 				$cronStatArr[$cronId] = SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING;
+				$cronCompleteTimeArr[$cronId] = 0;
 			}
 		}
 
@@ -484,13 +486,92 @@ class SlTaskScheduleController extends Controller
 		/***更新cron END***/
 
 		/***更新task_item START***/
-		//update task_item proress & task_status
-		if(!empty($cronCompleteIds))
+		//update task_item proress & complete_status
+		/*if(!empty($cronCompleteIds))
 		{
 			$exeUpdate = Yii::$app->db->createCommand('UPDATE '.SlTaskItemConsole::tableName().' SET [[task_progress]] = 1.0000, [[complete_status]] = '.SlTaskItemConsole::TASK_STATUS_COMPLETE.', [[complete_time]] = '. time() .' WHERE [[cron_id]] IN ('. implode(',', $cronCompleteIds) .');' )->execute();
 			if(!$exeUpdate)
 			{
 				return 11;
+			}
+		}*/
+
+		$itemIds = SlTaskItemConsole::find()
+			->select('id')
+			->where(['in', 'cron_id', $cronIds])
+			->indexBy('id')
+			->asArray()
+			->all();
+
+		$itemIds = array_keys( $itemIds );
+
+		$pageArr = SlWsDataTaskPageConsole::find()
+			->select('item_id, task_id, state')
+			->where(['in', 'task_id', $cronIds])
+			->asArray()
+			->all();
+
+		$pageIdArr = array();
+		foreach ($pageArr as $pv)
+		{
+			if(!isset($pageIdArr[$pv['item_id']]))
+			{
+				$pageIdArr[$pv['item_id']] = array();
+			}
+
+			if($pv['state'] == SlWsDataTaskPageConsole::PAGE_STATE_COMPLETE)
+			{
+				$pageIdArr[$pv['item_id']][] = 1;
+			}
+			else
+			{
+				$pageIdArr[$pv['item_id']][] = 0;
+			}
+		}
+
+		$itemProgressArr = array();
+		$itemStateArr = array();
+		$itemCompleteTimeArr = array();
+
+		foreach ($itemIds as $itemId)
+		{
+			if(!isset($pageIdArr[$itemId]))
+			{
+				$itemProgressArr[$itemId] = 0.0000;
+				continue;
+			}
+			$itemProgressArr[$itemId] = round(array_sum( $pageIdArr[$itemId] ) / count( $pageIdArr[$itemId] ), 4);
+
+			if($itemProgressArr[$itemId] == 1.0000)
+			{
+				$itemStateArr[$itemId] = SlTaskItemConsole::TASK_STATUS_COMPLETE;
+				$itemCompleteTimeArr[$itemId] = time();
+			}
+			else
+			{
+				$itemStateArr[$itemId] = SlTaskItemConsole::TASK_STATUS_OPEN;
+				$itemCompleteTimeArr[$itemId] = 0;
+			}
+		}
+
+		$updateItemValues = '';
+		foreach ($itemStateArr as $itemId => $itemState)
+		{
+			$updateItemValues .= '('.$itemId.', '.$itemProgressArr[$itemId].', '.$itemState. ', '. $itemCompleteTimeArr[$itemId] . '),';
+		}
+
+		$updateItemSql = 'INSERT INTO ' . SlTaskItemConsole::tableName()
+				.' (id, task_progress, complete_status, complete_time) values ';
+		$updateItemSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), complete_status = values(complete_status), complete_time = values(complete_time);';
+
+		//update task_schedule_crontab proress & complete_status
+
+		if(!empty($updateItemValues))
+		{
+			$exeUpdate = Yii::$app->db->createCommand($updateItemSql . substr($updateItemValues, 0, -1) . $updateItemSql1)->execute();
+			if(!$exeUpdate)
+			{
+				return 10;
 			}
 		}
 		/***更新task_item END***/
@@ -543,8 +624,6 @@ class SlTaskScheduleController extends Controller
 				$taskItemPageStatArr[$pv['task_id']][] = 0;
 			}
 		}
-
-		// var_dump($taskPageArr, $taskItemPageStatArr);
 
 		$taskItemProgressArr = [];
 		$taskItemValues = '';

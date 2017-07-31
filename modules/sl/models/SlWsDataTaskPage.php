@@ -51,7 +51,7 @@ class SlWsDataTaskPage extends \yii\db\ActiveRecord
     {
         return [
             [['task_id'], 'required'],
-            [['task_id', 'schedule_id', 'state'], 'integer'],
+            [['task_id', 'schedule_id', 'item_id', 'state'], 'integer'],
             [['skuids', 'cookie'], 'string'],
             [['add_time', 'finsh_time'], 'safe'],
             [['task_name', 'cate1', 'cate2', 'cate3', 'table_name'], 'string', 'max' => 100],
@@ -68,8 +68,9 @@ class SlWsDataTaskPage extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'task_id' => '子任务id',
+            'task_id' => '每日任务id',
             'schedule_id' => '计划任务id',
+            'item_id' => '任务项id',
             'task_name' => '任务名称',
             'page_url' => '单页任务内容url链接地址',
             'skuids' => '指定分页全部skuid',
