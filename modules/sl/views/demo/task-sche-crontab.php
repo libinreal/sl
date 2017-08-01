@@ -50,22 +50,91 @@ EOT;
     function makePagination(_pageNo, _pageCount)
     {
     	var _paginationStr,
+
+            _strFirst = '',
+            _strPrev = '',
+            _strNext = '',
+            _strLast = '',
+
     		_activeStr = '',
     		_startPage = 1,
     		_endPage = _pageCount,
-    		_pos = Math.floor(_pageNo / paginationLen),
+    		_pos = Math.ceil(paginationLen / 2),
     		_pageContainer = $('.slpc__page-nums')
 
-    		_paginationStr = '<div class="first"><i class="sui-icon icon-step-backward"></i></div>' +
-    						 '<div class="prev"><i class="sui-icon icon-caret-left"></i></div>'
 
-    		//console.log('_pageCount - _pageNo - _pos + 1 >= 0  ' + (_pageCount - _pageNo - _pos + 1 ))
 
-    		if( _pageCount > paginationLen && _pageCount - _pageNo - _pos + 1 >= 0 )//When pageCount >= paginationLen
-			{
-				_startPage = _pageNo - _pos
-				_endPage = _startPage + paginationLen - 1
-			}
+            if(_pageCount - _pageNo >= _pos)//两边翻页
+            {
+            	//console.log('两边')
+                if(_pageNo > _pos)
+                    _startPage = _pageNo - _pos + 1
+                _endPage = _startPage + paginationLen - 1
+                if(_endPage > _pageCount)
+                    _endPage = _pageCount
+
+                if(_pageNo > 1)//两边翻页
+                {
+                    _strFirst = ' onclick="goToPage(1);" '
+                    _strPrev = ' onclick="goToPage('+ (_pageNo - 1) +');" '
+                    _strNext = ' onclick="goToPage('+ (_pageNo + 1) +');" '
+                    _strLast = ' onclick="goToPage('+ _pageCount +');" '
+                }
+                else//右向翻页
+                {
+                    _strNext = ' onclick="goToPage('+ (_pageNo + 1) +');" '
+                    _strLast = ' onclick="goToPage('+ _pageCount +');" '
+                }
+            }
+            else if(_pageCount >= paginationLen)//左向翻页
+            {
+            	//console.log('左向')
+                _startPage = _pageCount - paginationLen + 1
+                _endPage = _pageCount
+
+                _strFirst = ' onclick="goToPage(1);" '
+                _strPrev = ' onclick="goToPage('+ (_pageNo - 1) +');" '
+
+                if(_pageNo < _pageCount)//两边翻页
+                {
+                    _strFirst = ' onclick="goToPage(1);" '
+                    _strPrev = ' onclick="goToPage('+ (_pageNo - 1) +');" '
+                    _strNext = ' onclick="goToPage('+ (_pageNo + 1) +');" '
+                    _strLast = ' onclick="goToPage('+ _pageCount +');" '
+                }
+                else//左向翻页
+                {
+                    _strFirst = ' onclick="goToPage(1);" '
+                    _strPrev = ' onclick="goToPage('+ (_pageNo - 1) +');" '
+                }
+            }
+            else if(_pageCount < paginationLen)//无法翻页
+            {
+            	//console.log('无法')
+                _startPage = 1;
+                _endPage = _pageCount;
+
+                if(_pageNo > 1 && _pageNo < _pageCount)//两边翻页
+                {
+                    _strFirst = ' onclick="goToPage(1);" '
+                    _strPrev = ' onclick="goToPage('+ (_pageNo - 1) +');" '
+                    _strNext = ' onclick="goToPage('+ (_pageNo + 1) +');" '
+                    _strLast = ' onclick="goToPage('+ _pageCount +');" '
+                }
+                else if(_pageNo == 1 && _pageNo != _pageCount)//右向翻页
+                {
+                    _strNext = ' onclick="goToPage('+ (_pageNo + 1) +');" '
+                    _strLast = ' onclick="goToPage('+ _pageCount +');" '
+                }
+                else if(_pageNo != 1 && _pageNo == _pageCount)//左向翻页
+                {
+                    _strFirst = ' onclick="goToPage(1);" '
+                    _strPrev = ' onclick="goToPage('+ (_pageNo - 1) +');" '
+                }
+            }
+
+            _paginationStr = '<div class="first"' + _strFirst + '><i class="sui-icon icon-step-backward"></i></div>' +
+                             '<div class="prev"' + _strPrev + '><i class="sui-icon icon-caret-left"></i></div>'
 
     		for(var _i = _startPage; _i <= _endPage; _i++)
     		{
@@ -77,12 +146,12 @@ EOT;
     			{
     				_activeStr = ''
     			}
-    			_paginationStr += '<div class="sl-page-num sui-icon' + _activeStr + '" onclick="goToPage(\''+_i+'\')">' + _i + '</div>'
+    			_paginationStr += '<div class="sl-page-num sui-icon' + _activeStr + '" onclick="goToPage('+_i+')">' + _i + '</div>'
     		}
 
-    		_paginationStr += '<div class="next"><i class="sui-icon icon-caret-right"></i></div>'
-    						+ '<div class="last"><i class="sui-icon icon-step-forward"></i></div>'
-
+    		_paginationStr += '<div class="next"' + _strNext + '><i class="sui-icon icon-caret-right"></i></div>'
+    						+ '<div class="last"' + _strLast + '><i class="sui-icon icon-step-forward"></i></div>'
+            //console.log(' _pos ' +  _pos + ' _pageCount ' + _pageCount + ' _pageNo ' + _pageNo + ' _startPage ' + _startPage + ' _endPage ' + _endPage)
     		_pageContainer.html(_paginationStr);
     }
 
