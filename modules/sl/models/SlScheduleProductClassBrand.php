@@ -20,6 +20,11 @@ class SlScheduleProductClassBrand extends \yii\db\ActiveRecord
         return 'sl_schedule_product_class_brand';
     }
 
+    public static function primaryKey()
+    {
+        return ['class_id', 'brand_id'];
+    }
+
     /**
      * @inheritdoc
      */

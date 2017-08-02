@@ -403,14 +403,31 @@ class DemoController extends \yii\web\Controller
      * 获取所有分类下的品牌
      *
      */
-    private function _classBrandManage()
+    public function actionClassBrandManage()
     {
-        SlScheduleProductClass::find()
-            ->alias('p')
-            ->joinWith('productBrand')
-            ->select('p.name,')
-            ->asArray()
-            ->all();
+        if(Yii::$app->request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+
+            $classBrand = SlScheduleProductClass::find()
+                ->alias('c')
+                ->joinWith('productBrand')
+                ->select('c.id, c.name class_name, cb.brand_id, b.name brand_name')
+                ->asArray()
+                ->all();
+            $brand = SlScheduleProductBrand::find()
+                ->asArray()
+                ->all();
+
+            $ret['cb'] = $classBrand;
+            $ret['b'] = $brand;
+
+            return [
+                    'code' => '0',
+                    'data' => $ret,
+                    'msg' => ''
+                ];
+        }
     }
 
 
@@ -418,9 +435,32 @@ class DemoController extends \yii\web\Controller
      * 获取所有品牌所属的分类
      *
      */
-    private function _brandClassManage()
+    public function actionBrandClassManage()
     {
+        if(Yii::$app->request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
 
+            $brandClass = SlScheduleProductBrand::find()
+                ->alias('b')
+                ->joinWith('productClass')
+                ->select('b.name brand_name, cb.class_id, cb.brand_id, c.name class_name')
+                ->asArray()
+                ->all();
+
+            $class = SlScheduleProductClass::find()
+                ->asArray()
+                ->all();
+
+            $ret['bc'] = $brandClass;
+            $ret['c'] = $class;
+
+            return [
+                    'code' => '0',
+                    'data' => $ret,
+                    'msg' => ''
+                ];
+        }
     }
 
     /**

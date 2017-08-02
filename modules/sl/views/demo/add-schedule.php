@@ -8,10 +8,11 @@ $this->beginBlock("addScheJs");
 ?>
 
 (function($){
-	var ModalBuilder = function(selector, options){
+	var ModalBuilder = function(selector, options, data){
 		this._currentZIndex = 1000;
 		this._modalClass = null;
 		this.selector = selector;
+		this.data = data;
 		this.options = {
 				title:'提示',//标题
 				titlebgColor:'',//标题背景颜色
@@ -73,7 +74,7 @@ $this->beginBlock("addScheJs");
 			this._modalClass='modal_'+new Date().valueOf();
 			var bodyWidth = document.documentElement.clientWidth;
 			var bodyHeight = document.documentElement.clientHeight;
-			$('body').append(template(this.selector));
+			$('body').append(template(this.selector, this.data));
 			$('body div[role="dialog"]:last').addClass(this._modalClass);
 			$('.'+ this._modalClass + " .modal-body").css({'max-width':this.options.maxWidth*bodyWidth + 'px','min-width':this.options.minWidth*bodyWidth +'px'});
 			$('.'+ this._modalClass + " .modal-header h4").text(this.options.title);
@@ -145,32 +146,59 @@ $this->beginBlock("addScheJs");
 var modal1 = null,
 	modal2 = null;
 	function editCategory(){
-		modal1 = new ModalBuilder('template1', {
-			title: '新增分类',
-			shown: function(){
-				console.log('出现了');
-			},
-			okHide: function(){
-				console.log('确定')
-			},
-			cancelHide: function(){
-				console.log('取消')
-			},
-		})
+
+		$.ajax({
+        url: '/sl/demo/class-brand-manage',
+        type: 'post',
+        data: {_csrf:csrfToken},
+        dataType: 'json',
+        success: function (json_data) {
+	        	if(json_data.code == '0')
+	        	{
+        			new ModalBuilder('template1', {
+						title: '新增分类',
+						shown: function(){
+
+						},
+						okHide: function(){
+
+						},
+						cancelHide: function(){
+
+						},
+					}, json_data.data);
+	        	}
+
+	        }
+	    });
+
+
 	}
 	function editBrand(){
-		modal1 = new ModalBuilder('template2', {
-			title: '新增品牌',
-			shown: function(){
-				console.log('出现了');
-			},
-			okHide: function(){
-				console.log('确定')
-			},
-			cancelHide: function(){
-				console.log('取消')
-			},
-		})
+		$.ajax({
+        url: '/sl/demo/brand-class-manage',
+        type: 'post',
+        data: {_csrf:csrfToken},
+        dataType: 'json',
+        success: function (json_data) {
+	        	if(json_data.code == '0')
+	        	{
+        			new ModalBuilder('template2', {
+						title: '新增分类',
+						shown: function(){
+
+						},
+						okHide: function(){
+
+						},
+						cancelHide: function(){
+
+						},
+					}, json_data.data);
+	        	}
+
+	        }
+	    });
 	}
 	$(".sl-icon-trash").on('click',function(){
 		$.confirm({
@@ -327,7 +355,6 @@ function getProductBrand(class_id, func )
         		var items = json_data.data;
         		var items_len = items.length;
         		var html_str = '';
-
 
     			for(var j = 0;j< items_len;j++)//品牌
     			{
@@ -946,9 +973,9 @@ $this->registerJs($readyJs);
 								<input id="cls_m_cls_search" type="text" class="input-large" placeholder="搜索" />
 								<div class="sl-list-block">
 									<div class="sl-list sl-list--category">
-										<div class="sl-list__item">手机</div>
-										<div class="sl-list__item is-active">食品</div>
-										<div class="sl-list__item">服饰</div>
+										{{each cb as cv}}
+											<div onclick="getBrandByCid({{cv.id}});" class="sl-list__item" data-id="{{cv.id}}">{{cv.class_name}}</div>
+										{{/each}}
 									</div>
 									<input type="text" class="input-medium" placeholder="新选项"
 											style="margin-left: 9px;width: 180px;box-sizing: border-box;height: 34px;"/>
@@ -963,9 +990,6 @@ $this->registerJs($readyJs);
 										</div>
 										<div class="sl-list-block">
 											<div class="sl-list sl-list--linkedBrand">
-												<div class="sl-list__item">华为</div>
-												<div class="sl-list__item is-active">三星</div>
-												<div class="sl-list__item">小米</div>
 											</div>
 										</div>
 									</div>
@@ -983,9 +1007,9 @@ $this->registerJs($readyJs);
 										<input id="cls_m_brand_search" type="text" class="input-large" placeholder="搜索" />
 										<div class="sl-list-block">
 											<div class="sl-list sl-list--brand">
-												<div class="sl-list__item">资生堂</div>
-												<div class="sl-list__item is-active">妮维雅</div>
-												<div class="sl-list__item">欧莱雅</div>
+												{{each b as bv}}
+												<div onclick="addBrandToCurClass({{bv.id}});" class="sl-list__item" data-id="{{bv.id}}">{{bv.name}}</div>
+												{{/each}}
 											</div>
 										</div>
 									</div>

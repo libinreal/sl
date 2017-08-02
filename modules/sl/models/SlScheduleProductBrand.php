@@ -30,6 +30,11 @@ class SlScheduleProductBrand extends \yii\db\ActiveRecord
         ];
     }
 
+    public static function primaryKey()
+    {
+        return ['id'];
+    }
+
     /**
      * @inheritdoc
      */
@@ -46,8 +51,13 @@ class SlScheduleProductBrand extends \yii\db\ActiveRecord
         return Yii::$app->getModule('sl')->db;
     }
 
-    public function getProductClassId()
+    public function getProductClass()
     {
-        return $this->hasMany(SlScheduleProductClassBrand::className(), ['brand_id' => 'id']);
+        return $this->hasMany(SlScheduleProductClass::className(), ['id' => 'class_id'])
+                    ->viaTable(SlScheduleProductClassBrand::tableName(), ['brand_id' => 'id'])
+                    ->from([
+                    'b' => SlScheduleProductBrand::tableName(),
+                    'cb' => SlScheduleProductClassBrand::tableName(),
+                    ]);
     }
 }
