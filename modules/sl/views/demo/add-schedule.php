@@ -143,8 +143,17 @@ $this->beginBlock("addScheJs");
 	}
 })(jQuery)
 
-var modal1 = null,
+var curClsMapId,
+	curBrandMapId,
+	categoryJsonData,
+	brandJsonData,
+	curCategory,//分类列表
+	curCategoryMap,//分类 关联品牌
+	curBrand,//品牌列表
+	curBrandMap,//品牌 关联分类
+	modal1 = null,
 	modal2 = null;
+
 	function editCategory(){
 
 		$.ajax({
@@ -155,10 +164,65 @@ var modal1 = null,
         success: function (json_data) {
 	        	if(json_data.code == '0')
 	        	{
+	        		var clsBrandClsArr = [], clsBrandBrandArr = []
+
+	        		curCategory = {}
+	        		curBrand = {}
+	        		curCategoryMap = {}
+	        		categoryJsonData = json_data.data
+
+	        		for( var _k in categoryJsonData.cb)
+	        		{
+	        			//Init curCategory
+	        			curCategory[categoryJsonData.cb[_k].id] = categoryJsonData.cb[_k].class_name
+
+	        			//Init curCategoryMap
+	        			if(!curCategoryMap[categoryJsonData.cb[_k].id])
+	        				curCategoryMap[categoryJsonData.cb[_k].id] = []
+
+	        			for(var _m in categoryJsonData.cb[_k].productBrand)
+	        			{
+	        				curCategoryMap[categoryJsonData.cb[_k].id].push(categoryJsonData.cb[_k].productBrand[_m].id)
+	        			}
+
+	        			clsBrandClsArr.push({
+	        				value:categoryJsonData.cb[_k].class_name,
+	        				data:categoryJsonData.cb[_k].id
+	        			});
+
+
+	        		}
+
+					for( var _k in categoryJsonData.b)
+	        		{
+	        			//Init curBrand
+	        			curBrand[categoryJsonData.b[_k].id] = categoryJsonData.b[_k].name
+
+	        			clsBrandBrandArr.push({
+	        				value:categoryJsonData.b[_k].name,
+	        				data:categoryJsonData.b[_k].id
+	        			});
+	        		}
+
         			new ModalBuilder('template1', {
 						title: '新增分类',
 						shown: function(){
+							//搜索框
+							$('#cbc-suggest').autocomplete({
+								lookup:clsBrandClsArr,
+								minChars:0,
+							    onSelect: function(s) {
+							    	getClassMap(s.data)
+							    }
+							});
 
+							$('#cbb-suggest').autocomplete({
+								lookup:clsBrandBrandArr,
+								minChars:0,
+							    onSelect: function(s) {
+							    	addClassMap(s.data)
+							    }
+							});
 						},
 						okHide: function(){
 
@@ -174,6 +238,64 @@ var modal1 = null,
 
 
 	}
+
+	//显示类下的品牌
+	function getClassMap(_cid)
+	{
+		_cid = String(_cid)
+		curClsMapId = _cid;
+		var bDom = ''
+
+		for(var _k in curCategoryMap[_cid])
+		{
+
+			bDom += '<div class="sl-list__item" data-id="' +	curCategoryMap[_cid][_k]  	+	'"	'
+					+	'	onclick="removeCategory('+	curCategoryMap[_cid][_k]	+');">'
+					+	curBrand[curCategoryMap[_cid][_k]]
+					+	'</div>'
+
+		}
+
+		$('#cb').html(bDom);
+	}
+	//把品牌加到对应类下
+	function addClassMap(_bid)
+	{
+		_bid = String(_bid)
+
+		if(!curClsMapId) return;//未选择分类
+
+		if($.inArray(_bid, curCategoryMap[curClsMapId]) > -1)
+		{
+			return;//已存在该品牌
+		}
+
+		curCategoryMap[curClsMapId].push(_bid)
+
+		$('#cb').find('div').each(function(){ $(this).removeClass('is-active');});
+
+		$('#cb').append('<div class="sl-list__item is-active" data-id="' +	_bid  	+	'"	'
+					+	'	onclick="removeCategory('+	_bid	+');">'
+					+	curBrand[_bid]
+					+	'</div>');
+
+	}
+
+	//从分类下移除品牌
+	function removeCategory(_bid)
+	{
+		_bid = String(_bid)
+		var _pos = $.inArray(_bid, curCategoryMap[curClsMapId])
+		curCategoryMap[curClsMapId].splice(_pos, 1);
+
+		$('#cb').find('div').each(function(){
+			if($(this).attr('data-id') == _bid)
+			{
+				$(this).remove();
+			}
+		});
+	}
+
 	function editBrand(){
 		$.ajax({
         url: '/sl/demo/brand-class-manage',
@@ -970,11 +1092,11 @@ $this->registerJs($readyJs);
 									<div class="cl-title__text fl">分类列表</div>
 									<div class="sl-icon--add fr"></div>
 								</div>
-								<input id="cls_m_cls_search" type="text" class="input-large" placeholder="搜索" />
+								<input id="cbc-suggest" type="text" class="input-large" placeholder="搜索" />
 								<div class="sl-list-block">
-									<div class="sl-list sl-list--category">
+									<div class="sl-list sl-list--category" id="cbc">
 										{{each cb as cv}}
-											<div onclick="getBrandByCid({{cv.id}});" class="sl-list__item" data-id="{{cv.id}}">{{cv.class_name}}</div>
+											<div onclick="getClassMap({{cv.id}});" class="sl-list__item" data-id="{{cv.id}}">{{cv.class_name}}</div>
 										{{/each}}
 									</div>
 									<input type="text" class="input-medium" placeholder="新选项"
@@ -989,7 +1111,7 @@ $this->registerJs($readyJs);
 											<div class="cl-title__text fl">关联品牌</div>
 										</div>
 										<div class="sl-list-block">
-											<div class="sl-list sl-list--linkedBrand">
+											<div class="sl-list sl-list--linkedBrand"  id="cb">
 											</div>
 										</div>
 									</div>
@@ -1004,11 +1126,11 @@ $this->registerJs($readyJs);
 										<div class="cl-title clearfix">
 											<div class="cl-title__text fl">品牌列表</div>
 										</div>
-										<input id="cls_m_brand_search" type="text" class="input-large" placeholder="搜索" />
+										<input id="cbb-suggest" type="text" class="input-large" placeholder="搜索" />
 										<div class="sl-list-block">
-											<div class="sl-list sl-list--brand">
+											<div class="sl-list sl-list--brand" id="cbb">
 												{{each b as bv}}
-												<div onclick="addBrandToCurClass({{bv.id}});" class="sl-list__item" data-id="{{bv.id}}">{{bv.name}}</div>
+												<div onclick="addClassMap({{bv.id}});" class="sl-list__item" data-id="{{bv.id}}">{{bv.name}}</div>
 												{{/each}}
 											</div>
 										</div>
@@ -1040,12 +1162,12 @@ $this->registerJs($readyJs);
 									<div class="cl-title__text fl">品牌列表</div>
 									<div class="sl-icon--add fr"></div>
 								</div>
-								<input type="text" class="input-large" placeholder="搜索" />
+								<input type="text" id="bcb-suggest" class="input-large" placeholder="搜索" />
 								<div class="sl-list-block">
-									<div class="sl-list sl-list--brand">
-										<div class="sl-list__item">资生堂</div>
-										<div class="sl-list__item is-active">妮维雅</div>
-										<div class="sl-list__item">欧莱雅</div>
+									<div class="sl-list sl-list--brand"  id="bcb">
+										{{each bc as bv}}
+										<div data-id="{{bv.id}}" onclick="getBrandMap({{bv.id}});" class="sl-list__item">{{bv.brand_name}}</div>
+										{{/each}}
 									</div>
 
 									<input type="text" class="input-medium" placeholder="新选项"
@@ -1060,10 +1182,7 @@ $this->registerJs($readyJs);
 											<div class="cl-title__text fl">关联分类</div>
 										</div>
 										<div class="sl-list-block">
-											<div class="sl-list sl-list--linkedCategory">
-												<div class="sl-list__item">家电</div>
-												<div class="sl-list__item is-active">影音</div>
-												<div class="sl-list__item">钟表</div>
+											<div class="sl-list sl-list--linkedCategory" id="bc">
 											</div>
 										</div>
 									</div>
@@ -1078,12 +1197,12 @@ $this->registerJs($readyJs);
 										<div class="cl-title clearfix">
 											<div class="cl-title__text fl">分类列表</div>
 										</div>
-										<input type="text" class="input-large" placeholder="搜索" />
+										<input type="text" id="bcc-suggest" class="input-large" placeholder="搜索" />
 										<div class="sl-list-block">
-											<div class="sl-list sl-list--category">
-												<div class="sl-list__item">手机</div>
-												<div class="sl-list__item is-active">食品</div>
-												<div class="sl-list__item">服饰</div>
+											<div class="sl-list sl-list--category" id="bcc">
+												{{each c as cv}}
+												<div data-id="{{cv.id}}" onclick="getBrandMap({{cv.id}});" class="sl-list__item">{{cv.brand_name}}</div>
+												{{/each}}
 											</div>
 										</div>
 									</div>
