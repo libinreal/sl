@@ -342,6 +342,21 @@
     background-repeat: no-repeat;
     background-image: url(../img/icon_trash.png);
 }
+.cdc-del{
+	content: '';
+	position: absolute;
+	right: 7px;
+    top: 4px;
+    width: 16px;
+    height: 17px;
+	cursor: pointer;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url(../img/icon_trash1.png);
+}
+.sl-list__item{
+	position: relative;
+}
 .channel__btn-center{
 	text-align: center;
 	padding-bottom: 22px;

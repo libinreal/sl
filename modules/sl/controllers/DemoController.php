@@ -430,6 +430,47 @@ class DemoController extends \yii\web\Controller
         }
     }
 
+    //添加产品分类
+    public function actionAddProductClass()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $name = Yii::$app->request->post('n', '');
+        if($name)
+        {
+            Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClass::tableName(). '([[name]]) VALUES(\''. $name.'\');')->execute();
+            $id = Yii::$app->getModule('sl')->db->getLastInsertID();
+
+            if($id)
+            {
+                return [
+                        'code' => '0',
+                        'data' => $id,
+                        'msg' => ''
+                    ];
+            }
+            else
+            {
+                return [
+                        'code' => '1',
+                        'data' => [],
+                        'msg' => 'Add Failed'
+                    ];
+            }
+        }
+
+        return [
+                'code' => '-1',
+                'data' => [],
+                'msg' => 'Invalid request data'
+            ];
+    }
+
+    //添加产品品牌
+    public function actionAddProductBrand()
+    {
+
+    }
 
     /**
      * 获取所有品牌所属的分类

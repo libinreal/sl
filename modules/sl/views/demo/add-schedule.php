@@ -223,6 +223,13 @@ var curClsMapId,
 							    	addClassMap(s.data)
 							    }
 							});
+
+							//添加分类
+							$('.cbc-add').on('click', function(){
+								if($('#cbc').parent().children('input').length > 0)
+									return;
+								$('#cbc').after('<input type="text" onblur="addCategory(this.value);" class="input-medium" placeholder="新分类" style="margin-left: 9px;width: 180px;box-sizing: border-box;height: 34px;">');
+							})
 						},
 						okHide: function(){
 
@@ -239,11 +246,49 @@ var curClsMapId,
 
 	}
 
+	//添加分类
+	function addCategory(_c)
+	{
+		if(_c)
+		{
+			$.ajax({
+	        url: '/sl/demo/add-product-class',
+	        type: 'post',
+	        data: {n:_c, _csrf:csrfToken},
+	        dataType: 'json',
+	        success: function (json_data) {
+		        	if(json_data.code == '0')
+		        	{
+		        		$('#cbc').append('<div onclick="getClassMap('+json_data.data+');" class="sl-list__item" data-id="'+json_data.data+'"><div>'+ _c+'</div></div>');
+		        		$('#cbc').parent().children('input').remove();
+		        	}
+
+		        }
+		    });
+		}
+	}
+
 	//显示类下的品牌
 	function getClassMap(_cid)
 	{
 		_cid = String(_cid)
 		curClsMapId = _cid;
+
+		$('#cbc').children('div').each(function(){
+			var t = $(this)
+
+			t.children('div:eq(1)').remove();
+				t.removeClass('is-active')
+
+			if(t.attr('data-id')==_cid)
+			{
+				t.addClass('is-active');
+				t.append('<div class="cdc-del"></div>')
+
+				$('.cdc-del').on('click', {id:_cid}, delClass)
+			}
+		})
+
 		var bDom = ''
 
 		for(var _k in curCategoryMap[_cid])
@@ -272,7 +317,7 @@ var curClsMapId,
 
 		curCategoryMap[curClsMapId].push(_bid)
 
-		$('#cb').find('div').each(function(){ $(this).removeClass('is-active');});
+		$('#cb').children('div').each(function(){ $(this).removeClass('is-active');});
 
 		$('#cb').append('<div class="sl-list__item is-active" data-id="' +	_bid  	+	'"	'
 					+	'	onclick="removeCategory('+	_bid	+');">'
@@ -294,6 +339,35 @@ var curClsMapId,
 				$(this).remove();
 			}
 		});
+	}
+
+	//删除分类
+	function delClass(e)
+	{
+		e.preventDefault();
+		_cid = String(e.data.id)
+
+		$.confirm({
+			title:'提示',
+			body:'是否删除分类和关联品牌？',
+			okHide:function(){
+				delete curCategory[_cid];
+				delete curCategoryMap[_cid];
+
+				$('#cbc').children('div').each(function(){
+					if($(this).attr('data-id') == _cid)
+					{
+						$(this).remove();
+					}
+				})
+
+				$('#cb').empty()
+				if(_cid == curClsMapId)
+					curClsMapId = null;
+			}
+		})
+
+		return false;
 	}
 
 	function editBrand(){
@@ -1090,17 +1164,15 @@ $this->registerJs($readyJs);
 							<div class="sl-category__left fl" >
 								<div class="cl-title clearfix">
 									<div class="cl-title__text fl">分类列表</div>
-									<div class="sl-icon--add fr"></div>
+									<div class="sl-icon--add fr cbc-add"></div>
 								</div>
 								<input id="cbc-suggest" type="text" class="input-large" placeholder="搜索" />
 								<div class="sl-list-block">
 									<div class="sl-list sl-list--category" id="cbc">
 										{{each cb as cv}}
-											<div onclick="getClassMap({{cv.id}});" class="sl-list__item" data-id="{{cv.id}}">{{cv.class_name}}</div>
+											<div onclick="getClassMap({{cv.id}});" class="sl-list__item" data-id="{{cv.id}}"><div>{{cv.class_name}}</div></div>
 										{{/each}}
 									</div>
-									<input type="text" class="input-medium" placeholder="新选项"
-											style="margin-left: 9px;width: 180px;box-sizing: border-box;height: 34px;"/>
 								</div>
 
 							</div>
@@ -1170,8 +1242,7 @@ $this->registerJs($readyJs);
 										{{/each}}
 									</div>
 
-									<input type="text" class="input-medium" placeholder="新选项"
-											style="margin-left: 9px;width: 180px;box-sizing: border-box;height: 34px;"/>
+
 								</div>
 
 							</div>
