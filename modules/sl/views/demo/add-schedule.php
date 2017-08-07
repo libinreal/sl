@@ -281,7 +281,7 @@ var curClsMapId,
 	        				data:json_data.data
 	        			});
 
-						$('#cbc-suggest').autocomplete().setOptions({lookup:clsBrandClsArr})
+						$('#cbc-suggest').autocomplete( 'setOptions', {lookup:clsBrandClsArr})
 		        	}
 
 		        }
@@ -399,7 +399,7 @@ var curClsMapId,
     			if(_kDel)
     				clsBrandClsArr.splice(_kDel, 1);
 
-				$('#cbc-suggest').autocomplete().setOptions({lookup:clsBrandClsArr})
+				$('#cbc-suggest').autocomplete('setOptions', {lookup:clsBrandClsArr})
 			}
 		})
 
@@ -529,7 +529,7 @@ var curClsMapId,
 	        				data:json_data.data
 	        			});
 
-						$('#bcb-suggest').autocomplete().setOptions({lookup:brandClsBrandArr})
+						$('#bcb-suggest').autocomplete('setOptions', {lookup:brandClsBrandArr})
 		        	}
 
 		        }
@@ -647,7 +647,7 @@ var curClsMapId,
     			if(_kDel)
     				brandClsBrandArr.splice(_kDel, 1);
 
-				$('#bcb-suggest').autocomplete().setOptions({lookup:brandClsBrandArr})
+				$('#bcb-suggest').autocomplete('setOptions', {lookup:brandClsBrandArr})
 			}
 		})
 

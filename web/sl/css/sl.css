@@ -342,7 +342,7 @@
     background-repeat: no-repeat;
     background-image: url(../img/icon_trash.png);
 }
-.cdc-del{
+.cdc-del, .bdb-del{
 	content: '';
 	position: absolute;
 	right: 7px;

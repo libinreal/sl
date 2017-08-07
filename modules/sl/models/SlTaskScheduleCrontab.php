@@ -92,11 +92,11 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
 
         if( $request->post('start_time_s', '') )
         {
-            $query->andFilterWhere(['>=', 'cron.start_time', strtotime($request->post('start_time_s', ''))]);
+            $query->andFilterWhere(['>=', 'cron.start_time', $request->post('start_time_s', '')]);
         }
         if( $request->post('start_time_e', '') )
         {
-            $query->andFilterWhere(['<=', 'cron.start_time', strtotime($request->post('start_time_e', ''))]);
+            $query->andFilterWhere(['<=', 'cron.start_time', $request->post('start_time_e', '')]);
         }
 
         $query->andFilterWhere(['cron.sche_id' => $this->sche_id])
@@ -111,7 +111,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
                 ->andFilterWhere(['like', 'cron.name', $this->name]);
 
 
-       /* $commandQuery = clone $query;
+       /*$commandQuery = clone $query;
     echo $commandQuery->createCommand()->getRawSql();exit;*/
 
         return $query;

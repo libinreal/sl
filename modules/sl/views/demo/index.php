@@ -303,7 +303,7 @@ EOT;
     function deleteSche(_id)
     {
         var _updateScheData = {},
-            _removeCrontabUrl = '/sl/demo/removeSche';
+            _removeCrontabUrl = '/sl/demo/remove-sche';
 
         _updateScheData['_csrf'] = csrfToken;
         _updateScheData['id'] = _id;
@@ -321,7 +321,7 @@ EOT;
                     success: function (json_data) {
                         if(json_data.code == '0')
                         {
-                            _container.find("tr[sche-id='"+_id+"']").remove();
+                            $('.schedule_tables').find("tr[sche-id='"+_id+"']").remove();
                             $.alert('删除计划任务'+_id+'成功');
                         }
                         else

@@ -49,7 +49,7 @@ class DemoController extends \yii\web\Controller
 
             $totals = $scheQuery->count();
 
-            $data = $scheQuery->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->all();
+            $data = $scheQuery->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->orderBy('[[id]] DESC')->all();
 
             /*$commandQuery = clone $scheQuery;
             echo $commandQuery->createCommand()->getRawSql();exit;*/
@@ -729,7 +729,7 @@ class DemoController extends \yii\web\Controller
 
             $totals = $taskQuery->count();
 
-            $data = $taskQuery->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->all();
+            $data = $taskQuery->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->orderBy('[[id]] DESC')->all();
 
             foreach ($data as &$d)
             {
@@ -783,6 +783,7 @@ class DemoController extends \yii\web\Controller
                         ->limit( $pageSize )
                         ->offset( ($pageNo - 1) * $pageSize )
                         ->asArray()
+                        ->orderBy('cron.id DESC')
                         ->all();
 
             foreach ($data as &$d)
