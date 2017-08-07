@@ -152,7 +152,11 @@ var curClsMapId,
 	curBrand,//品牌列表
 	curBrandMap,//品牌 关联分类
 	modal1 = null,
-	modal2 = null;
+	modal2 = null,
+	clsBrandClsArr = [],
+	clsBrandBrandArr = [],
+	brandClsBrandArr = [],
+	brandClsClsArr = [];
 
 	function editCategory(){
 
@@ -164,12 +168,13 @@ var curClsMapId,
         success: function (json_data) {
 	        	if(json_data.code == '0')
 	        	{
-	        		var clsBrandClsArr = [], clsBrandBrandArr = []
-
 	        		curCategory = {}
 	        		curBrand = {}
 	        		curCategoryMap = {}
 	        		categoryJsonData = json_data.data
+
+	        		clsBrandClsArr = []
+					clsBrandBrandArr = []
 
 	        		for( var _k in categoryJsonData.cb)
 	        		{
@@ -232,7 +237,16 @@ var curClsMapId,
 							})
 						},
 						okHide: function(){
+							$.ajax({
+						        url: '/sl/demo/save-class-map',
+						        type: 'post',
+						        data: {c:curCategory, m:curCategoryMap, _csrf:csrfToken},
+						        dataType: 'json',
+						        success: function (json_data) {
 
+						        		console.log(JSON.stringify(json_data))
+							        }
+							});
 						},
 						cancelHide: function(){
 
@@ -261,6 +275,13 @@ var curClsMapId,
 		        	{
 		        		$('#cbc').append('<div onclick="getClassMap('+json_data.data+');" class="sl-list__item" data-id="'+json_data.data+'"><div>'+ _c+'</div></div>');
 		        		$('#cbc').parent().children('input').remove();
+
+		        		clsBrandClsArr.push({
+	        				value:_c,
+	        				data:json_data.data
+	        			});
+
+						$('#cbc-suggest').autocomplete().setOptions({lookup:clsBrandClsArr})
 		        	}
 
 		        }
@@ -364,13 +385,29 @@ var curClsMapId,
 				$('#cb').empty()
 				if(_cid == curClsMapId)
 					curClsMapId = null;
+
+				var _kDel
+    			for(var _k in clsBrandClsArr)
+    			{
+    				if( String(clsBrandClsArr[_k].data) == _cid)
+    				{
+    					_kDel = _k
+    					break;
+    				}
+    			}
+
+    			if(_kDel)
+    				clsBrandClsArr.splice(_kDel, 1);
+
+				$('#cbc-suggest').autocomplete().setOptions({lookup:clsBrandClsArr})
 			}
 		})
 
 		return false;
 	}
 
-	function editBrand(){
+	function editBrand()
+	{
 		$.ajax({
         url: '/sl/demo/brand-class-manage',
         type: 'post',
@@ -379,13 +416,85 @@ var curClsMapId,
         success: function (json_data) {
 	        	if(json_data.code == '0')
 	        	{
-        			new ModalBuilder('template2', {
-						title: '新增分类',
-						shown: function(){
+	        		curCategory = {}
+	        		curBrand = {}
+	        		curBrandMap = {}
+	        		brandJsonData = json_data.data
 
+	        		brandClsBrandArr = []
+					brandClsClsArr = []
+
+	        		for( var _k in brandJsonData.bc)
+	        		{
+	        			//Init curBrand
+	        			curBrand[brandJsonData.bc[_k].id] = brandJsonData.bc[_k].brand_name
+
+	        			//Init curBrandMap
+	        			if(!curBrandMap[brandJsonData.bc[_k].id])
+	        				curBrandMap[brandJsonData.bc[_k].id] = []
+
+	        			for(var _m in brandJsonData.bc[_k].productClass)
+	        			{
+	        				curBrandMap[brandJsonData.bc[_k].id].push(brandJsonData.bc[_k].productClass[_m].id)
+	        			}
+
+	        			brandClsBrandArr.push({
+	        				value:brandJsonData.bc[_k].brand_name,
+	        				data:brandJsonData.bc[_k].id
+	        			});
+
+
+	        		}
+
+					for( var _k in brandJsonData.c)
+	        		{
+	        			//Init curBrand
+	        			curCategory[brandJsonData.c[_k].id] = brandJsonData.c[_k].name
+
+	        			brandClsClsArr.push({
+	        				value:brandJsonData.c[_k].name,
+	        				data:brandJsonData.c[_k].id
+	        			});
+	        		}
+
+        			new ModalBuilder('template2', {
+						title: '新增品牌',
+						shown: function(){
+							//搜索框
+							$('#bcb-suggest').autocomplete({
+								lookup:brandClsBrandArr,
+								minChars:0,
+							    onSelect: function(s) {
+							    	getBrandMap(s.data)
+							    }
+							});
+
+							$('#bcc-suggest').autocomplete({
+								lookup:brandClsClsArr,
+								minChars:0,
+							    onSelect: function(s) {
+							    	addBrandMap(s.data)
+							    }
+							});
+
+							//添加品牌
+							$('.bcb-add').on('click', function(){
+								if($('#bcb').parent().children('input').length > 0)
+									return;
+								$('#bcb').after('<input type="text" onblur="addBrand(this.value);" class="input-medium" placeholder="新品牌" style="margin-left: 9px;width: 180px;box-sizing: border-box;height: 34px;">');
+							})
 						},
 						okHide: function(){
+							$.ajax({
+						        url: '/sl/demo/save-brand-map',
+						        type: 'post',
+						        data: {b:curBrand, m:curBrandMap, _csrf:csrfToken},
+						        dataType: 'json',
+						        success: function (json_data) {
 
+						        		console.log(JSON.stringify(json_data))
+							        }
+							});
 						},
 						cancelHide: function(){
 
@@ -395,7 +504,157 @@ var curClsMapId,
 
 	        }
 	    });
+
+
 	}
+
+	//添加品牌
+	function addBrand(_b)
+	{
+		if(_b)
+		{
+			$.ajax({
+	        url: '/sl/demo/add-product-brand',
+	        type: 'post',
+	        data: {n:_b, _csrf:csrfToken},
+	        dataType: 'json',
+	        success: function (json_data) {
+		        	if(json_data.code == '0')
+		        	{
+		        		$('#bcb').append('<div onclick="getBrandMap('+json_data.data+');" class="sl-list__item" data-id="'+json_data.data+'"><div>'+ _b+'</div></div>');
+		        		$('#bcb').parent().children('input').remove();
+
+		        		brandClsBrandArr.push({
+	        				value:_b,
+	        				data:json_data.data
+	        			});
+
+						$('#bcb-suggest').autocomplete().setOptions({lookup:brandClsBrandArr})
+		        	}
+
+		        }
+		    });
+		}
+	}
+
+	//显示品牌下的类
+	function getBrandMap(_bid)
+	{
+		_bid = String(_bid)
+		curBrandMapId = _bid;
+
+		$('#bcb').children('div').each(function(){
+			var t = $(this)
+
+			t.children('div:eq(1)').remove();
+				t.removeClass('is-active')
+
+			if(t.attr('data-id')==_bid)
+			{
+				t.addClass('is-active');
+				t.append('<div class="bdb-del"></div>')
+
+				$('.bdb-del').on('click', {id:_bid}, delBrand)
+			}
+		})
+
+		var cDom = ''
+
+		for(var _k in curBrandMap[_bid])
+		{
+
+			cDom += '<div class="sl-list__item" data-id="' +	curBrandMap[_bid][_k]  	+	'"	'
+					+	'	onclick="removeBrand('+	curBrandMap[_bid][_k]	+');">'
+					+	curCategory[curBrandMap[_bid][_k]]
+					+	'</div>'
+
+		}
+
+		$('#bc').html(cDom);
+	}
+	//把类加到品牌下
+	function addBrandMap(_cid)
+	{
+		_cid = String(_cid)
+
+		if(!curBrandMapId) return;//未选择品牌
+
+		if($.inArray(_cid, curBrandMap[curBrandMapId]) > -1)
+		{
+			return;//已存在该类
+		}
+
+		curBrandMap[curBrandMapId].push(_cid)
+
+		$('#bc').children('div').each(function(){ $(this).removeClass('is-active');});
+
+		$('#bc').append('<div class="sl-list__item is-active" data-id="' +	_cid  	+	'"	'
+					+	'	onclick="removeBrand('+	_cid	+');">'
+					+	curCategory[_cid]
+					+	'</div>');
+
+	}
+
+	//从品牌下移除分类
+	function removeBrand(_cid)
+	{
+		_cid = String(_cid)
+		var _pos = $.inArray(_cid, curBrandMap[curBrandMapId])
+		curBrandMap[curBrandMapId].splice(_pos, 1);
+
+		$('#bc').find('div').each(function(){
+			if($(this).attr('data-id') == _cid)
+			{
+				$(this).remove();
+			}
+		});
+	}
+
+	//删除品牌
+	function delBrand(e)
+	{
+		e.preventDefault();
+		_bid = String(e.data.id)
+
+		$.confirm({
+			title:'提示',
+			body:'是否删除分类和关联品牌？',
+			okHide:function(){
+				delete curBrand[_bid];
+				delete curBrandMap[_bid];
+
+				$('#bcb').children('div').each(function(){
+					if($(this).attr('data-id') == _bid)
+					{
+						$(this).remove();
+					}
+				})
+
+				$('#bc').empty()
+				if(_bid == curBrandMapId)
+					curBrandMapId = null;
+
+    			var _kDel
+    			for(var _k in brandClsBrandArr)
+    			{
+    				if( String(brandClsBrandArr[_k].data) == _bid)
+    				{
+    					_kDel = _k
+    					break;
+    				}
+    			}
+
+    			if(_kDel)
+    				brandClsBrandArr.splice(_kDel, 1);
+
+				$('#bcb-suggest').autocomplete().setOptions({lookup:brandClsBrandArr})
+			}
+		})
+
+		return false;
+	}
+
+
 	$(".sl-icon-trash").on('click',function(){
 		$.confirm({
 			title: '弹框',
@@ -733,11 +992,28 @@ $("#sche_month_tags").on("click", "li", function(_e){
 	}
 })
 
-function submitAddFrm(){
+function submitAddFrm(_confirmUpdate){
 	var sche_time,
 		sche_id = <?php if(!empty($scheEditData)): echo $scheEditData["id"];else: echo "''";endif;?>,
 		sche_type_repeat = $("input[name='sche_type_repeat']:checked").val(),
 	 	sche_type = $("input[name='sche_type']").val();
+
+	if(sche_id)
+	{
+		if(!_confirmUpdate)
+		{
+			$.confirm({
+				title:'提示',
+				body:'保存后该计划今日已完成的采集数据将会丢失，确定要保存吗？',
+				okHide:function(){
+					_confirmUpdate = true;
+					submitAddFrm(true);
+				}
+			});
+			return false;
+		}
+	}
+
 	if(sche_type_repeat == 0)//Only once
 	{
 		sche_time = $("input[name='sche_start_time']:eq(0)").val()
@@ -754,7 +1030,10 @@ function submitAddFrm(){
 	frmData['sche_time'] = sche_time
 	frmData['sche_type'] = sche_type
 
-	if(sche_id) frmData['id'] = sche_id;
+	if(sche_id)
+	{
+		frmData['id'] = sche_id;
+	}
 
 	//console.log(JSON.stringify(frmData));
 	//return;
@@ -1232,9 +1511,9 @@ $this->registerJs($readyJs);
 							<div class="sl-category__left fl" >
 								<div class="cl-title clearfix">
 									<div class="cl-title__text fl">品牌列表</div>
-									<div class="sl-icon--add fr"></div>
+									<div class="sl-icon--add fr bcb-add"></div>
 								</div>
-								<input type="text" id="bcb-suggest" class="input-large" placeholder="搜索" />
+								<input id="bcb-suggest" type="text" class="input-large" placeholder="搜索" />
 								<div class="sl-list-block">
 									<div class="sl-list sl-list--brand"  id="bcb">
 										{{each bc as bv}}
@@ -1272,7 +1551,7 @@ $this->registerJs($readyJs);
 										<div class="sl-list-block">
 											<div class="sl-list sl-list--category" id="bcc">
 												{{each c as cv}}
-												<div data-id="{{cv.id}}" onclick="getBrandMap({{cv.id}});" class="sl-list__item">{{cv.brand_name}}</div>
+												<div data-id="{{cv.id}}" onclick="addBrandMap({{cv.id}});" class="sl-list__item">{{cv.name}}</div>
 												{{/each}}
 											</div>
 										</div>

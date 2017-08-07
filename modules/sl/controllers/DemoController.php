@@ -435,7 +435,7 @@ class DemoController extends \yii\web\Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $name = Yii::$app->request->post('n', '');
+        $name = trim(Yii::$app->request->post('n', ''));
         if($name)
         {
             Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClass::tableName(). '([[name]]) VALUES(\''. $name.'\');')->execute();
@@ -469,7 +469,37 @@ class DemoController extends \yii\web\Controller
     //添加产品品牌
     public function actionAddProductBrand()
     {
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
+        $name = trim(Yii::$app->request->post('n', ''));
+        if($name)
+        {
+            Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductBrand::tableName(). '([[name]]) VALUES(\''. $name.'\');')->execute();
+            $id = Yii::$app->getModule('sl')->db->getLastInsertID();
+
+            if($id)
+            {
+                return [
+                        'code' => '0',
+                        'data' => $id,
+                        'msg' => ''
+                    ];
+            }
+            else
+            {
+                return [
+                        'code' => '1',
+                        'data' => [],
+                        'msg' => 'Add Failed'
+                    ];
+            }
+        }
+
+        return [
+                'code' => '-1',
+                'data' => [],
+                'msg' => 'Invalid request data'
+            ];
     }
 
     /**
@@ -485,7 +515,7 @@ class DemoController extends \yii\web\Controller
             $brandClass = SlScheduleProductBrand::find()
                 ->alias('b')
                 ->joinWith('productClass')
-                ->select('b.name brand_name, cb.class_id, cb.brand_id, c.name class_name')
+                ->select('b.id, b.name brand_name, bc.class_id, c.name class_name')
                 ->asArray()
                 ->all();
 
@@ -502,6 +532,126 @@ class DemoController extends \yii\web\Controller
                     'msg' => ''
                 ];
         }
+    }
+
+    /**
+     * 保存品牌关联关系
+     */
+    public function actionSaveBrandMap()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $brands = Yii::$app->request->post('b', '');
+        $brandMap = Yii::$app->request->post('m', '');
+
+        if(empty($brandMap) || empty($brands) || !is_array($brands) || !is_array($brandMap))
+            return [
+                'code' => '-1',
+                'data' => [],
+                'msg' => 'Invalid request data'
+            ];
+
+        $brandValues = '';
+        $brands = array_values( $brands );
+
+        foreach ($brands as $brand)
+        {
+            $brand = trim($brand);
+            if(!$brand)
+                continue;
+
+            $brandValues .= '(\'' . $brand . '\'),';
+        }
+
+        $mapValues = '';
+        foreach ($brandMap as $_bid => $_cidArr)
+        {
+            foreach ($_cidArr as $_cid)
+            {
+                $mapValues .= '(' . $_bid . ',' . $_cid . '),';
+            }
+        }
+
+        $bRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductBrand::tableName(). '([[name]]) VALUES '. substr($brandValues, 0,-1))->execute();
+        $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClassBrand::tableName(). '([[brand_id]], [[class_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
+
+        if($bRet !==false && $mRet !== false)
+        {
+            return [
+                    'code' => '0',
+                    'data' => [],
+                    'msg' => 'INSERT IGNORE INTO '.SlScheduleProductBrand::tableName(). '([[name]]) VALUES '. substr($brandValues, 0,-1) . '  ----  ' .
+                        'INSERT IGNORE INTO '.SlScheduleProductClassBrand::tableName(). '([[brand_id]], [[class_id]]) VALUES '. substr($mapValues, 0,-1)
+                ];
+        }
+        else
+        {
+            return [
+                    'code' => '1',
+                    'data' => [],
+                    'msg' => ''
+                ];
+        }
+    }
+
+    /**
+     * 保存分类关联关系
+     */
+    public function actionSaveClassMap()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $clses = Yii::$app->request->post('c', '');
+        $clsMap = Yii::$app->request->post('m', '');
+
+        if(empty($clsMap) || empty($clses) || !is_array($clses) || !is_array($clsMap))
+            return [
+                'code' => '-1',
+                'data' => [],
+                'msg' => 'Invalid request data'
+            ];
+
+        $clsValues = '';
+        $clses = array_values( $clses );
+
+        foreach ($clses as $cls)
+        {
+            $cls = trim($cls);
+            if(!$cls)
+                continue;
+
+            $clsValues .= '(\'' . $cls . '\'),';
+        }
+
+        $mapValues = '';
+        foreach ($clsMap as $_cid => $_bidArr)
+        {
+            foreach ($_bidArr as $_bid)
+            {
+                $mapValues .= '(' . $_cid . ',' . $_bid . '),';
+            }
+        }
+
+        $cRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClass::tableName(). '([[name]]) VALUES '. substr($clsValues, 0,-1))->execute();
+        $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClassBrand::tableName(). '([[class_id]], [[brand_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
+
+        if($cRet !==false && $mRet !== false)
+        {
+            return [
+                    'code' => '0',
+                    'data' => [],
+                    'msg' => ''
+                ];
+        }
+        else
+        {
+            return [
+                    'code' => '1',
+                    'data' => [],
+                    'msg' => ''
+                ];
+        }
+
     }
 
     /**
