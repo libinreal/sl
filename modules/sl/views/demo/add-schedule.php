@@ -618,7 +618,7 @@ var curClsMapId,
 
 		$.confirm({
 			title:'提示',
-			body:'是否删除分类和关联品牌？',
+			body:'是否删除品牌和关联分类？',
 			okHide:function(){
 				delete curBrand[_bid];
 				delete curBrandMap[_bid];
@@ -1517,7 +1517,7 @@ $this->registerJs($readyJs);
 								<div class="sl-list-block">
 									<div class="sl-list sl-list--brand"  id="bcb">
 										{{each bc as bv}}
-										<div data-id="{{bv.id}}" onclick="getBrandMap({{bv.id}});" class="sl-list__item">{{bv.brand_name}}</div>
+										<div data-id="{{bv.id}}" onclick="getBrandMap({{bv.id}});" class="sl-list__item"><div>{{bv.brand_name}}</div></div>
 										{{/each}}
 									</div>
 

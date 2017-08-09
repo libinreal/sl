@@ -40,7 +40,8 @@ class SlTaskItem extends \yii\db\ActiveRecord
     const TASK_STATUS_OPEN = 1;
     const TASK_STATUS_COMPLETE = 2;
 
-
+    const NOT_DELETED = 0;
+    const DELETED = 1;
     /**
      * @inheritdoc
      */
@@ -59,6 +60,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
             [['task_status', 'complete_status'], 'in', 'range' => [self::TASK_STATUS_CLOSE, self::TASK_STATUS_OPEN, self::TASK_STATUS_COMPLETE]],
             ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_STARTED]],
             ['paging', 'in', 'range' => [self::PAGING_NO, self::PAGING_YES]],
+            ['is_delete', 'in', 'range' => [self::NOT_DELETED, self::DELETED]],
             [['name', 'cookie', 'user_agent', 'dt_category', 'pf_name'], 'string'],
             [['task_date'], 'safe'],
             [['task_progress', 'data_number'], 'number'],
@@ -97,7 +99,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
             'user_agent' => '渠道的User-Agent设置',
             'spider_name' => '抓取标识',
             'paging' => '分页状态（0: 未分页; 1:分页完成）',
-
+            'is_delete' => '是否删除（0：未删除1：已删除）',
         ];
     }
 
@@ -117,6 +119,8 @@ class SlTaskItem extends \yii\db\ActiveRecord
             // var_dump( $this->getErrors());exit;
             return false;
         }
+
+        $query->where(['is_delete' => self::NOT_DELETED]);
 
         if( $request->post('task_time_s','') )
         {

@@ -689,9 +689,12 @@ class DemoController extends \yii\web\Controller
             Yii::$app->response->format = Response::FORMAT_JSON;
 
             $id = $request->post('id', '');
-            $ret = SlTaskScheduleCrontab::findOne($id)->delete();
+            $cronModel = SlTaskScheduleCrontab::findOne($id);
+            $cronModel->is_delete = SlTaskScheduleCrontab::DELETED;
+            $ret = $cronModel->save();
+
             return  [
-                'code'=>$ret ? '0' : '1',
+                'code'=>($ret !== false) ? '0' : '1',
                 'msg'=>'',
                 'data'=>[]
             ];
@@ -843,14 +846,14 @@ class DemoController extends \yii\web\Controller
             {
                 Yii::$app->getModule('sl')
                     ->db
-                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET task_status = '.SlTaskItem::TASK_STATUS_CLOSE.', control_status = '.SlTaskItem::CONTROL_STOPPED.' WHERE cron_id = '. $cronModel->id. ' AND task_status <> '.SlTaskItem::TASK_STATUS_COMPLETE)
+                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_CLOSE.', control_status = '.SlTaskItem::CONTROL_STOPPED.' WHERE cron_id = '. $cronModel->id. ' AND task_status <> '.SlTaskItem::TASK_STATUS_COMPLETE)
                     ->execute();
             }
             else
             {
                 Yii::$app->getModule('sl')
                     ->db
-                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET task_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_STARTED.' WHERE cron_id = '. $cronModel->id. ' AND task_status <> '.SlTaskItem::TASK_STATUS_COMPLETE)
+                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_STARTED.' WHERE cron_id = '. $cronModel->id. ' AND task_status <> '.SlTaskItem::TASK_STATUS_COMPLETE)
                     ->execute();
             }
             /*** 任务项状态更新 ***/
@@ -860,6 +863,69 @@ class DemoController extends \yii\web\Controller
                     'msg'=>'Success',
                     'data'=>[]
                     ];
+        }
+    }
+
+    /**
+     * 更新任务项状态
+     * @return
+     */
+    public function actionUpdateTaskItem()
+    {
+        if(Yii::$app->request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            $post = Yii::$app->request->post();
+
+            $defaultRet = [
+                    'code' => '-1',
+                    'msg' => 'Invalid request data',
+                    'data' => []
+            ];
+
+            if($post && !empty($post['id']))
+                $itemModel = SlTaskItem::findOne($post['id']);
+            else
+                return $defaultRet;
+
+            //数据验证失败
+            if ( !$itemModel->load( $post, '' ) || !$itemModel->validate() )
+            {
+                return $defaultRet;
+            }
+
+            $itemModel->save();
+
+            return  [
+                    'code'=>'0',
+                    'msg'=>'Success',
+                    'data'=>[]
+                    ];
+        }
+    }
+
+    /**
+     * 删除任务项
+     * @return
+     */
+    public function actionRemoveTaskItem()
+    {
+        $request = Yii::$app->request;
+
+        if($request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+
+            $id = $request->post('id', '');
+            $itemModel = SlTaskItem::findOne($id);
+            $itemModel->is_delete = SlTaskItem::DELETED;
+            $ret = $itemModel->save();
+
+            return  [
+                'code'=>($ret !== false) ? '0' : '1',
+                'msg'=>'',
+                'data'=>[]
+            ];
         }
     }
 

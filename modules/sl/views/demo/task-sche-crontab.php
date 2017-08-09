@@ -19,7 +19,7 @@ EOT;
     var pageNo = 1, pageSize = 10, pageCount = 0,
     	paginationLen = 5, refreshUrl = "<?php $taskUrl = strstr($curPageUrl, '?', true); echo $taskUrl.'/'.$sche_id;?>";
 
-    function goToPage(_pageNo = 1){
+    function goToPage(_pageNo){
     	var filterData = $("#filterFrm").find("input").serializeObject();
 
     	filterData['pageNo'] = _pageNo
@@ -108,7 +108,7 @@ EOT;
                     _strPrev = ' onclick="goToPage('+ (_pageNo - 1) +');" '
                 }
             }
-            else if(_pageCount < paginationLen)//无法翻页
+            else if(_pageCount < paginationLen && _pageCount != 0)//无法翻页
             {
             	//console.log('无法')
                 _startPage = 1;
@@ -319,7 +319,7 @@ EOT;
     function deleteCrontab(_id)
     {
     	var _updateCrontabData = {},
-    		_removeCrontabUrl = '/sl/demo/removeCrontab';
+    		_removeCrontabUrl = '/sl/demo/remove-crontab';
 
 		_updateCrontabData['_csrf'] = csrfToken;
     	_updateCrontabData['id'] = _id;
@@ -337,7 +337,7 @@ EOT;
 		            success: function (json_data) {
 		            	if(json_data.code == '0')
 		            	{
-		            		_container.find("tr[task-id='"+_id+"']").remove();
+		            		$('.task_tables').find("tr[task-id='"+_id+"']").remove();
 		            		$.alert('删除任务'+_id+'成功');
 		            	}
 		            	else

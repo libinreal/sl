@@ -105,7 +105,7 @@ EOT;
                     _strPrev = ' onclick="goToPage('+ (_pageNo - 1) +');" '
                 }
             }
-            else if(_pageCount < paginationLen)//无法翻页
+            else if(_pageCount < paginationLen && _pageCount != 0)//无法翻页
             {
                 //console.log('无法')
                 _startPage = 1;

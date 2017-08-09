@@ -107,7 +107,7 @@ EOT;
                     _strPrev = ' onclick="goToPage('+ (_pageNo - 1) +');" '
                 }
             }
-            else if(_pageCount < paginationLen)//无法翻页
+            else if(_pageCount < paginationLen && _pageCount != 0)//无法翻页
             {
             	//console.log('无法')
                 _startPage = 1;
@@ -188,12 +188,165 @@ EOT;
     				+ '<td><span class="cell">'+ _rows[_i]['task_time'] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ _rows[_i]['complete_time'] +'</span>'+ '</td>'
 
-    				+ '<td><span class="cell"><a href="javascript:updateTaskStat( \''+ _rows[_i]['complete_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_OPEN;?>+'\');" class="a--success">启动</a>'
-    				+ '<a href="javascript:updateTaskStat(\''+ _rows[_i]['complete_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_CLOSE;?>+'\');" class="a--danger">停止</a>'
-    				+ '<a href="javascript:deleteTask(\''+_rows[_i]['id']+'\');" class="a--danger">删除</a>'
+    				+ '<td><span class="cell"><a href="javascript:updateTaskStat( \''+ _rows[_i]['complete_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_OPEN;?>+'\', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
+    				+ '<a href="javascript:updateTaskStat(\''+ _rows[_i]['complete_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_CLOSE;?>+'\', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
+    				+ '<a href="javascript:deleteItem(\''+_rows[_i]['id']+'\');" class="a--danger">删除</a>'
     	}
     	_container.find('tr:gt(0)').remove();
     	_container.find('tr:eq(0)').after(_trStr);
+    }
+
+    /**
+     * 更改每日任务状态
+     * @param  string _curStat 当前任务状态
+     * @param  string _ctrlStat 更改的状态
+     * @param  string _id 要更改的任务id
+     * @return boolean
+     */
+    function updateTaskStat(_curStat, _ctrlStat, _id)
+    {
+        var _unstartStat = <?php echo SlTaskItem::TASK_STATUS_CLOSE; ?>,
+            _startStat = <?php echo SlTaskItem::TASK_STATUS_OPEN; ?>,
+            _okStat = <?php echo SlTaskItem::TASK_STATUS_COMPLETE; ?>,
+            _open = <?php echo SlTaskItem::CONTROL_STARTED;?>,
+            _stop = <?php echo SlTaskItem::CONTROL_STOPPED;?>,
+            _updateItemUrl = '/sl/demo/update-task-item',
+            _container = $('.task_tables');
+
+            if(_curStat == _okStat)
+            {
+                $.alert('已完成');
+                return;
+            }
+
+            if( _ctrlStat == _open && _curStat == _unstartStat)//启动
+            {
+                var _updateItemData = {};
+                _updateItemData['_csrf'] = csrfToken;
+
+                _updateItemData['id'] = _id;
+                _updateItemData['complete_status'] = _startStat;
+                _updateItemData['control_status'] = _ctrlStat;
+
+                $.confirm({
+                    title: '弹框',
+                    body: '是否启动任务项'+ _id +'?',
+                    okHide: function(){
+                        $.ajax({
+                            crossDomain: true,
+                            url: _updateItemUrl,
+                            type: 'post',
+                            data: _updateItemData,
+                            dataType: 'json',
+                            success: function (json_data) {
+                                // console.log(JSON.stringify(json_data));
+                                if(json_data.code == '0')
+                                {
+                                    _container.find("tr[task-id='"+_id+"']").find("td:eq(7)").find("span").html("已启动");
+                                    $.alert('启动任务项'+_id+'成功');
+                                }
+                                else
+                                {
+                                    $.alert('启动任务项'+_id+'失败');
+                                }
+
+                            }
+                        });
+                    }
+                })
+            }
+            else if( _ctrlStat == _stop && _curStat != _unstartStat)//关闭
+            {
+                var _updateItemData = {};
+                _updateItemData['_csrf'] = csrfToken;
+
+                _updateItemData['id'] = _id;
+                _updateItemData['complete_status'] = _unstartStat;
+                _updateItemData['control_status'] = _ctrlStat;
+
+                $.confirm({
+                    title: '弹框',
+                    body: '是否停止任务项'+ _id +'?',
+                    okHide: function(){
+                        $.ajax({
+                            crossDomain: true,
+                            url: _updateItemUrl,
+                            type: 'post',
+                            data: _updateItemData,
+                            dataType: 'json',
+                            success: function (json_data) {
+                                // console.log(JSON.stringify(json_data));
+                                if(json_data.code == '0')
+                                {
+                                    _container.find("tr[task-id='"+_id+"']").find("td:eq(7)").find("span").html("未启动");
+                                    $.alert('停止任务项'+_id+'成功');
+                                }
+                                else
+                                {
+                                    $.alert('停止任务项'+_id+'失败');
+                                }
+
+                            }
+                        });
+                    }
+                })
+
+            }
+            else if(_ctrlStat == _open)
+            {
+                $.alert({
+                    title: '提示',
+                    body: '已启动!',
+                });
+            }
+            else if(_ctrlStat == _stop)
+            {
+                $.alert({
+                    title: '提示',
+                    body: '未启动!',
+                });
+            }
+        return true;
+    }
+
+    /**
+     * 删除任务项
+     * @param  string _id 要删除的任务id
+     * @return
+     */
+    function deleteItem(_id)
+    {
+        var _updateItemData = {},
+            _removeItemUrl = '/sl/demo/remove-task-item';
+
+        _updateItemData['_csrf'] = csrfToken;
+        _updateItemData['id'] = _id;
+
+        $.confirm({
+            title: '弹框',
+            body: '是否删除任务'+ _id +'?',
+            okHide: function(){
+                $.ajax({
+                    crossDomain: true,
+                    url: _removeItemUrl,
+                    type: 'post',
+                    data: _updateItemData,
+                    dataType: 'json',
+                    success: function (json_data) {
+                        if(json_data.code == '0')
+                        {
+                            $('.task_tables').find("tr[task-id='"+_id+"']").remove();
+                            $.alert('删除任务'+_id+'成功');
+                        }
+                        else
+                        {
+                            $.alert('删除任务'+_id+'失败');
+                        }
+
+                    }
+                });
+            }
+        })
     }
 
 <?php

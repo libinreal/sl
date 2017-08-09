@@ -25,6 +25,8 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
     const TASK_STATUS_EXECUTING = 1;
     const TASK_STATUS_COMPLETED = 2;
 
+    const NOT_DELETED = 0;
+    const DELETED = 1;
     /**
      * @inheritdoc
      */
@@ -41,6 +43,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
         return [
             [['name'], 'string'],
             ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_STARTED]],
+            ['is_delete', 'in', 'range' => [self::NOT_DELETED, self::DELETED]],
             [['start_time'], 'safe'],
             [['task_progress'], 'number'],
             [['create_time', 'complete_time'], 'integer'],
@@ -63,6 +66,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
             'sche_id' => '计划id',
             'task_status' => '任务状态(0:未启动1:正在进行2:已完成)',
             'control_status' => '控制开关(0:停止1:运行)',
+            'is_delete' => '是否删除（0：未删除1：已删除）',
         ];
     }
 
@@ -87,6 +91,8 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
             // var_dump( $this->getErrors());exit;
             return false;
         }
+
+        $query->where(['is_delete' => self::NOT_DELETED]);
 
         $query->alias('cron')->joinWith('schedule');
 
