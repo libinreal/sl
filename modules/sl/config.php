@@ -5,7 +5,7 @@ return [
         //analysis database
         'db' => [
             'class' => '\yii\db\Connection',
-            'dsn' => 'mysql:host=192.168.10.207;port=23306;dbname=webspider',
+            'dsn' => 'mysql:host=192.168.10.207;port=3306;dbname=webspider',
             'username' => 'webspider',
             'password' => '$b1cFERT@!',
             'tablePrefix' => '',
