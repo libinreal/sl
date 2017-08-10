@@ -22,7 +22,7 @@ $config = [
         ],
         'db' => [
             'class' => '\yii\db\Connection',
-            'dsn' => 'mysql:host=61.155.169.179;port=23306;dbname=webspider',
+            'dsn' => 'mysql:host=192.168.10.207;port=23306;dbname=webspider',
             'username' => 'webspider',
             'password' => '$b1cFERT@!',
             'tablePrefix' => '',
