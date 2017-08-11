@@ -101,6 +101,25 @@
 	border-bottom-left-radius:0;
 }
 
+#apiResult-2 .dp-panel{
+	width: 100%;
+}
+
+
+#dp-ret{
+	display:block;
+	overflow:auto;
+	white-space:nowrap;
+	padding-top: 180px;
+}
+
+.dp-item{
+	display: inline-block;
+    padding: 0px 30px 100px;
+    font-family: "Courier New",sans-serif!important;
+    font-size: 12px!important;
+}
+
 .stmts-form>form{
 	min-height: 410px;
 	/*padding: 20px 10px;*/
@@ -249,7 +268,8 @@ span.ner-other{
 }
 .sa-dr{
 	min-height: 30px;
-	margin: 100px 50px;
+	/*margin: 100px 50px;*/
+	margin: 30px 50px;
 	line-height: 30px;
 	color:#606b79;
 }

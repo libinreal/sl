@@ -104,7 +104,10 @@
             data: stmtsForm.serialize(),
             dataType: 'json',
             success: function (json_data) {
+
                 if( stmtsActIndex == 0 ){//词性分析
+                    jsPlumb.deleteEveryEndpoint();
+
                     tags = json_data.result
                     var wc_ret = ''
                     for(var e in tags){
@@ -112,6 +115,8 @@
                     }
                     $('#wc-ret').html(wc_ret);
                 } else if ( stmtsActIndex == 1 ){//实体识别
+                    jsPlumb.deleteEveryEndpoint();
+
                     tags = json_data.result
                     var ner_ret = ''
                     for(var e in tags){
@@ -119,8 +124,66 @@
                     }
                     $('#ner-ret').html(ner_ret);
                 } else if ( stmtsActIndex == 2 ){//依存文法
+                    jsPlumb.deleteEveryEndpoint();
 
+                    var dpWord = json_data.result,
+                        dpEndpoints = [],
+                        dpConnections = [],
+                        dpHtml = '<div class="dp-item" id="dp--1">Root</div>'
+
+                    for (var _k in dpWord)
+                    {
+                        dpHtml += "<div class='dp-item' id='dp-"+ _k +"'>" + dpWord[_k].content + "</div>"
+                    }
+
+                    $('#dp-ret').html(dpHtml)
+
+                    /*jsPlumb.bind("connection",function(info){
+                        console.log(JSON.stringify(info));
+                    });*/
+
+                    var dpSource,dpTarget,dpCurviness,dpStub
+                    for(var _k in dpWord)
+                    {
+                        dpSource = jsPlumb.addEndpoint('dp-'+_k, {
+                          anchor:"Top",
+                          endpoint:["Blank", { width:4, height:4 }],
+                          container:'dp-'+_k
+                        });
+
+                        dpTarget = jsPlumb.addEndpoint('dp-'+dpWord[_k].head, {
+                          isTarget:true,
+                          anchor:"Top",
+                          endpoint:["Blank", { width:4, height:4 }],
+                          container:'dp-'+dpWord[_k].head
+                        });
+
+                        dpCurviness =  Math.abs(parseFloat(_k) - parseFloat(dpWord[_k].head)) * 7
+                        dpStub = Math.abs(parseFloat(_k) - parseFloat(dpWord[_k].head)) * 1.5
+
+                        dpConnection = jsPlumb.connect({
+                          container:"dp-ret",
+                          source:dpSource,
+                          target:dpTarget,
+                          paintStyle:{strokeWidth:1,stroke:'#428bca'},
+                          endpointStyle:{fill:'#428bca'},
+                          connector:["Bezier", {curviness:dpCurviness, stub:dpStub}],
+                          overlays:[
+                            ["Label",{label:dpWord[_k].relate, }],
+                            ["PlainArrow",{width:6, direction:dpWord[_k].head > 0 ? -1 : 1, length:6, location:1}],
+                          ]
+                        });
+
+                        dpConnections.push(dpConnection);
+                    }
+
+                    $('#dp-ret').scroll(function(){
+                        console.log(' dp-ret scroll  ------');
+                        jsPlumb.repaintEverything();
+                    })
                 } else if ( stmtsActIndex == 3 ){//情感分析
+                    jsPlumb.deleteEveryEndpoint();
+
                     var pv = json_data.result[0]['qp'];//正面
                     var nv = json_data.result[0]['qn'];//负面
                     saChart.setOption({
@@ -134,6 +197,7 @@
     }
 JS;
     app\assets\NLPAdminAsset::addScript($this, '@web/admin/js/echarts.common.min.js');
+    app\assets\NLPAdminAsset::addScript($this, '@web/sl/lib/jsplumb/jsplumb.min.js');
     // app\assets\PRSAdminAsset::addScript($this, '@web/admin/js/echarts.js');
     // app\assets\PRSAdminAsset::addScript($this, '@web/admin/js/echarts.simple.min.js');
     $this->registerJs($wcJs);
@@ -196,6 +260,18 @@ JS;
 </div>
 
 <div id="apiResult-2" style="display: none;">
+    <div class="basic-block ei-panel dp-panel">
+        <div class="clearfix">
+        <span class="title-prefix-md">依存文法</span>
+        </div>
+
+        <div class="dp-dl clearfix">
+            <div id="dp-ret">
+
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <div id="apiResult-3" style="display: none;">
@@ -209,8 +285,9 @@ JS;
     </div>
 
     <div class="basic-block sa-example">
+        <!--
         <ul class="sa-tab clearfix"><li class="active">通用</li><li>骑车</li><li>厨具</li><li>餐饮</li><li>新闻</li><li>微博</li></ul>
-
+        -->
         <div class="sa-dr clearfix">
             <div class="sa-tag sa-tag-p clearfix">正面</div>
             <div  class="sa-tag clearfix">负面</div>
