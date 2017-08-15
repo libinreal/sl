@@ -146,7 +146,7 @@
 
                     for (var _k in dpWord)
                     {
-                        $('#dp-'+_k).css('left', 140 * (parseInt(_k) + 1));
+                        $('#dp-'+_k).css('left', 100 * (parseInt(_k) + 1));
                     }
 
                     //jsPlumb.ready(function () {
@@ -278,8 +278,8 @@
                                     anchor: sourceAnchors, uuid: sourceUUID, connector: [ "Flowchart", { stub: 30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId)) , gap: 1, cornerRadius: 3, alwaysRespectStubs: true } ],
                                 });
                                 //console.log("sourceUUID "  + sourceUUID+ " stub: " + (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) );
-                                //_dis.push( (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) * 2 + 140 * Math.abs(parseInt(sourceId) - parseInt(toId)) );
-                                //_loc.push( (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) + 5 + 140 * Math.abs(parseInt(sourceId) - parseInt(toId)) );
+                                //_dis.push( (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) * 2 + 100 * Math.abs(parseInt(sourceId) - parseInt(toId)) );
+                                //_loc.push( (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) + 5 + 100 * Math.abs(parseInt(sourceId) - parseInt(toId)) );
 
                                 var targetUUID = "t" + toId;
                                 instance.addEndpoint("dp-" + toId, targetEndpoint, { anchor: targetAnchors, uuid: targetUUID });
