@@ -131,8 +131,6 @@
                         /*sourceArr = [],
                         targetArr = []*/
 
-                    console.log("json data "+JSON.stringify(dpWord));
-
                     // init sourceArr , targetArr
                     for (var _k in dpWord)
                     {
@@ -146,52 +144,28 @@
 
                     for (var _k in dpWord)
                     {
-                        $('#dp-'+_k).css('left', 140 * (parseInt(_k) + 1));
+                        $('#dp-'+_k).css('left', 200 * (parseInt(_k) + 1));
                     }
 
                     //jsPlumb.ready(function () {
 
-                        var sourceAnchors = [
-                            [ 0.45, 0, 0, -1, 0, 0 ],
-                            [ 0.46, 0, 0, -1, 0, 0 ],
-                            [ 0.47, 0, 0, -1, 0, 0 ],
-                            [ 0.48, 0, 0, -1, 0, 0 ],
-                            [ 0.49, 0, 0, -1, 0, 0 ]
-                        ],
-                        targetAnchors = [
-                            [ 0.65, 0, 0, -1, 0, 0 ],
-                            [ 0.64, 0, 0, -1, 0, 0 ],
-                            [ 0.63, 0, 0, -1, 0, 0 ],
-                            [ 0.62, 0, 0, -1, 0, 0 ],
-                            [ 0.61, 0, 0, -1, 0, 0 ]
-                        ]
-
                         var instance = window.jsp = jsPlumb.getInstance({
-                            // the overlays to decorate each connection with.  note that the label overlay uses a function to generate the label text; in this
-                            // case it returns the 'labelText' member that we set on each connection in the 'init' method below.
+                            Endpoint: ["Dot", {radius: 2}],
+                            Connector:["StateMachine",{proximityLimit:1700000}],
+                            HoverPaintStyle: {stroke: "#1e8151", strokeWidth: 2 },
                             ConnectionOverlays: [
                                 [ "Arrow", {
                                     location: 1,
-                                    visible:true,
-                                    width:11,
-                                    length:11,
-                                    id:"ARROW",
-                                    events:{
-                                        click:function() { console.log("you clicked on the arrow overlay")}
-                                    }
+                                    id: "arrow",
+                                    length: 10,
+                                    foldback: 0.8
                                 } ],
-                                [ "Label", {
-                                    location: 0.8,
-                                    id: "label",
-                                    cssClass: "aLabel",
-                                    events:{
-                                        tap:function() { console.log("hey"); }
-                                    }
-                                }]
+                                [ "Label", { label: "FOO", id: "label", cssClass: "aLabel" }]
                             ],
                             Container: "plumb-ret"
                         });
 
+                        /*
                         var basicType = {
                             connector: "StateMachine",
                             paintStyle: { stroke: "red", strokeWidth: 4 },
@@ -200,7 +174,11 @@
                                 "Arrow"
                             ]
                         };
-                        //instance.registerConnectionType("basic", basicType);
+                        instance.registerConnectionType("basic", basicType);
+                        */
+
+
+                        instance.registerConnectionType("basic", { anchor:"Top", connector:"StateMachine"});
 
                         // this is the paint style for the connecting lines..
                         var connectorPaintStyle = {
@@ -232,59 +210,40 @@
                             },
                             isSource: true,
                             connectorStyle: connectorPaintStyle,
-                            anchor:["Top"],
+                            anchor:"Top",
                             hoverPaintStyle: endpointHoverStyle,
                             connectorHoverStyle: connectorHoverStyle,
-                            dragOptions: {},
-                            overlays: [
-                                [ "Label", {
-                                    location: [0.5, 1.5],
-                                    label: "Drag",
-                                    cssClass: "endpointSourceLabel",
-                                    visible:false
-                                } ]
-                            ],
+                            connectionType:"basic",
                             maxConnections: -1
                         },
                         // the definition of target endpoints (will appear when the user drags a connection)
-                        //anchor:["Perimeter",{"shape":"Circle"}],
                         targetEndpoint = {
                             endpoint: "Dot",
                             paintStyle: { fill: "#7AB02C", radius: 1 },
                             hoverPaintStyle: endpointHoverStyle,
-                            anchor:["Top"],
+                            anchor:"Top",
                             maxConnections: -1,
-                            dropOptions: { hoverClass: "hover", activeClass: "active" },
                             isTarget: true,
                             overlays: [
                                 [ "Label", { location: [0.5, -0.5], label: "Drop", cssClass: "endpointTargetLabel", visible:false } ]
                             ]
                         },
                         init = function (connection) {
-                            var _k = parseInt(connection.targetId.substring(3));
-                            //console.log(' init targetId ' + connection.targetId + '  ' + _k + '     ' + JSON.stringify(dpWord[_k]) );
-                            //connection.getOverlay("label").setLabel( {label: dpWord[_k].relate, location: 0.9 } );
-                            //console.log( (_loc[_k] / _dis[_k]).toFixed(1) + "  location ");
-                            //var l = (_loc[_k] / _dis[_k]).toFixed(1);
-                            connection.setLabel( {label: dpWord[_k].relate, location: 0.8, labelStyle:{cssClass:"dp-label"} } );
+                            connection.getOverlay("label").setLabel(connection.sourceId.substring(15) + "-" + connection.targetId.substring(15));
                         };
 
-                        //var _dis = [];// connneter length in pixel
-                        //var _loc =[]; //label location in pixel
-                        var _addEndpoints = function (sourceId, toId) {
-
-                                var sourceUUID = "s" + sourceId;
+                        var _addEndpoints = function (sourceId, toId, sourceAnchors, targetAnchors) {
+                            for (var i = 0; i < sourceAnchors.length; i++) {
+                                var sourceUUID = sourceId + sourceAnchors[i];
                                 instance.addEndpoint("dp-" + sourceId, sourceEndpoint, {
-                                    anchor: sourceAnchors, uuid: sourceUUID, connector: [ "Flowchart", { stub: 30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId)) , gap: 1, cornerRadius: 3, alwaysRespectStubs: true } ],
+                                    anchor: sourceAnchors[i], uuid: sourceUUID, connector:["StateMachine", {margin:460 * Math.abs(parseInt(sourceId) - parseInt(toId))  }]
                                 });
-                                //console.log("sourceUUID "  + sourceUUID+ " stub: " + (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) );
-                                //_dis.push( (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) * 2 + 140 * Math.abs(parseInt(sourceId) - parseInt(toId)) );
-                                //_loc.push( (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) + 5 + 140 * Math.abs(parseInt(sourceId) - parseInt(toId)) );
-
-                                var targetUUID = "t" + toId;
-                                instance.addEndpoint("dp-" + toId, targetEndpoint, { anchor: targetAnchors, uuid: targetUUID });
-                                //console.log("targetUUID "  + targetUUID);
-
+                                //console.log("sourceUUID "  + sourceUUID);
+                            }
+                            for (var j = 0; j < targetAnchors.length; j++) {
+                                var targetUUID = toId + targetAnchors[j];
+                                instance.addEndpoint("dp-" + toId, targetEndpoint, { anchor: targetAnchors[j], uuid: targetUUID });
+                            }
                         };
 
                         // suspend drawing and initialise.
@@ -292,7 +251,7 @@
 
                             for (var _k in dpWord)
                             {
-                                _addEndpoints(String(dpWord[_k].head), String(_k));
+                                _addEndpoints(String(_k), String(dpWord[_k].head), ["TopCenter"], ["TopCenter"]);
                             }
 
                             // listen for new connections; initialise them the same way we initialise the connections at startup.
@@ -300,17 +259,11 @@
                                 init(connInfo.connection);
                             });
 
-                            // make all the window divs draggable
-                            //instance.draggable(jsPlumb.getSelector(".flowchart-demo .window"), { grid: [20, 20] });
-                            // THIS DEMO ONLY USES getSelector FOR CONVENIENCE. Use your library's appropriate selector
-                            // method, or document.querySelectorAll:
-                            //jsPlumb.draggable(document.querySelectorAll(".window"), { grid: [20, 20] });
-
                             // connect a few up
                             //instance.connect({uuids: ["Window2BottomCenter", "Window3TopCenter"], editable: true});
                             for (var _k in dpWord)
                             {
-                                instance.connect({uuids: [ "s" + dpWord[_k].head, "t" + _k]});
+                                instance.connect({type:"basic", uuids: [ _k +"TopCenter", dpWord[_k].head +"TopCenter"]});
                             }
 
                             //

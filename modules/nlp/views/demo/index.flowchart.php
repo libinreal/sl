@@ -181,7 +181,7 @@
                                     }
                                 } ],
                                 [ "Label", {
-                                    location: 0.8,
+                                    location: 0.9,
                                     id: "label",
                                     cssClass: "aLabel",
                                     events:{
@@ -263,23 +263,17 @@
                         init = function (connection) {
                             var _k = parseInt(connection.targetId.substring(3));
                             //console.log(' init targetId ' + connection.targetId + '  ' + _k + '     ' + JSON.stringify(dpWord[_k]) );
-                            //connection.getOverlay("label").setLabel( {label: dpWord[_k].relate, location: 0.9 } );
-                            //console.log( (_loc[_k] / _dis[_k]).toFixed(1) + "  location ");
-                            //var l = (_loc[_k] / _dis[_k]).toFixed(1);
-                            connection.setLabel( {label: dpWord[_k].relate, location: 0.8, labelStyle:{cssClass:"dp-label"} } );
+                            connection.getOverlay("label").setLabel( dpWord[_k].relate );
                         };
 
-                        //var _dis = [];// connneter length in pixel
-                        //var _loc =[]; //label location in pixel
                         var _addEndpoints = function (sourceId, toId) {
 
                                 var sourceUUID = "s" + sourceId;
                                 instance.addEndpoint("dp-" + sourceId, sourceEndpoint, {
                                     anchor: sourceAnchors, uuid: sourceUUID, connector: [ "Flowchart", { stub: 30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId)) , gap: 1, cornerRadius: 3, alwaysRespectStubs: true } ],
                                 });
-                                //console.log("sourceUUID "  + sourceUUID+ " stub: " + (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) );
-                                //_dis.push( (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) * 2 + 140 * Math.abs(parseInt(sourceId) - parseInt(toId)) );
-                                //_loc.push( (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) + 5 + 140 * Math.abs(parseInt(sourceId) - parseInt(toId)) );
+                                //console.log("sourceUUID "  + sourceUUID);
+
 
                                 var targetUUID = "t" + toId;
                                 instance.addEndpoint("dp-" + toId, targetEndpoint, { anchor: targetAnchors, uuid: targetUUID });
