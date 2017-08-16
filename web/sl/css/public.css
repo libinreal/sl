@@ -458,9 +458,6 @@ table{
     cursor: pointer;
     font-weight: bold;
 }
-.tab-pane{
-	display: none;
-}
 .nav--tab{
 	padding-left: 40px;
     border: 1px solid #ebebeb;
@@ -619,19 +616,6 @@ table{
     transform: translateY(-50%);
     width: 34px;
 }
-.tab-content{
-	/*display: none;*/
-}
-/*.el-table--enable-row-hover .el-table__body tr:hover>td {
-    background-color: initial;
-    background-clip: padding-box;
-}
-.el-table--enable-row-hover .el-table__body tr:hover {
-    border-top: 1px solid #51a5de;
-    border-bottom: 1px solid #51a5de;
-    border-left: 1px solid #51a5de;
-    
-}*/
 .brand-title{
 	font-size: 18px;
     margin-top: 10px;
