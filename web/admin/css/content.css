@@ -108,7 +108,7 @@
 #plumb-ret{
 	position: relative;
 	overflow: scroll !important;
-	height: 600px;
+	height: 363px;
 }
 
 .dp-item{
@@ -129,7 +129,7 @@
     padding: 8px;
     font-family: "Courier New",sans-serif!important;
     font-size: 12px!important;
-    top:480px;
+    top:300px;
 }
 
 .dp-label{

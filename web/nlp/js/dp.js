@@ -6,7 +6,7 @@ var DpElement = (function(){
 
 		if( _this instanceof _dpElement )
 		{
-			_this.pos = pos;
+			_this.pos = parseInt(pos);
 
 			_this.connections = [];
 			_this.rightConnections = [];
@@ -17,97 +17,20 @@ var DpElement = (function(){
 
 
 			/**
-			 * @param dpElements 当前所有连线的元素数组
 			 * @param dpConnection 当前连线
 			 */
-			_this.addLeftConnection = function(dpConnection, dpElements){
+			_this.addLeftConnection = function(dpConnection){
 				_this.leftConnections.push(dpConnection);
 				_this.connections.push(dpConnection);
-				_this.update(dpConnection, dpElements);
 			};
 
 			/**
-			 * @param dpElements 当前所有连线的元素数组
 			 * @param dpConnection 当前连线
 			 */
-			_this.addRightConnection = function(dpConnection, dpElements){
+			_this.addRightConnection = function(dpConnection){
 				_this.rightConnections.push(dpConnection);
 				_this.connections.push(dpConnection);
-				_this.update(dpConnection, dpElements);
 			};
-			
-			/**
-			 * @param dpElements 当前所有连线的元素数组
-			 * @param dpConnection 当前连线
-			 */
-			_this.update = function(dpConnection, dpElements){
-				
-				//find the section between the dpConnection
-				var leftPos, rightPos
-
-				if( dpConnection.sourceElement.pos < dpConnection.targetElement.pos )
-				{
-					leftPos = dpConnection.sourceElement.pos
-					rightPos = dpConnection.targetElement.pos
-				}
-				else
-				{
-					leftPos = dpConnection.sourceElement.pos
-					rightPos = dpConnection.targetElement.pos
-				}
-
-				//assign connection stub
-				var stubs = [];
-				for (var s = leftPos; s <= rightPos; s++) 
-				{
-					if(!dpElements.hasOwnProperty(s))
-						continue;
-
-					if(s == leftPos)
-					{
-						stubs = stubs.concat(dpElements[s].rightStubs);
-					}
-					else if(s == rightPos)
-					{
-						stubs = stubs.concat(dpElements[s].leftStubs);
-					}
-					else
-					{
-						stubs = stubs.concat(dpElements[s].leftStubs, dpElements[s].rightStubs);	
-					}
-				}
-
-				var sl = stubs.length;
-				for (var i = 1; i < sl; i++)
-				{
-					if( $.inArray(i, stubs) == -1 )
-					{
-						dpConnection.stub = i;
-						break;
-					}
-				}
-
-				if(!dpConnection.stub)
-				{
-					if( stubs.length > 0)
-						dpConnection.stub = Math.max.apply(null, stubs) + 1;//"current max stub" + 1
-					else
-						dpConnection.stub = 1;//empty stubs
-				}
-
-				//assign current dpConnection elements leftStubs and rightStubs
-				if( dpConnection.sourceElement.pos < dpConnection.targetElement.pos )
-				{
-					dpConnection.sourceElement.rightStubs.push( dpConnection.stub );
-					dpConnection.targetElement.leftStubs.push( dpConnection.stub );
-				}
-				else
-				{
-					dpConnection.sourceElement.leftStubs.push( dpConnection.stub );
-					dpConnection.targetElement.rightStubs.push( dpConnection.stub );
-				}
-			};
-
 			
 		}
 		else
@@ -120,6 +43,88 @@ var DpElement = (function(){
 	_dpElement.prototype ={
 		constructor: _dpElement
 	}
+
+	/**
+	 * @param dpElements 当前所有连线的元素数组
+	 * @param dpConnection 当前连线
+	 */
+	_dpElement.update = function(dpConnection, dpElements){
+		//find the section between the dpConnection
+		var leftPos, rightPos
+
+		if( dpConnection.sourceElement.pos < dpConnection.targetElement.pos )
+		{
+			leftPos = dpConnection.sourceElement.pos
+			rightPos = dpConnection.targetElement.pos
+		}
+		else
+		{
+			leftPos = dpConnection.targetElement.pos
+			rightPos = dpConnection.sourceElement.pos
+		}
+
+		//assign connection stub
+		var stubs = [];
+		var ek;
+		for (var s = leftPos; s <= rightPos; s++) 
+		{
+			ek = s + 1;
+			if(!dpElements.hasOwnProperty(ek))
+				continue;
+			//left point
+			if(ek == leftPos + 1)
+			{
+				stubs = stubs.concat(dpElements[ek].rightStubs);
+			}
+			//right point
+			else if(ek == rightPos + 1)
+			{
+				stubs = stubs.concat(dpElements[ek].leftStubs);
+			}
+			//between the two points
+			else
+			{
+				stubs = stubs.concat(dpElements[ek].leftStubs, dpElements[ek].rightStubs);	
+			}
+		}
+
+		var sl = stubs.length;
+		// console.log(" stubs " + JSON.stringify(stubs));
+		var smax = Math.max.apply(null, stubs);
+
+		//find space between 1 and max in the stubs array
+		for (var i = 1; i <= smax; i++)
+		{
+			if( $.inArray(i, stubs) == -1 )
+			{
+				dpConnection.stub = i;
+				break;
+			}
+		}
+
+		if(!dpConnection.stub)
+		{
+			if( stubs.length > 0)
+				dpConnection.stub = Math.max.apply(null, stubs) + 1;//"current max stub" + 1
+			else
+				dpConnection.stub = 1;//empty stubs
+		}
+
+		//assign current dpConnection elements leftStubs and rightStubs
+		if( dpConnection.sourceElement.pos < dpConnection.targetElement.pos )
+		{
+			dpConnection.sourceElement.rightStubs.push( dpConnection.stub );
+			dpConnection.targetElement.leftStubs.push( dpConnection.stub );
+			// console.log("on update elements stub  ===>: " + dpConnection.stub)
+		}
+		else
+		{
+			dpConnection.sourceElement.leftStubs.push( dpConnection.stub );
+			dpConnection.targetElement.rightStubs.push( dpConnection.stub );
+			// console.log("on update elements stub  <===: " + dpConnection.stub)
+		}
+
+	};
 
 	return _dpElement;
 })();
@@ -163,8 +168,7 @@ var Dp = (function(){
 			_this.plumb = _options.plumb;
 			_this.container = _options.container;
 
-			_this.left = _options.left;
-			_this.margin = _options.margin;
+			_this.margin = 0;
 
 			_this.targetAnchors = _options.targetAnchors;
 			_this.sourceAnchors = _options.sourceAnchors;
@@ -176,28 +180,31 @@ var Dp = (function(){
 					dpElements = [],
 					dpConnections = [];
 
-				console.log("json data construct  "+JSON.stringify(_this.words));
+				//console.log("json data construct  "+JSON.stringify(_this.words));
 				//add root element to the array
 				dpElements.push( new DpElement(-1) );
 
+				var wlmax = 1;
 				for (var _k in _this.words)
                 {
                     dpHtml += "<div class='dp-item' id='dp-"+ _k +"'>" + _this.words[_k].content + "</div>"
+                    if(_this.words[_k].content.length > wlmax)
+                    	wlmax = _this.words[_k].content.length;
 
                     //init connLog  array and dpElements array
-                    if(!connLog[_k])
-                    	connLog[_k] = [];
-
-                   	connLog[_k][0] = _this.words[_k].head
-                   	connLog[_k][1] = _k
+                    connLog[_k] = [];
+                   	connLog[_k].push( _this.words[_k].head )
+                   	connLog[_k].push( parseInt(_k) )
                    	
                    	dpElements.push( new DpElement(_k) );
                 }
 
                 //console.log("connLog " + JSON.stringify(connLog));
+                _this.margin = 20 * wlmax
 
                 $("#" + _this.container).html(dpHtml)
-                $('#dp--1').css('left', _this.left);
+                $(".dp-item").css('width', 12 * wlmax)
+                $('#dp--1').css('left', 10);
 
                 var sourceK, targetK, sourceE, targetE, dpConn
                 for (var _k in _this.words)
@@ -205,34 +212,33 @@ var Dp = (function(){
                     $('#dp-'+_k).css('left', _this.margin * (parseInt(_k) + 1));
 
                     //connect elements BEGIN
-                    sourceK = connLog[_k][0]
-                    targetK = connLog[_k][1]
 
-                    //correct root index not exists the dpElements array
-                    if(sourceK == -1)
-                    {
-                    	sourceK = 0;	
-                    }
+                    //correct root index not exists the dpElements array ,as root element is added
+                    sourceK = connLog[_k][0] + 1
+                    targetK = connLog[_k][1] + 1
 
                     sourceE = dpElements[sourceK]
                     targetE = dpElements[targetK]
-
+                    //init dpConnections array
                     dpConn = new DpConnection(sourceE, targetE)
                     dpConnections.push(dpConn)
-
-                    //console.log("  typeof connLog[_k] " + JSON.stringify( connLog[_k]) );
-                    //console.log( " dpElements[targetK] " + JSON.stringify(dpElements) + "   connlog " + connLog[_k] + "  targetK  " + targetK);
+                    //console.log( "  source pos : " + sourceE.pos + "  target pos : " + targetE.pos + "  connnect source pos : " + dpConn.sourceElement.pos + "  connect target pos: " + dpConn.targetElement.pos );
+                    //console.log( " before update element stubs   source:  " + dpConn.sourceElement.leftStubs + "  | " + dpConn.sourceElement.rightStubs + " target:  " + dpConn.targetElement.leftStubs + "  | " + dpConn.targetElement.rightStubs);
 
                     if(sourceK < targetK)
                     {
-	                    dpElements[sourceK].addRightConnection(dpConn, dpElements);
-	                    dpElements[targetK].addLeftConnection(dpConn, dpElements);
+	                    dpElements[sourceK].addRightConnection(dpConn);
+	                    dpElements[targetK].addLeftConnection(dpConn);
 	                }
 	                else
                     {
-	                    dpElements[sourceK].addLeftConnection(dpConn, dpElements);
-	                    dpElements[targetK].addRightConnection(dpConn, dpElements);
+	                    dpElements[sourceK].addLeftConnection(dpConn);
+	                    dpElements[targetK].addRightConnection(dpConn);
 	                }
+	                DpElement.update(dpConn, dpElements);
+	                //console.log("  current word " + _this.words[_k].content);
+	                //console.log( " after update element stubs   source:  " + dpConn.sourceElement.leftStubs + "  |  " + dpConn.sourceElement.rightStubs + " target:  " + dpConn.targetElement.leftStubs + "  | " + dpConn.targetElement.rightStubs);
+
 	                //connect elements END
                 }
 
@@ -319,11 +325,10 @@ var Dp = (function(){
 
                 var _addEndpoints = function (sourceId, toId) {
 
-                		var intK = parseInt(toId);
                         var sourceUUID = "s" + sourceId;
 
                         instance.addEndpoint("dp-" + sourceId, sourceEndpoint, {
-                            anchor: _this.sourceAnchors, uuid: sourceUUID, connector: [ "Flowchart", { stub: 30 + 10 *  dpConnections[intK].stub, gap: 1, cornerRadius: 3, alwaysRespectStubs: true } ],
+                            anchor: _this.sourceAnchors, uuid: sourceUUID, connector: [ "Flowchart", { stub: 30 + 10 *  dpConnections[toId].stub, gap: 1, cornerRadius: 3, alwaysRespectStubs: true } ],
                         });
                         //console.log("sourceUUID "  + sourceUUID+ " stub: " + (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) );
 
@@ -336,9 +341,14 @@ var Dp = (function(){
                 // suspend drawing and initialise.
                 instance.batch(function () {
 
-                    for (var _k in _this.words)
+                	//console.log(" connLog  " + JSON.stringify( connLog ));
+
+                    for (var _k in connLog)
                     {
-                        _addEndpoints(String(_this.words[_k].head), String(_k));
+                        _addEndpoints(connLog[_k][0], connLog[_k][1]);
+
+                        //debug elements left and right stubs
+                        //console.log(" debug element stubs :" +  _this.words[_k].content + "  left stubs :" + dpElements[_k].leftStubs + " right stubs: " + dpElements[_k].rightStubs )
                     }
 
                     // listen for new connections; initialise them the same way we initialise the connections at startup.
@@ -348,9 +358,9 @@ var Dp = (function(){
 
                     // connect a few up
                     //instance.connect({uuids: ["Window2BottomCenter", "Window3TopCenter"], editable: true});
-                    for (var _k in _this.words)
+                    for (var _k in connLog)
                     {
-                        instance.connect({uuids: [ "s" + _this.words[_k].head, "t" + _k]});
+                        instance.connect({uuids: [ "s" + connLog[_k][0], "t" + connLog[_k][1]]});
                     }
 
                     // listen for clicks on connections, and offer to delete connections on click.
