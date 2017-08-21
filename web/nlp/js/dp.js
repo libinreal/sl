@@ -178,7 +178,8 @@ var Dp = (function(){
 				var dpHtml = '<div class="dp-item" id="dp--1">Root</div>',
 					connLog = {},
 					dpElements = [],
-					dpConnections = [];
+					dpConnections = [],
+					plumbConnections = [];
 
 				//console.log("json data construct  "+JSON.stringify(_this.words));
 				//add root element to the array
@@ -251,18 +252,12 @@ var Dp = (function(){
                             visible:true,
                             width:11,
                             length:11,
-                            id:"ARROW",
-                            events:{
-                                click:function() { console.log("you clicked on the arrow overlay")}
-                            }
+                            id:"ARROW"
                         } ],
                         [ "Label", {
                             location: 0.8,
                             id: "label",
-                            cssClass: "aLabel",
-                            events:{
-                                tap:function() { console.log("hey"); }
-                            }
+                            cssClass: "aLabel"
                         }]
                     ],
                     Container: _this.container
@@ -325,21 +320,110 @@ var Dp = (function(){
 
                 var _addEndpoints = function (sourceId, toId) {
 
-                        var sourceUUID = "s" + sourceId;
+                        var sourceUUID = "s" + sourceId + "t" + toId;
 
                         instance.addEndpoint("dp-" + sourceId, sourceEndpoint, {
                             anchor: _this.sourceAnchors, uuid: sourceUUID, connector: [ "Flowchart", { stub: 30 + 10 *  dpConnections[toId].stub, gap: 1, cornerRadius: 3, alwaysRespectStubs: true } ],
                         });
                         //console.log("sourceUUID "  + sourceUUID+ " stub: " + (30 + 10 * Math.abs(parseInt(sourceId) - parseInt(toId))) );
 
-                        var targetUUID = "t" + toId;
+                        var targetUUID = "t" + toId + "s" + sourceId;
                         instance.addEndpoint("dp-" + toId, targetEndpoint, { anchor: _this.targetAnchors, uuid: targetUUID });
                         //console.log("targetUUID "  + targetUUID);
 
                 };
 
+                var topEndpoints = {},//last repaint log
+                	repaintLog = {};//first time repaint log
+                //make sure the current connection is on the top of all the lines
+                var _onHoverConnect = function(c, e){
+                	// console.log("  _onHoverConnect  ");
+                	//c:connection
+                	//e:originalEvent
+                	if(!c.sourceId || !c.targetId)
+                		return;
+
+                	var cSId = parseInt( c.sourceId.substring(3) )
+                	var cTId = parseInt( c.targetId.substring(3) )
+
+                	var cSUUID = "s" + cSId + "t" + cTId;
+                	var cTUUID = "t" + cTId + "s" + cSId;
+
+                	//last endpoints already repainted
+                	if(topEndpoints.hasOwnProperty(cSId+"|"+cTId))
+                		return;
+
+                	var _kS,
+                		_kE,
+                		_kL,
+                		_kR,
+                		_repaint = !repaintLog.hasOwnProperty(cSId+"|"+cTId),
+                		_cL = cSId > cTId ? cTId : cSId,
+                		_cR = cSId > cTId ? cSId : cTId,
+                		_crossEndpoints = [];
+
+                	for (var _k in topEndpoints)
+                	{
+                		_kS = parseInt( _k.split("|")[0] )
+                		_kE = parseInt( _k.split("|")[1] )
+
+                		_kL = _kS > _kE ? _kE : _kS
+                		_kR = _kS > _kE ? _kS : _kE
+
+                		//left cross
+                		if(_cL < _kL && _cR >=_kL)
+                		{
+                			_crossEndpoints.push(_k)
+                			_repaint = true;
+                		}
+                		//inner cross
+                		else if(_cL >= _kL && _cR <= _kR/* && Math.abs(topEndpoints[_k] - c.canvas.clientHeight) < 6 */)
+                		{
+                			_crossEndpoints.push(_k)
+                			_repaint = true;
+                		}
+                		//include cross
+                		else if(_cL <= _kL && _cR >= _kR /*&& Math.abs(topEndpoints[_k] - c.canvas.clientHeight) < 6 */)
+                		{
+                			_crossEndpoints.push(_k)
+                			_repaint = true;
+                		}
+                		//right cross
+                		else if(_cL <= _kR && _cR > _kR )
+                		{
+                			_crossEndpoints.push(_k)
+                			_repaint = true;
+                		}
+                	}
+
+                	if(!_repaint)
+                		return ;
+                	
+
+                	//mark repainted log and endpoints
+                	var _dK
+                	for(var _d in _crossEndpoints)
+                	{
+                		_dK = _crossEndpoints[_d]
+                		delete topEndpoints[_dK]
+                	}
+            		topEndpoints[cSId+"|"+cTId] = c.canvas.clientHeight
+            		repaintLog[cSId+"|"+cTId] = c.canvas.clientHeight
+
+                	// console.log(cSId + "-"  + cTId + "  mouseover event callee" + "  endpoints " + c.endpoints)
+                	
+                	//deatach current connect
+                	instance.deleteEndpoint(cSUUID);
+                	instance.deleteEndpoint(cTUUID);
+
+                	//repaint connection
+                	_addEndpoints(cSId, cTId);
+                	var newConnet = instance.connect({uuids: [ cSUUID, cTUUID]});
+                	newConnet.bind("mouseover", _onHoverConnect);
+                };
+
                 // suspend drawing and initialise.
-                instance.batch(function () {
+                // instance.batch(function () {
 
                 	//console.log(" connLog  " + JSON.stringify( connLog ));
 
@@ -358,22 +442,17 @@ var Dp = (function(){
 
                     // connect a few up
                     //instance.connect({uuids: ["Window2BottomCenter", "Window3TopCenter"], editable: true});
+                    var pConn
                     for (var _k in connLog)
                     {
-                        instance.connect({uuids: [ "s" + connLog[_k][0], "t" + connLog[_k][1]]});
+                        pConn = instance.connect({uuids: [ "s" + connLog[_k][0] + "t" + connLog[_k][1], "t" + connLog[_k][1] + "s" + connLog[_k][0] ]});
+
+                        pConn.bind("mouseover", _onHoverConnect);
+
+                        // plumbConnections.push( pConn );
                     }
 
-                    // listen for clicks on connections, and offer to delete connections on click.
-                    instance.bind("click", function (conn, originalEvent) {
-                       //conn.toggleType("basic");
-                    });
-
-                    /*
-                    instance.bind("connectionDrag", function (connection) {
-                        console.log("connection " + connection.id + " is being dragged. suspendedElement is ", connection.suspendedElement, " of type ", connection.suspendedElementType);
-                    });
-                    */
-                });
+                // });
 			};
 			// drawFlowChart END
 
