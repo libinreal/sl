@@ -17,19 +17,23 @@ table{
 	border-collapse: collapse;
 }
 .nav-left>a:link{
-	color: #c49771;
+	/*color: #c49771;*/
+    color:#fff;
 	text-decoration: none;
 }
 .nav-left>a:hover{
-	color: #c49771;
+	/*color: #c49771;*/
+    color:#fff;
 	text-decoration: none;
 }
 .nav-left>a:active{
-	color: #c49771;
+	/*color: #c49771;*/
+    color:#fff;
 	text-decoration: none;
 }
 .nav-left>a:visited{
-	color: #c49771;
+	/*color: #c49771;*/
+    color:#fff;
 	text-decoration: none;
 }
 .circle__content a:link,.circle__content a:hover,.circle__content a:active,.circle__content a:visited{
@@ -232,7 +236,7 @@ table{
     content: '';
     width: 6px;
     height: 22px;
-    background-color: #c49771;
+    background-color: #672A7A;
     border-radius: 73px;
     left: 0px;
     top: 0px;

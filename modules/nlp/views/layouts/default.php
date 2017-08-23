@@ -4,7 +4,7 @@ use yii\helpers\Html;
 /* @var $this \yii\web\View */
 /* @var $content string */
     app\assets\NLPAdminAsset::register($this);
-    $prsColor = ".keys-wrapper{background-color:#a775a4}.left-menu{background-color:#7f387a}.title-prefix-md:before{background-color:#7f387a}.top-nav{color:#7f387a}.btn-keys{background-color:#a775a4}a:visited,a:link{color:#7f387a}";
+    $prsColor = ".keys-wrapper{background-color:#8084B4}.left-menu{background-color:#7f387a}.title-prefix-md:before{background-color:#2B3282}.top-nav{color:#fff}.btn-keys{background-color:#8084B4}a:visited,a:link{color:#fff}";
     $this->registerCss($prsColor);
 
     app\assets\NLPAdminAsset::addScript($this, '@web/admin/lib/selectify/jquery.selectify.js');

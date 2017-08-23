@@ -3,6 +3,7 @@ body{
 	margin: 0;
 	background: #b3b3b3;
 	min-width: 1200px;
+	font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
 }
 .left-menu{
 	position: fixed;
@@ -55,7 +56,9 @@ header{
     left: 40px;
     right: 0;
     height: 94px;
-    background: #fff;
+    /*background: #fff;*/
+    background: #2B3282;
+    
     /*width: 100%;*/
     /*z-index: 20;*/
     min-width: 991px;

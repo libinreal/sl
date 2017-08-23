@@ -40,7 +40,8 @@
 .bb-nav ul li>a{
 	float: left;
     padding: 15px;
-    font-size: 15px;
+    font-size: 14px;
+    font-weight: bold;
     line-height: 15px;
     position: relative;
     display: block;
@@ -50,11 +51,11 @@
 }
 
 .bb-nav ul li>a:hover, .bb-nav ul li>a:active{
-	color:#7f387a;
+	color:#2B3282;
 }
 
 .bb-nav li.active{
-	border-bottom:2px solid #7f387a;
+	border-bottom:2px solid #2B3282;
 }
 
 .bb-rb{
@@ -157,8 +158,8 @@
     box-shadow: none;
     border-color: #d2d6de;
     font-size:14px;
-    font-family: 'Source Sans Pro','Helvetica Neue',Helvetica,Arial,sans-serif;
-    font-weight: 400;
+    /*font-family: 'Source Sans Pro','Helvetica Neue',Helvetica,Arial,sans-serif;*/
+    font-weight: bold;
     text-align: center;
 }
 
@@ -185,7 +186,7 @@
 
 .btn-sub{
 	border-radius: 73px;
-	background-color:#7f387a;
+	background-color:#2B3282;
 	color:#fff;
 	border:1px solid transparent;
 	width:106px;
@@ -322,7 +323,7 @@ span.ner-other{
 	border-radius: 126px;
 }
 .sa-dr .sa-tag:before{
-	background-color: #944d8f;/*#7f387a;*/
+	background-color: #2B3282;/*#7f387a;*/
     /* position: absolute; */
     content: '';
     width: 10px;
@@ -335,7 +336,7 @@ span.ner-other{
 }
 
 .sa-dr .sa-tag-p:before{
-	background-color: #be94bc;
+	background-color: #8084B4;
 }
 /**情感分析**/
 
