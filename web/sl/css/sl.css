@@ -99,7 +99,7 @@
 }
 .sl-query-wrapper{
 	padding: 10px 0 10px 26px;
-	background: #BE94BC;
+	background: #fff;
 	color: #4A4A4A;
 }
 .sl-query__label{
@@ -272,7 +272,7 @@
 	font-size: 13px;
 }
 .sl-checkbox-group{
-	background: #faf8f6;
+	background: #F6F6F6;
     height: 237px;
     padding: 10px 18px;
     overflow-y: auto;
@@ -286,16 +286,17 @@
     text-align: left;
 }
 .sl-channel-wrapper{
-	background: #FAF8F6;
+	background: #F6F6F6;
 
 }
 .tab-pane{
 	font-size: 13px;
 }
 .sl-channel-title{
-	background: #ede4dd;
+	background: #672A7A;
 	text-align: center;
 	line-height: 30px;
+	color:#fff;
 }
 .sl-channel-params{
 	padding: 13px 46px 0 22px;
@@ -438,7 +439,7 @@
 }
 .sui-modal .modal-header {
     padding: 10px 10px;
-    background: #ede4dd;
+    background: #672A7A;
     cursor: pointer;
     border-radius: 5px 5px 0 0;
 }
@@ -469,7 +470,7 @@
 	padding-left: 10px
 }
 .sl-list__item.is-active{
-	background: #dcc1aa;
+	background: #BE94BC;
 }
 .cl-title__text{
 	font-weight: bold;
