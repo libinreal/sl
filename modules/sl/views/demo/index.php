@@ -18,7 +18,15 @@ EOT;
     var pageNo = 1, pageSize = 10, pageCount = 0,
     	paginationLen = 5, refreshUrl = "<?= $curPageUrl ?>";
 
+    function changePageSize(_pageSize){
+        pageSize = _pageSize
+
+        goToPage(1);
+    }
+
     function goToPage(_pageNo){
+        pageNo = _pageNo
+
     	var filterData = $("#filterFrm").find("input").serializeObject();
 
     	filterData['pageNo'] = _pageNo
@@ -39,6 +47,13 @@ EOT;
             	makePagination(_pageNo, pageCount)//分页
 
             	showScheduleData(json_data.data.rows)//刷新数据
+
+                if(json_data.data.rows.length > 0)
+                {
+                    var _summStr = "item1-" + json_data.data.rows.length + " in " + json_data.data.total + " items"//summary
+                    $(".sl-pagination__text").text( _summStr );
+
+                }
             }
         });
 
@@ -450,13 +465,16 @@ $this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);
 										<i class="caret"></i><span>10</span>
 									</a>
 									<ul role="menu" class="sui-dropdown-menu">
-										<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="1">10</a> </li>
-										<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="2">9</a> </li>
+										<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:changePageSize(10);" value="10">10</a> </li>
+										<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:changePageSize(20);" value="20">20</a> </li>
+                                        <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:changePageSize(30);" value="30">30</a> </li>
+                                        <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:changePageSize(40);" value="40">40</a> </li>
+                                        <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:changePageSize(50);" value="50">50</a> </li>
 									</ul>
 								</span>
 							</span>
 						</div>
-						<div class="sl-pagination__text">item1-10 in 213 items</div>
+						<div class="sl-pagination__text"></div><!-- item1-10 in 213 items -->
 					</div>
 				</div>
 			</div>

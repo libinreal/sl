@@ -68,7 +68,7 @@
                 data:[]
             }
         ],
-        color: ['#be94bc', '#944d8f']
+        color: ['#8084B4', '#2B3282']
 
     });
 
@@ -152,11 +152,11 @@
                 } else if ( stmtsActIndex == 3 ){//情感分析
                     jsPlumb.deleteEveryEndpoint();
 
-                    var pv = json_data.result[0]['qp'];//正面
-                    var nv = json_data.result[0]['qn'];//负面
+                    var pv = json_data.result[0]['qn'] + json_data.result[0]['qp'] != 0 ? ( json_data.result[0]['qp'] / ( json_data.result[0]['qn'] + json_data.result[0]['qp'] ) ).toFixed(4) : 0;//正面
+                    var nv = json_data.result[0]['qn'] + json_data.result[0]['qp'] != 0 ? ( json_data.result[0]['qn'] / ( json_data.result[0]['qn'] + json_data.result[0]['qp'] ) ).toFixed(4) : 0;//负面
                     saChart.setOption({
                         series:[{
-                            data:[{value:pv, name:"正面情感"} , {value:nv, name:"负面情感"}]
+                            data:[{value:pv, name:"正面指数"} , {value:nv, name:"负面指数"}]
                         }]
                     });
                 }
@@ -236,6 +236,111 @@ JS;
 
         <div class="dp-dl clearfix">
             <div id="plumb-ret"></div>
+            <div class="dp-readme">
+                <h3>依存句法关系说明</h3>
+                <table border="1" class="docutils">
+                    <colgroup>
+                        <col width="16%">
+                        <col width="7%">
+                        <col width="38%">
+                        <col width="38%">
+                    </colgroup>
+                    <thead valign="bottom">
+                    <tr class="row-odd">
+                        <th class="head">关系类型</th>
+                        <th class="head">Tag</th>
+                        <th class="head">Description</th>
+                        <th class="head">Example</th>
+                    </tr>
+                    </thead>
+                    <tbody valign="top">
+                        <tr class="row-even">
+                            <td>主谓关系</td>
+                            <td>SBV</td>
+                            <td>subject-verb</td>
+                            <td>我送她一束花 (我 &lt;– 送)</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>动宾关系</td>
+                            <td>VOB</td>
+                            <td>直接宾语，verb-object</td>
+                            <td>我送她一束花 (送 –&gt; 花)</td>
+                        </tr>
+                        <tr class="row-even">
+                            <td>间宾关系</td>
+                            <td>IOB</td>
+                            <td>间接宾语，indirect-object</td>
+                            <td>我送她一束花 (送 –&gt; 她)</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>前置宾语</td>
+                            <td>FOB</td>
+                            <td>前置宾语，fronting-object</td>
+                            <td>他什么书都读 (书 &lt;– 读)</td>
+                        </tr>
+                        <tr class="row-even">
+                            <td>兼语</td>
+                            <td>DBL</td>
+                            <td>double</td>
+                            <td>他请我吃饭 (请 –&gt; 我)</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>定中关系</td>
+                            <td>ATT</td>
+                            <td>attribute</td>
+                            <td>红苹果 (红 &lt;– 苹果)</td>
+                        </tr>
+                        <tr class="row-even">
+                            <td>状中结构</td>
+                            <td>ADV</td>
+                            <td>adverbial</td>
+                            <td>非常美丽 (非常 &lt;– 美丽)</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>动补结构</td>
+                            <td>CMP</td>
+                            <td>complement</td>
+                            <td>做完了作业 (做 –&gt; 完)</td>
+                        </tr>
+                        <tr class="row-even">
+                            <td>并列关系</td>
+                            <td>COO</td>
+                            <td>coordinate</td>
+                            <td>大山和大海 (大山 –&gt; 大海)</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>介宾关系</td>
+                            <td>POB</td>
+                            <td>preposition-object</td>
+                            <td>在贸易区内 (在 –&gt; 内)</td>
+                        </tr>
+                        <tr class="row-even">
+                            <td>左附加关系</td>
+                            <td>LAD</td>
+                            <td>left adjunct</td>
+                            <td>大山和大海 (和 &lt;– 大海)</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>右附加关系</td>
+                            <td>RAD</td>
+                            <td>right adjunct</td>
+                            <td>孩子们 (孩子 –&gt; 们)</td>
+                        </tr>
+                        <tr class="row-even">
+                            <td>独立结构</td>
+                            <td>IS</td>
+                            <td>independent structure</td>
+                            <td>两个单句在结构上彼此独立</td>
+                        </tr>
+                        <tr class="row-odd">
+                            <td>核心关系</td>
+                            <td>HED</td>
+                            <td>head</td>
+                            <td>指整个句子的核心</td>
+                        </tr>
+                    </tbody>
+                    </table>
+            </div>
         </div>
 
     </div>
@@ -259,9 +364,9 @@ JS;
             <div class="sa-tag sa-tag-p clearfix">正面</div>
             <div  class="sa-tag clearfix">负面</div>
             <div>负面指数：</div>
-            <div>负面情感值。</div>
+            <div>0-1之间的小数，统计语句中的与关键词相关的贬义词，单独计算所有句子消极情感的分值，表示负向情感值，并计算该值占总体情感绝对值的百分比。</div>
             <div>正面指数：</div>
-            <div>正面情感值。</div>
+            <div>0-1之间的小数，统计语句中的与关键词相关的褒义词，单独计算所有句子积极情感的分值，表示正向情感值，并计算该值占总体情感绝对值的百分比。</div>
         </div>
 
     </div>
