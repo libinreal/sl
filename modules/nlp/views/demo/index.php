@@ -152,8 +152,8 @@
                 } else if ( stmtsActIndex == 3 ){//情感分析
                     jsPlumb.deleteEveryEndpoint();
 
-                    var pv = json_data.result[0]['qn'] + json_data.result[0]['qp'] != 0 ? ( json_data.result[0]['qp'] / ( json_data.result[0]['qn'] + json_data.result[0]['qp'] ) ).toFixed(4) : 0;//正面
-                    var nv = json_data.result[0]['qn'] + json_data.result[0]['qp'] != 0 ? ( json_data.result[0]['qn'] / ( json_data.result[0]['qn'] + json_data.result[0]['qp'] ) ).toFixed(4) : 0;//负面
+                    var pv = json_data.result[0]['qn'] + json_data.result[0]['qp'] != 0 ? parseFloat( json_data.result[0]['qp'] / ( json_data.result[0]['qn'] + json_data.result[0]['qp'] ) ).toFixed(4) : 0.0000;//正面
+                    var nv = json_data.result[0]['qn'] + json_data.result[0]['qp'] != 0 ? parseFloat( json_data.result[0]['qn'] / ( json_data.result[0]['qn'] + json_data.result[0]['qp'] ) ).toFixed(4) : 0.0000;//负面
                     saChart.setOption({
                         series:[{
                             data:[{value:pv, name:"正面指数"} , {value:nv, name:"负面指数"}]
