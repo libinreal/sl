@@ -364,26 +364,82 @@ class SlTaskScheduleController extends Controller
 	}
 
 	/**
-	 * 每分钟更新 task_schedule_crontab 表的 progress 、task_status两个字段(每日任务的进度和任务状态)
+	 * 每分钟更新以下两张表：
+	 *	task_schedule_crontab 表的 progress 、task_status、act_time 三个字段(实际任务的进度 任务状态 实际开始时间)
+	 *	task_item 表的 task_progress 、complete_status、act_time 三个字段(任务项的进度 任务状态 实际开始时间)
 	 * @return
 	 */
 	public function actionUpdateCrontabState()
 	{
 		$crontabIdArr = SlTaskScheduleCrontabConsole::find()
-			->select('id')
+			->select('id, act_time')
 			->where('task_status='.SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING)
 			->asArray()
 			->indexBy('id')
 			->all();
 
 		//page = 0 and cron_id in(111,167,990)
-		$cronUnpageArr = SlTaskItemConsole::find()
-			->select('id, cron_id, paging')
+		/*$cronUnpageArr = SlTaskItemConsole::find()
+			->select('id, cron_id, paging, act_time')
 			->where(['in', 'cron_id', array_keys( $crontabIdArr )])
 			->andWhere(array('paging' => SlTaskItemConsole::PAGING_NO))
 			->asArray()
 			->indexBy('cron_id')
-			->all();
+			->all();*/
+		$cronUnpageArr = [];
+
+		$itemArr = SlTaskItemConsole::find()
+			->select('id, cron_id, paging, act_time')
+			->where(['in', 'cron_id', array_keys( $crontabIdArr )])
+			->asArray()
+			->all();	
+
+		$time_stamp = time();
+		$cronItemActTimeArr = [];
+		$cronActTimeArr = [];
+
+		foreach ($itemArr as $item) 
+		{
+			//make apart of paging and not paging,then calculate paging
+			if($item['paging'] == SlTaskItemConsole::PAGING_NO)
+			{
+				$cronUnpageArr[$item['cron_id']] = '';
+
+				//update `sl_task_item.act_time`
+				$cronItemActTimeArr[$item['id']] = 0;
+			}
+			else
+			{
+				//update `act_time` of sl_task_item
+				if( !$item['act_time'] )
+				{
+					$cronItemActTimeArr[$item['id']] = $time_stamp;
+				}
+				else
+				{
+					$cronItemActTimeArr[$item['id']] = $item['act_time'];
+				}
+
+				//update `act_time` of sl_task_schedule_crontab
+				if( !$crontabIdArr[$item['cron_id']]['act_time'] )
+				{
+					$cronActTimeArr[$item['cron_id']] = $time_stamp;
+				}
+				else
+				{
+					$cronActTimeArr[$item['cron_id']] = $crontabIdArr[$item['cron_id']]['act_time'];
+				}
+			}
+		}
+
+		//fill the unassigned `act_time` of sl_task_schedule_crontab with default value 
+		foreach ($crontabIdArr as $cron)
+		{
+			if( !isset($cronActTimeArr[$cron['id']] ) )
+			{
+				$cronActTimeArr[$cron['id']] = 0;
+			}
+		}
 
 		$cronIds = array_keys($crontabIdArr);//所有正在执行的crontab的id
 		$cronUnpageIds = array_keys($cronUnpageArr);//未完成分页的crontab的id
@@ -467,12 +523,12 @@ class SlTaskScheduleController extends Controller
 		$taskCrontabValues = '';
 		foreach ($crontabStatusArr as $cId => $cState)
 		{
-			$taskCrontabValues .= '('.$cId.', '.$crontabProgressArr[$cId].', '.$cState. ', '. $crontabCompleteTimeArr[$cId] . '),';
+			$taskCrontabValues .= '('.$cId.', '.$crontabProgressArr[$cId].', '.$cState. ', '. $crontabCompleteTimeArr[$cId] . ', '. $cronActTimeArr[$cId] . '),';
 		}
 
 		$scheCrontabSql = 'INSERT INTO ' . SlTaskScheduleCrontabConsole::tableName()
-				.' (id, task_progress, task_status, complete_time) values ';
-		$scheCrontabSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), task_status = values(task_status), complete_time = values(complete_time);';
+				.' (id, task_progress, task_status, complete_time, act_time) values ';
+		$scheCrontabSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), task_status = values(task_status), complete_time = values(complete_time), act_time = values(act_time);';
 
 		//update task_schedule_crontab proress & task_status
 		if(!empty($taskCrontabValues))
@@ -557,12 +613,12 @@ class SlTaskScheduleController extends Controller
 		$updateItemValues = '';
 		foreach ($itemStateArr as $itemId => $itemState)
 		{
-			$updateItemValues .= '('.$itemId.', '.$itemProgressArr[$itemId].', '.$itemState. ', '. $itemCompleteTimeArr[$itemId] . '),';
+			$updateItemValues .= '('.$itemId.', '.$itemProgressArr[$itemId].', '.$itemState. ', '. $itemCompleteTimeArr[$itemId] . ', ' . $cronItemActTimeArr[$itemId] . '),';
 		}
 
 		$updateItemSql = 'INSERT INTO ' . SlTaskItemConsole::tableName()
-				.' (id, task_progress, complete_status, complete_time) values ';
-		$updateItemSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), complete_status = values(complete_status), complete_time = values(complete_time);';
+				.' (id, task_progress, complete_status, complete_time, act_time) values ';
+		$updateItemSql1 = ' ON DUPLICATE KEY UPDATE task_progress = values(task_progress), complete_status = values(complete_status), complete_time = values(complete_time), act_time = values(act_time);';
 
 		//update task_schedule_crontab proress & complete_status
 

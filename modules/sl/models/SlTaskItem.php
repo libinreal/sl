@@ -19,6 +19,7 @@ use Yii;
  * @property integer $task_status
  * @property double $task_progress
  * @property integer $task_time
+ * @property integer $act_time
  * @property string $task_date
  * @property integer $update_time
  * @property integer $complete_time
@@ -56,7 +57,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['sche_id', 'cron_id', 'task_status', 'control_status', 'task_time', 'update_time', 'create_time', 'complete_time', 'paging'], 'integer'],
+            [['sche_id', 'cron_id', 'task_status', 'control_status', 'task_time', 'act_time', 'update_time', 'create_time', 'complete_time', 'paging'], 'integer'],
             [['task_status', 'complete_status'], 'in', 'range' => [self::TASK_STATUS_CLOSE, self::TASK_STATUS_OPEN, self::TASK_STATUS_COMPLETE]],
             ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_STARTED]],
             ['paging', 'in', 'range' => [self::PAGING_NO, self::PAGING_YES]],
@@ -89,7 +90,8 @@ class SlTaskItem extends \yii\db\ActiveRecord
             'complete_status' => '子任务状态(0:未启动1:已启动2:已完成)',
             'control_status' => '子任务控制状态(0:停止1:运行)',
             'task_progress' => '任务进度,最小值0.0000,最大值1.0000',
-            'task_time' => '开始时间',
+            'task_time' => '计划开始时间',
+            'act_time' => '实际开始时间',
             'task_date' => '开始日期',
             'create_time' => '创建时间',
             'update_time' => '最后更新时间',

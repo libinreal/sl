@@ -10,6 +10,7 @@ use Yii;
  * @property integer $id
  * @property string $name
  * @property string $start_time
+ * @property string $act_time
  * @property integer $create_time
  * @property double $task_progress
  * @property integer $sche_id
@@ -44,7 +45,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
             [['name'], 'string'],
             ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_STARTED]],
             ['is_delete', 'in', 'range' => [self::NOT_DELETED, self::DELETED]],
-            [['start_time'], 'safe'],
+            [['start_time, act_time'], 'safe'],
             [['task_progress'], 'number'],
             [['create_time', 'complete_time'], 'integer'],
             [['sche_id', 'task_status', 'control_status'], 'integer'],
@@ -59,7 +60,8 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
         return [
             'id' => '每日任务id，自增',
             'name' => '每日任务名',
-            'start_time' => '任务开始的时刻',
+            'start_time' => '任务计划开始的时刻',
+            'act_time' => '任务实际开始的时间',
             'create_time' => '任务生成时间戳',
             'complete_time' => '任务完成时间',
             'task_progress' => '任务进度',
