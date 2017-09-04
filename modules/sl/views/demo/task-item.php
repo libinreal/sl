@@ -50,7 +50,10 @@ EOT;
 
                 if(json_data.data.rows.length > 0)
                 {
-                    var _summStr = "item1-" + json_data.data.rows.length + " in " + json_data.data.total + " items"//summary
+                    var sOff = (_pageNo - 1 ) * pageSize + 1
+                    var oOff = (_pageNo - 1 ) * pageSize + json_data.data.rows.length
+
+                    var _summStr = "item" +  sOff + "-" +  oOff + " in " + json_data.data.total + " items"//summary
                     $(".sl-pagination__text").text( _summStr );
 
                 }
@@ -198,7 +201,8 @@ EOT;
     				+ '<td><span class="cell">'+ taskStatArr[_rows[_i]['complete_status']] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ ((_rows[_i]['task_progress']) * 100).toFixed(2) +'%</span>'+ '</td>'
 
-    				+ '<td><span class="cell">'+ _rows[_i]['task_time'] +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ _rows[_i]['task_time'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['act_time'] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ _rows[_i]['complete_time'] +'</span>'+ '</td>'
 
     				+ '<td><span class="cell"><a href="javascript:updateTaskStat( \''+ _rows[_i]['complete_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_OPEN;?>+'\', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
@@ -457,7 +461,8 @@ $this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
 							<th><span class="cell">抓取内容</span></th>
 							<th><span class="cell">状态</span></th>
 							<th><span class="cell">任务进度</span></th>
-							<th><span class="cell">开始时间</span></th>
+                            <th><span class="cell">计划开始时间</span></th>
+							<th><span class="cell">实际开始时间</span></th>
 							<th><span class="cell">完成时间</span></th>
 							<th><span class="cell">操作</span></th>
 						</tr>

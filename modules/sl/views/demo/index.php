@@ -50,7 +50,10 @@ EOT;
 
                 if(json_data.data.rows.length > 0)
                 {
-                    var _summStr = "item1-" + json_data.data.rows.length + " in " + json_data.data.total + " items"//summary
+                    var sOff = (_pageNo - 1 ) * pageSize + 1
+                    var oOff = (_pageNo - 1 ) * pageSize + json_data.data.rows.length
+
+                    var _summStr = "item" +  sOff + "-" +  oOff + " in " + json_data.data.total + " items"//summary
                     $(".sl-pagination__text").text( _summStr );
 
                 }
