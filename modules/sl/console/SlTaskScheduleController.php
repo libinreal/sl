@@ -391,6 +391,7 @@ class SlTaskScheduleController extends Controller
 		$itemArr = SlTaskItemConsole::find()
 			->select('id, cron_id, paging, act_time')
 			->where(['in', 'cron_id', array_keys( $crontabIdArr )])
+			->indexBy('id')
 			->asArray()
 			->all();	
 
@@ -400,6 +401,7 @@ class SlTaskScheduleController extends Controller
 
 		foreach ($itemArr as $item) 
 		{
+
 			//make apart of paging and not paging,then calculate paging
 			if($item['paging'] == SlTaskItemConsole::PAGING_NO)
 			{
@@ -430,6 +432,7 @@ class SlTaskScheduleController extends Controller
 					$cronActTimeArr[$item['cron_id']] = $crontabIdArr[$item['cron_id']]['act_time'];
 				}
 			}
+
 		}
 
 		//fill the unassigned `act_time` of sl_task_schedule_crontab with default value 
@@ -441,7 +444,30 @@ class SlTaskScheduleController extends Controller
 			}
 		}
 
+		$itemIdArr = array_keys( $itemArr );//all `task_item`.`id` of the `task_scheduel_crontab`.
+		//make sure all `task_item` are paged
+		$itemPageArr = SlWsDataTaskPageConsole::find()
+			->select('item_id')
+			->where(['in', 'item_id', $itemIdArr])
+			->indexBy('item_id')
+			->asArray()
+			->all();
+
+		$itemPageIdArr = array_keys( $itemPageArr );//paged `task_item`.`id` array.
+		$itemUnpageIdArr = array_diff( $itemIdArr, $itemPageIdArr);//if result are not empty, then `task_item` are not paged completely.
+		//var_dump($itemPageIdArr, $itemIdArr, $itemUnpageIdArr);exit;
+
+		$cronUnpageIdArr = [];//隐式未分页的crontab的id ,即在page表找不到task_item表对应的分页记录
+		if( !empty($itemUnpageIdArr ) )// find the unpaged `task_item` and related `task_schedule_crontab`
+		{
+			foreach ($itemUnpageIdArr as $itemUnpageId) 
+			{
+				$cronUnpageIdArr[] = $itemArr[$itemUnpageId]['cron_id'];
+			}
+		}
+
 		$cronIds = array_keys($crontabIdArr);//所有正在执行的crontab的id
+		//$cronUnpageIds = array_merge( array_keys($cronUnpageArr), $cronUnpageIdArr );//未完成分页的crontab的id 显式未分页的 和 隐式未分页的crontab的id
 		$cronUnpageIds = array_keys($cronUnpageArr);//未完成分页的crontab的id
 		$cronPageIds = array_diff($cronIds, $cronUnpageIds);//已完成分页的crontab的id
 
@@ -450,7 +476,7 @@ class SlTaskScheduleController extends Controller
 			->where(['in', 'task_id', $cronPageIds])//此处 task_id 对应 task_schedule_crontab表的id 而不是 task_item的id
 			->asArray()
 			->all();
-
+				
 		//开始计算已分页的crontab的进度和状态
 		$cronPageProgress = [];
 		foreach ($taskPageArr as $pVal)
@@ -552,15 +578,6 @@ class SlTaskScheduleController extends Controller
 			}
 		}*/
 
-		$itemIds = SlTaskItemConsole::find()
-			->select('id')
-			->where(['in', 'cron_id', $cronIds])
-			->indexBy('id')
-			->asArray()
-			->all();
-
-		$itemIds = array_keys( $itemIds );
-
 		$pageArr = SlWsDataTaskPageConsole::find()
 			->select('item_id, task_id, state')
 			->where(['in', 'task_id', $cronIds])
@@ -589,11 +606,23 @@ class SlTaskScheduleController extends Controller
 		$itemStateArr = array();
 		$itemCompleteTimeArr = array();
 
-		foreach ($itemIds as $itemId)
+		foreach ($itemIdArr as $itemId)
 		{
+			//cann't find any paged record in `ws_data_task_page` related to `task_item`.id
 			if(!isset($pageIdArr[$itemId]))
 			{
-				$itemProgressArr[$itemId] = 0.0000;
+				//records which have finished paged `task_item` but cann't find record in `ws_data_task_page` which should be set 1.0000
+				if($itemArr[$itemId]['paging'] == SlTaskItemConsole::PAGING_YES)
+				{
+					$itemProgressArr[$itemId] = 1.0000;
+					$itemStateArr[$itemId] = SlTaskItemConsole::TASK_STATUS_COMPLETE;
+					$itemCompleteTimeArr[$itemId] = $time_stamp;
+				}
+				//unpaged `task_item`
+				else
+				{
+					$itemProgressArr[$itemId] = 0.0000;
+				}
 				continue;
 			}
 			$itemProgressArr[$itemId] = round(array_sum( $pageIdArr[$itemId] ) / count( $pageIdArr[$itemId] ), 4);
@@ -601,7 +630,7 @@ class SlTaskScheduleController extends Controller
 			if($itemProgressArr[$itemId] == 1.0000)
 			{
 				$itemStateArr[$itemId] = SlTaskItemConsole::TASK_STATUS_COMPLETE;
-				$itemCompleteTimeArr[$itemId] = time();
+				$itemCompleteTimeArr[$itemId] = $time_stamp;
 			}
 			else
 			{
