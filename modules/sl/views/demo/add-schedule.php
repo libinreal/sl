@@ -835,6 +835,7 @@ var class_stat = [true,true],
 	ua_set = <?php if(!empty($scheEditData)  && !empty($scheEditData["user_agent"]) ): echo Json::encode($scheEditData["user_agent"]);else: echo '[]';endif;?>,
 	cookie_set = <?php if(!empty($scheEditData) && !empty($scheEditData["cookie"]) ): echo Json::encode($scheEditData["cookie"]);else: echo '[]';endif;?>,
 	dt_select = <?php if(!empty($scheEditData) && !empty($scheEditData["dt_category"]) ): echo $scheEditData["dt_category"];else: echo '[]';endif;?>,
+	alert_params = <?php if(!empty($scheEditData) && !empty($scheEditData["alert_params"]) ): echo Json::encode($scheEditData["alert_params"]);else: echo '[]';endif;?>,
 	sche_type_set = <?php if(!empty($scheEditData) && !empty($scheEditData["sche_type"]) ): echo $scheEditData["sche_type"];else: echo 1;endif;?>,
 	sche_time_set = <?php if(!empty($scheEditData) && !empty($scheEditData["sche_time"]) ): /*var_dump($scheEditData);exit;*/echo "'".$scheEditData["sche_time"]."'";else: echo "\"\"";endif;?>,
 	week_days_set = <?php if(!empty($scheEditData)  && !empty($scheEditData["week_days"]) ): echo "'".$scheEditData["week_days"]."'";else: echo "\"\"";endif;?>,
@@ -1128,6 +1129,16 @@ $readyJs =<<<EOT
 
 	});
 
+	//预警参数初始化
+	if( alert_params['duration'] )
+		$("input[name='alert_duration']").val( alert_params['duration'] );
+
+	if( alert_params['total_num_min'] )
+		$("input[name='alert_total_num_min']").val( alert_params['total_num_min'] );
+
+	if( alert_params['total_num_max'] )
+		$("input[name='alert_total_num_max']").val( alert_params['total_num_max'] );
+
 	//内容复选框 初始化
 	for(var d in dt_select)
 	{
@@ -1361,9 +1372,7 @@ $this->registerJs($readyJs);
 									<label class="checkbox-pretty inline-block" style="margin-bottom: 0;line-height: 34px;">
 										<input value="商品" name="dt_category[]" type="checkbox" data-rules="required"><span>商品</span>
 									</label>
-									<!--label class="checkbox-pretty inline-block" style="margin-bottom: 0;">
-										<input value="评论" name="dt_category[]" type="checkbox"><span>评论</span>
-									</label-->
+									
 								</div>
 							</div>
 							<div class="control-group" style="margin-bottom: 15px;">
@@ -1373,9 +1382,9 @@ $this->registerJs($readyJs);
 										<label data-toggle="radio" class="radio-pretty inline-block checked" style="margin-bottom: 0;line-height: 34px;">
 											<input type="radio" name="sche_type_repeat" checked="checked" value="0"><span>定时</span>
 										</label>
-										<input name="sche_start_time" type="text" class="input-large"
+										<input name="sche_start_time" type="text"
 											data-toggle='datepicker' data-date-timepicker='true'
-											value="" style="height: 24px;" data-rules="required">
+											value="" style="height: 24px;width: 274px;" data-rules="required">
 									</div>
 									<div>
 										<label data-toggle="radio" class="radio-pretty inline-block" style="margin-bottom: 0;line-height: 34px;">
@@ -1394,8 +1403,8 @@ $this->registerJs($readyJs);
 												</ul>
 											</span>
 										</span>
-										<input type="text" class="input-medium"
-											data-toggle='timepicker' name="sche_start_time" value="" style="height: 24px;margin-left: 8px;">
+										<input type="text"
+											data-toggle='timepicker' name="sche_start_time" value="" style="height: 24px;width:193px;margin-left: 8px;">
 									</div>
 									<div class="sl-tags-wrapper" id="sche_week_tags" style="display: none;">
 										<input value="" name="week_days" type="hidden"/>
@@ -1420,6 +1429,30 @@ $this->registerJs($readyJs);
 									</div>
 								</div>
 							</div>
+							<!-- 异常预警 START -->
+							<div class="control-group" style="margin-bottom: 15px;">
+								<label class="control-label v-top" style="min-width: 68px;padding-right: 10px;">预警参数</label>
+								<div class="controls">
+									<div>
+										<lable class="label79" style="margin-bottom: 0;line-height: 34px;">预警时间</lable>
+										<input type="text" name="alert_duration" value=""
+											placeholder="输入最长时间 单位(h)" class="input-medium"
+											style="height: 24px;width: 274px;">
+									</div>
+									<div>
+										<lable class="label79" style="margin-bottom: 0;line-height: 34px;">预警值</lable>
+										从
+										<input type="text" name="alert_total_num_min" value=""
+											placeholder="输入最小值"
+											style="height: 24px;width:112px;">
+										到
+										<input type="text" name="alert_total_num_max" value=""
+											placeholder="输入最大值"
+											style="height: 24px;width:112px;">
+									</div>
+								</div>
+							</div>
+							<!-- 异常预警 END -->
 						</div>
 					</div>
 			</div>

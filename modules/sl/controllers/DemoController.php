@@ -273,10 +273,13 @@ class DemoController extends \yii\web\Controller
 
             $catArr = Json::decode( $scheEditData['dt_category'] );
             $cookie = Json::decode( $scheEditData['cookie'] );
+            $alert_params = Json::decode( $scheEditData['alert_params'] );
+
             $user_agent = Json::decode( $scheEditData['user_agent'] );
 
             if( !is_array($cookie) || empty( $cookie ) ) $cookie = [];
             if( !is_array($user_agent) || empty( $user_agent ) ) $user_agent = [];
+            if( !is_array($alert_params) || empty( $alert_params ) ) $alert_params = [];
 
             if( !is_array($pfNameArr) ) $pfNameArr = [];
             if( !is_array($brandArr) ) $brandArr = [];
@@ -291,6 +294,8 @@ class DemoController extends \yii\web\Controller
             $scheEditData['catArr'] = $catArr;
             $scheEditData['cookie'] = $cookie;
             $scheEditData['user_agent'] = $user_agent;
+
+            $scheEditData['alert_params'] = $alert_params;
 
             $classSelect = SlScheduleProductClass::find()->select('id')->indexBy('id')->where(['in', 'name', $classArr])->asArray()->all();
             $brandSelect = SlScheduleProductBrand::find()->select('id')->indexBy('id')->where(['in', 'name', $brandArr])->asArray()->all();
@@ -347,7 +352,6 @@ class DemoController extends \yii\web\Controller
                 $scheModel = SlTaskSchedule::findOne($post['id']);
             else
                 return $defaultRet;
-
 
             //数据验证失败
             if ( !$scheModel->load( $post, '' ) || !$scheModel->validate() )

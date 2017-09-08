@@ -7,6 +7,7 @@ use app\modules\sl\models\SlTaskScheduleCrontabConsole;
 use app\modules\sl\models\SlTaskItemConsole;
 use app\modules\sl\models\SlGlobalSettingsConsole;
 use app\modules\sl\models\SlWsDataTaskPageConsole;
+use app\modules\sl\models\SlTaskScheduleCrontabAbnormalConsole;
 use yii\helpers\Json;
 
 
@@ -372,8 +373,10 @@ class SlTaskScheduleController extends Controller
 	public function actionUpdateCrontabState()
 	{
 		$crontabIdArr = SlTaskScheduleCrontabConsole::find()
-			->select('id, act_time')
-			->where('task_status='.SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING)
+			->alias('cron')
+			->joinWith('schedule')
+			->select('sche.alert_params, cron.id, cron.sche_id, cron.name, cron.act_time, cron.start_time')
+			->where('task_status='.SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING )
 			->asArray()
 			->indexBy('id')
 			->all();
@@ -502,14 +505,62 @@ class SlTaskScheduleController extends Controller
 		$cronCompleteIds = [];//已完成的每日任务id
 
 		$cronCompleteTimeArr = [];//完成时间
+
+		$crontabAbnormalTypeArr = [];
+		$crontabAbnormalMsgArr = [];
+
 		foreach ($cronPageProgress as $cronId => $cronStateArr)
 		{
 			$cronProgressArr[$cronId] = round(array_sum($cronStateArr)/count($cronStateArr), 4);//cront的进度 = 已完成的page数/所有page数 ，保留4位小数
 			if($cronProgressArr[$cronId] == 1.0000)
 			{
 				$cronCompleteIds[] = $cronId;
-				$cronStatArr[$cronId] = SlTaskScheduleCrontabConsole::TASK_STATUS_COMPLETED;
-				$cronCompleteTimeArr[$cronId] = time();
+				$cronCompleteTimeArr[$cronId] = $time_stamp;
+
+				//verify datas number is and accomplished time is normal
+				$start_date_ret = preg_replace('/-/', '', substr($crontabIdArr[$cronId]['start_time'], 0, 10));
+				$crontab_data_table = 'ws_' . $crontabIdArr[$cronId]['sche_id']. '_'.$start_date_ret.'_'.$cronId;
+
+				$crontab_data_ct = Yii::$app->db->createCommand('SELECT COUNT(*) as ct FROM ' . $crontab_data_table)->queryOne();
+				$crontab_data_num = $crontab_data_ct ? $crontab_data_ct['ct'] : 0;
+				$accomplished_duration = round( ($time_stamp - $cronActTimeArr[$cronId]) / 3600, 1);
+
+				$alert_params = Json::decode($crontabIdArr[$cronId]['alert_params']);
+				if(empty($alert_params) || !is_array($alert_params))
+					$alert_params = [];
+
+				$abnormal_type = SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_NONE;
+				$abnormal_msg = [];
+
+				if( isset($alert_params['total_num_min']) && $crontab_data_num < $alert_params['total_num_min'])
+				{
+					$abnormal_type = $abnormal | SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_NUM_LESS;
+					$abnormal_msg[] = SlTaskScheduleCrontabAbnormalConsole::getNumMinMsg($crontab_data_num, $alert_params['total_num_min']);
+				}
+
+				if( isset($alert_params['total_num_max']) && $crontab_data_num > $alert_params['total_num_max'])
+				{
+					$abnormal_type = $abnormal | SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_NUM_MORE;
+					$abnormal_msg[] = SlTaskScheduleCrontabAbnormalConsole::getNumMaxMsg($crontab_data_num, $alert_params['total_num_max']);
+				}
+
+				if( isset($alert_params['duration']) && $accomplished_duration > $alert_params['duration'] )
+				{
+					$abnormal_type = $abnormal | SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_DURATION;
+					$abnormal_msg[] = SlTaskScheduleCrontabAbnormalConsole::getDurationMsg($accomplished_duration, $alert_params['duration']);
+				}
+
+				//update `sl_task_schedule_crontab_abnormal`
+				if( $abnormal_type )
+				{
+					$crontabAbnormalTypeArr[$cronId] = $abnormal_type;
+					$crontabAbnormalMsgArr[$cronId] = implode(';', $abnormal_msg);
+					$cronStatArr[$cronId] = SlTaskScheduleCrontabConsole::TASK_STATUS_ABNORMAL;
+				}
+				else
+				{
+					$cronStatArr[$cronId] = SlTaskScheduleCrontabConsole::TASK_STATUS_COMPLETED;
+				}
 			}
 			else
 			{
@@ -661,6 +712,104 @@ class SlTaskScheduleController extends Controller
 		}
 		/***更新task_item END***/
 
+		/*** 更新sl_task_schedule_crontab_abnormal START ***/
+		$updateAbnormalValues = '';
+		foreach ($crontabAbnormalTypeArr as $cronId => $abnormaType) 
+		{
+			$updateAbnormalValues .= '(' . $cronId . ', ' . $crontabIdArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\'),';
+		}
+
+		$updateAbnormalSql = 'INSERT INTO ' . SlTaskScheduleCrontabAbnormalConsole::tableName()
+							. ' (cron_id, sche_id, abnormal_type, msg) values '	;
+		$updateAbnormalSql1 = ' ON DUPLICATE KEY UPDATE cron_id = values(cron_id), sche_id = values(sche_id), abnormal_type = values(abnormal_type), msg = values(msg);';
+
+		if(!empty($updateAbnormalValues))
+		{
+			$exeUpdate = Yii::$app->db->createCommand($updateAbnormalSql . substr($updateAbnormalValues, 0, -1) . $updateAbnormalSql1)->execute();
+			if(!$exeUpdate)
+			{
+				return 10;
+			}
+		}
+		/*** 更新sl_task_schedule_crontab_abnormal END ***/
+		return 0;
+	}
+
+	/**
+	 * 检查未完成实际任务是否超过预警时间24小时
+	 * 每日执行一次
+	 */
+	public function actionCheckDeadCrontab()
+	{
+		$crontabArr = SlTaskScheduleCrontabConsole::find()
+			->alias('cron')
+			->joinWith('schedule')
+			->select('sche.alert_params, cron.id, cron.sche_id, cron.act_time')
+			->where('task_status='.SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING )
+			->asArray()
+			->indexBy('id')
+			->all();
+
+		$time_stamp = time();
+
+		$crontabAbnormalTypeArr = [];
+		$crontabAbnormalMsgArr = [];
+		$cronAbnormalIds = [];
+
+		foreach ($crontabArr as $cronId => $cron) 
+		{
+			if( $cron['act_time'] )
+			{
+				$alert_params = Json::decode( $cron['alert_params'] );
+				if(empty($alert_params) || !is_array($alert_params))
+					$alert_params = [];
+
+				$act_duration = round( ($time_stamp - $cron['act_time']) / 3600, 1);
+
+				if( isset( $alert_params['duration'] ) && $act_duration - $alert_params['duration'] > 24 )
+				{
+					$crontabAbnormalTypeArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_DURATION;
+					$crontabAbnormalMsgArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::getDurationMsg("超过预警时间24小时未完成");
+					$cronAbnormalIds[] = $cronId;
+				}
+
+			}
+		}
+
+		/***更新cron START***/
+		//update task_schedule_crontab task_status
+		if(!empty($cronAbnormalIds))
+		{
+			$updateCronSql = 'UPDATE ' . SlTaskScheduleCrontabConsole::tableName() . ' SET task_status='
+							. SlTaskScheduleCrontabConsole::TASK_STATUS_ABNORMAL . ' WHERE id IN (' . implode(',', $cronAbnormalIds) . ');';
+			$exeUpdate = Yii::$app->db->createCommand($updateCronSql)->execute();
+			if(!$exeUpdate)
+			{
+				return 10;
+			}
+		}
+		/***更新cron END***/
+
+		/*** 更新sl_task_schedule_crontab_abnormal START ***/
+		$updateAbnormalValues = '';
+		foreach ($crontabAbnormalTypeArr as $cronId => $abnormaType) 
+		{
+			$updateAbnormalValues .= '(' . $cronId . ', ' . $crontabArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\'),';
+		}
+
+		$updateAbnormalSql = 'INSERT INTO ' . SlTaskScheduleCrontabAbnormalConsole::tableName()
+							. ' (cron_id, sche_id, abnormal_type, msg) values '	;
+		$updateAbnormalSql1 = ' ON DUPLICATE KEY UPDATE cron_id = values(cron_id), sche_id = values(sche_id), abnormal_type = values(abnormal_type), msg = values(msg);';
+
+		if(!empty($updateAbnormalValues))
+		{
+			$exeUpdate = Yii::$app->db->createCommand($updateAbnormalSql . substr($updateAbnormalValues, 0, -1) . $updateAbnormalSql1)->execute();
+			if(!$exeUpdate)
+			{
+				return 10;
+			}
+		}
+		/*** 更新sl_task_schedule_crontab_abnormal END ***/	
 		return 0;
 	}
 

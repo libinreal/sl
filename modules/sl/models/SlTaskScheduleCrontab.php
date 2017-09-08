@@ -25,6 +25,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
     const TASK_STATUS_UNSTARTED = 0;
     const TASK_STATUS_EXECUTING = 1;
     const TASK_STATUS_COMPLETED = 2;
+    const TASK_STATUS_ABNORMAL = 3;
 
     const NOT_DELETED = 0;
     const DELETED = 1;

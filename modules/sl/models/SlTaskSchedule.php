@@ -24,6 +24,7 @@ use app\modules\sl\components\SettingHelper;
  * @property integer $task_number
  * @property string $cookie
  * @property string $user_agent
+ * @property string $alert_params
  */
 class SlTaskSchedule extends \yii\db\ActiveRecord
 {
@@ -52,7 +53,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'brand_name', 'class_name', 'cookie', 'user_agent', 'week_days', 'month_days'], 'string'],
+            [['name', 'brand_name', 'class_name', 'cookie', 'user_agent', 'week_days', 'month_days', 'alert_params'], 'string'],
             [['sche_status', 'sche_type', 'update_time', 'task_number'], 'integer'],
             ['sche_status', 'in', 'range' => [self::SCHE_STATUS_CLOSE, self::SCHE_STATUS_OPEN, self::SCHE_STATUS_COMPLETE]],
             ['sche_type', 'in', 'range' => [self::SCHE_TYPE_NONE, self::SCHE_TYPE_ONCE, self::SCHE_TYPE_DAY, self::SCHE_TYPE_MONTH, self::SCHE_TYPE_WEEK]],
@@ -87,6 +88,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
             'task_number' => '已生成的子任务数量',
             'cookie' => '渠道的cookie设置',
             'user_agent' => '渠道的User-Agent设置',
+            'alert_params' => '预警参数设置',
         ];
     }
 
@@ -145,6 +147,9 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
         if( is_array( $this->dt_category ) )
             $this->dt_category = Json::encode($this->dt_category);
 
+        if( is_array( $this->alert_params ) )
+            $this->alert_params = Json::encode($this->alert_params);
+
         return parent::beforeValidate();
     }
 
@@ -159,6 +164,8 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
 
             $user_agent_k = [];
             $user_agent_v = [];
+
+            $alert_params = [];
 
             foreach ($post as $pk => $pv)
             {
@@ -189,6 +196,18 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
                 {
                     $user_agent_v[substr($pk, 0, -4)] = $pv;
                 }
+                else if( $pk == 'alert_duration' )
+                {
+                    $alert_params['duration'] = $pv;
+                }
+                else if( $pk == 'alert_total_num_min' )
+                {
+                    $alert_params['total_num_min'] = $pv;
+                }
+                else if( $pk == 'alert_total_num_max' )
+                {
+                    $alert_params['total_num_max'] = $pv;
+                }
             }
 
             $user_agent = [];
@@ -200,6 +219,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
             $this->setAttributes([
                 'cookie' => Json::encode( $cookie ),
                 'user_agent' => Json::encode( $user_agent ),
+                'alert_params' => Json::encode( $alert_params ),
                 'update_time' => time()
             ]);
 
@@ -211,18 +231,22 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
 
     public function afterFind()
     {
+        parent::afterFind();
+
         $class_name = Json::decode( $this->getAttribute('class_name') );
         $brand_name = Json::decode( $this->getAttribute('brand_name') );
         $pf_name = Json::decode( $this->getAttribute('pf_name') );
 
         $dt_category = Json::decode( $this->getAttribute('dt_category') );
-
+        $alert_params = Json::decode( $this->getAttribute('alert_params') );
+        
         $this->setAttributes([
             'class_name' => $class_name,
             'brand_name' => $brand_name,
             'pf_name' => $pf_name,
 
             'dt_category' => $dt_category,
+            'alert_params' => $alert_params,
         ]);
     }
 }

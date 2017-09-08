@@ -259,6 +259,11 @@
 	padding-right: 11px;
     font-size: 13px;
 }
+div.controls .label79{
+	display: inline-block;
+    width: 79px;
+    margin-bottom: 12px;
+}
 .top-radius{
 	line-height: 18px;
     min-width: 90px;
