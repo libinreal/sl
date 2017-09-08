@@ -389,7 +389,7 @@ class DemoController extends \yii\web\Controller
 
                 Yii::$app->getModule('sl')
                     ->db
-                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET [[task_status]] = '.SlTaskItem::TASK_STATUS_OPEN.', [[control_status]] = '.SlTaskItem::CONTROL_STARTED.' WHERE [[sche_id]] = '. $scheModel->id . ' AND [[task_status]] <> '.SlTaskItem::TASK_STATUS_COMPLETE)
+                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET [[task_status]] = '.SlTaskItem::TASK_STATUS_OPEN.', [[control_status]] = '.SlTaskItem::CONTROL_RESTARTED.' WHERE [[sche_id]] = '. $scheModel->id . ' AND [[task_status]] <> '.SlTaskItem::TASK_STATUS_COMPLETE)
                     ->execute();
             }
             /*** 实际任务状态更新 ***/
@@ -867,7 +867,7 @@ class DemoController extends \yii\web\Controller
             {
                 Yii::$app->getModule('sl')
                     ->db
-                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_STARTED.' WHERE cron_id = '. $cronModel->id. ' AND task_status <> '.SlTaskItem::TASK_STATUS_COMPLETE)
+                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_RESTARTED.' WHERE cron_id = '. $cronModel->id. ' AND task_status <> '.SlTaskItem::TASK_STATUS_COMPLETE)
                     ->execute();
             }
             /*** 任务项状态更新 ***/

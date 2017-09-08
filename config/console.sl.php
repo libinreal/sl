@@ -33,6 +33,7 @@ $config = [
         'PLATFORM_LIST'=>[
             'pf_jd' => '京东',
             'pf_tmall' => '天猫',
+            'pf_weixin' => '微信',
         ],
     ],
     /*

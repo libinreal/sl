@@ -225,7 +225,7 @@ EOT;
         var _unstartStat = <?php echo SlTaskItem::TASK_STATUS_CLOSE; ?>,
             _startStat = <?php echo SlTaskItem::TASK_STATUS_OPEN; ?>,
             _okStat = <?php echo SlTaskItem::TASK_STATUS_COMPLETE; ?>,
-            _open = <?php echo SlTaskItem::CONTROL_STARTED;?>,
+            _open = <?php echo SlTaskItem::CONTROL_RESTARTED;?>,
             _stop = <?php echo SlTaskItem::CONTROL_STOPPED;?>,
             _updateItemUrl = '/sl/demo/update-task-item',
             _container = $('.task_tables');

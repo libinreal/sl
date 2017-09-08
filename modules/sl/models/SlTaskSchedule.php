@@ -53,13 +53,12 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'brand_name', 'class_name', 'cookie', 'user_agent', 'week_days', 'month_days', 'alert_params'], 'string'],
+            [['name', 'brand_name', 'class_name', 'key_words', 'cookie', 'user_agent', 'week_days', 'month_days', 'alert_params'], 'string'],
             [['sche_status', 'sche_type', 'update_time', 'task_number'], 'integer'],
             ['sche_status', 'in', 'range' => [self::SCHE_STATUS_CLOSE, self::SCHE_STATUS_OPEN, self::SCHE_STATUS_COMPLETE]],
             ['sche_type', 'in', 'range' => [self::SCHE_TYPE_NONE, self::SCHE_TYPE_ONCE, self::SCHE_TYPE_DAY, self::SCHE_TYPE_MONTH, self::SCHE_TYPE_WEEK]],
             [['sche_progress', 'data_number'], 'number'],
             [['pf_name', 'dt_category', 'month_days'], 'string', 'max' => 100],
-            [['key_words'], 'string', 'max' => 200],
             [['sche_time'], 'string', 'max' => 20],
         ];
     }
@@ -140,6 +139,9 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
 
         if( is_array( $this->brand_name ) )
             $this->brand_name = Json::encode($this->brand_name);
+
+        if( is_array( $this->key_words ) )
+            $this->key_words = Json::encode($this->key_words);
 
         if( is_array( $this->pf_name ) )
             $this->pf_name = Json::encode($this->pf_name);
@@ -239,6 +241,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
 
         $dt_category = Json::decode( $this->getAttribute('dt_category') );
         $alert_params = Json::decode( $this->getAttribute('alert_params') );
+        $key_words = Json::decode( $this->getAttribute('key_words') );
         
         $this->setAttributes([
             'class_name' => $class_name,
@@ -247,6 +250,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
 
             'dt_category' => $dt_category,
             'alert_params' => $alert_params,
+            'key_words' => $key_words,
         ]);
     }
 }

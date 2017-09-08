@@ -218,6 +218,8 @@ class SlTaskScheduleController extends Controller
 			$cookie = Json::decode( $cron['cookie'] );
 			$user_agent = Json::decode( $cron['user_agent'] );
 
+			$keyWordsArr = Json::decode( $cron['key_words'] );
+
 			if( !is_array($cookie) || empty( $cookie ) ) $cookie = [];
 			if( !is_array($user_agent) || empty( $user_agent ) ) $user_agent = [];
 
@@ -226,6 +228,7 @@ class SlTaskScheduleController extends Controller
 			if( !is_array($classArr) ) $classArr = [];
 
 			if( !is_array($catArr) ) $catArr = [];
+			if( !is_array($keyWordsArr) ) $keyWordsArr = [];
 
 			$insertList = [];
 
@@ -249,7 +252,7 @@ class SlTaskScheduleController extends Controller
 									$brandName,
 									$className,
 									$catName,
-									$cron['key_words'],
+									'',//key_words
 									SlTaskItemConsole::TASK_STATUS_OPEN,//默认打开
 									strtotime( $cron['sche_time'] ),
 									$cron['sche_time'],
@@ -275,7 +278,7 @@ class SlTaskScheduleController extends Controller
 									$brandName,
 									$className,
 									$catName,
-									$cron['key_words'],
+									'',//key_words
 									SlTaskItemConsole::TASK_STATUS_OPEN,//默认打开
 									$taskTime,
 									date('Y-m-d').' '.$cron['sche_time'],
@@ -306,7 +309,7 @@ class SlTaskScheduleController extends Controller
 									$brandName,
 									$className,
 									$catName,
-									$cron['key_words'],
+									'',//key_words
 									SlTaskItemConsole::TASK_STATUS_OPEN,//默认打开
 									$taskTime,
 									date('Y-m-d').' '.$cron['sche_time'],
@@ -337,7 +340,7 @@ class SlTaskScheduleController extends Controller
 									$brandName,
 									$className,
 									$catName,
-									$cron['key_words'],
+									'',//key_words
 									SlTaskItemConsole::TASK_STATUS_OPEN,//默认打开
 									$taskTime,
 									date('Y-m-d').' '.$cron['sche_time'],
@@ -348,6 +351,132 @@ class SlTaskScheduleController extends Controller
 									$pfSpiderArr[$pfKey]
 								];
 							}
+							
+						}
+					}
+				}
+			}
+
+			foreach ($pfNameArr as $pfName)
+			{
+				foreach ($classArr as $className)
+				{
+					foreach ($keyWordsArr as $keyWords)
+					{
+						foreach ($catArr as $catName)
+						{
+							$pfKey = $pfKeyArr[$pfName];
+
+							if( $schType == SlTaskScheduleConsole::SCHE_TYPE_ONCE && !isset($taskItemArr[$cron['id']]))//Only once 未生成过任务
+							{
+								$insertList[] = [
+									$cron['sche_id'],
+									$cron['id'],
+									$cron['name'],
+									$pfName,
+									'',
+									$className,
+									$catName,
+									$keyWords,//key_words
+									SlTaskItemConsole::TASK_STATUS_OPEN,//默认打开
+									strtotime( $cron['sche_time'] ),
+									$cron['sche_time'],
+									time(),
+									time(),
+									isset( $cookie[ $pfKey.'_cookie' ] ) ? $cookie[ $pfKey.'_cookie' ] : '',
+									isset( $user_agent[ $pfKey.'_ua' ] ) ? Json::encode( $user_agent[ $pfKey.'_ua' ] ) : '',
+									$pfSpiderArr[$pfKey]
+								];
+							}
+							else if( $schType == SlTaskScheduleConsole::SCHE_TYPE_DAY )//everyday repeat
+							{
+								if( isset( $hasExplodedTaskItemArr[$cron['id']] ) )
+									break 4;//Task schedule has been exploded
+
+								$taskTime = strtotime( date('Y-m-d').' '.$cron['sche_time'] );
+
+								$insertList[] = [
+									$cron['sche_id'],
+									$cron['id'],
+									$cron['name'],
+									$pfName,
+									'',
+									$className,
+									$catName,
+									$keyWords,//key_words
+									SlTaskItemConsole::TASK_STATUS_OPEN,//默认打开
+									$taskTime,
+									date('Y-m-d').' '.$cron['sche_time'],
+									time(),
+									time(),
+									isset( $cookie[ $pfKey.'_cookie' ] ) ? $cookie[ $pfKey.'_cookie' ] : '',
+									isset( $user_agent[ $pfKey.'_ua' ] ) ? Json::encode( $user_agent[ $pfKey.'_ua' ] ) : '',
+									$pfSpiderArr[$pfKey]
+								];
+							}
+							else if( $schType == SlTaskScheduleConsole::SCHE_TYPE_MONTH )//every month repeat
+							{
+								if( isset( $hasExplodedTaskItemArr[$cron['id']] ) )
+									break 4;//Task schedule has been exploded
+
+								$dayNo = date('j');//Day in this month
+								$scheDayNoArr = explode(',', $cron['month_days']);
+								if( !in_array( $dayNo, $scheDayNoArr ) )
+									break 4;//Not today to explode.
+
+								$taskTime = strtotime( date('Y-m-d').' '.$cron['sche_time'] );
+
+								$insertList[] = [
+									$cron['sche_id'],
+									$cron['id'],
+									$cron['name'],
+									$pfName,
+									'',
+									$className,
+									$catName,
+									$keyWords,//key_words
+									SlTaskItemConsole::TASK_STATUS_OPEN,//默认打开
+									$taskTime,
+									date('Y-m-d').' '.$cron['sche_time'],
+									time(),
+									time(),
+									isset( $cookie[ $pfKey.'_cookie' ] ) ? $cookie[ $pfKey.'_cookie' ] : '',
+									isset( $user_agent[ $pfKey.'_ua' ] ) ? Json::encode( $user_agent[ $pfKey.'_ua' ] ) : '',
+									$pfSpiderArr[$pfKey]
+								];
+							}
+							else if( $schType == SlTaskScheduleConsole::SCHE_TYPE_WEEK )//every week repeat
+							{
+								if( isset( $hasExplodedTaskItemArr[$cron['id']] ) )
+									break 4;//Task schedule has been exploded
+
+								$dayNo = date('N');//Day in this week
+								$scheDayNoArr = explode(',', $cron['week_days']);
+								if( !in_array( $dayNo, $scheDayNoArr ) )
+									break 4;//Not today to explode.
+
+								$taskTime = strtotime( date('Y-m-d').' '.$cron['sche_time'] );
+
+								$insertList[] = [
+									$cron['sche_id'],
+									$cron['id'],
+									$cron['name'],
+									$pfName,
+									'',
+									$className,
+									$catName,
+									$keyWords,//key_words
+									SlTaskItemConsole::TASK_STATUS_OPEN,//默认打开
+									$taskTime,
+									date('Y-m-d').' '.$cron['sche_time'],
+									time(),
+									time(),
+									isset( $cookie[ $pfKey.'_cookie' ] ) ? $cookie[ $pfKey.'_cookie' ] : '',
+									isset( $user_agent[ $pfKey.'_ua' ] ) ? Json::encode( $user_agent[ $pfKey.'_ua' ] ) : '',
+									$pfSpiderArr[$pfKey]
+								];
+							}
+							
 						}
 					}
 				}

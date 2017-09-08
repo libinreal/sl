@@ -35,7 +35,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
     const PAGING_YES = 1;
 
     const CONTROL_STOPPED = 0;
-    const CONTROL_STARTED = 1;
+    const CONTROL_RESTARTED = 1;
 
     const TASK_STATUS_CLOSE = 0;
     const TASK_STATUS_OPEN = 1;
@@ -59,7 +59,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
         return [
             [['sche_id', 'cron_id', 'task_status', 'control_status', 'task_time', 'act_time', 'update_time', 'create_time', 'complete_time', 'paging'], 'integer'],
             [['task_status', 'complete_status'], 'in', 'range' => [self::TASK_STATUS_CLOSE, self::TASK_STATUS_OPEN, self::TASK_STATUS_COMPLETE]],
-            ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_STARTED]],
+            ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_RESTARTED]],
             ['paging', 'in', 'range' => [self::PAGING_NO, self::PAGING_YES]],
             ['is_delete', 'in', 'range' => [self::NOT_DELETED, self::DELETED]],
             [['name', 'cookie', 'user_agent', 'dt_category', 'pf_name'], 'string'],
