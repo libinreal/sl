@@ -15,11 +15,13 @@ return [
     //sl
     'sl/<controller>/<action>' => 'sl/<controller>/<action>',
 
-    'sl/demo/edit-schedule/<sche_id:\d+>' => 'sl/demo/update-schedule',
+    'sl/schedule/edit-schedule/<data_type:\w+>/<sche_id:\d+>' => 'sl/schedule/update-schedule',
 
-    'sl/demo/task-sche-crontab/<sche_id:\d+>' => 'sl/demo/task-sche-crontab',
+    'sl/schedule/add-schedule/<data_type:\w+>' => 'sl/schedule/add-schedule',
 
-    'sl/demo/task-item/<cron_id:\d+>' => 'sl/demo/task-item',
+    'sl/schedule/task-sche-crontab/<sche_id:\d+>' => 'sl/schedule/task-sche-crontab',
+
+    'sl/schedule/task-item/<cron_id:\d+>' => 'sl/schedule/task-item',
     // 'http://<_m:(sl|nlp)>.3tichina.com' => '<_m>'
     //RESTful API
     /*[ 'class' => 'yii\rest\UrlRule',

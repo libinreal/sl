@@ -25,6 +25,7 @@ use app\modules\sl\components\SettingHelper;
  * @property string $cookie
  * @property string $user_agent
  * @property string $alert_params
+ * @property string $data_type
  */
 class SlTaskSchedule extends \yii\db\ActiveRecord
 {
@@ -53,7 +54,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'brand_name', 'class_name', 'key_words', 'cookie', 'user_agent', 'week_days', 'month_days', 'alert_params'], 'string'],
+            [['name', 'brand_name', 'class_name', 'key_words', 'cookie', 'user_agent', 'data_type', 'week_days', 'month_days', 'alert_params'], 'string'],
             [['sche_status', 'sche_type', 'update_time', 'task_number'], 'integer'],
             ['sche_status', 'in', 'range' => [self::SCHE_STATUS_CLOSE, self::SCHE_STATUS_OPEN, self::SCHE_STATUS_COMPLETE]],
             ['sche_type', 'in', 'range' => [self::SCHE_TYPE_NONE, self::SCHE_TYPE_ONCE, self::SCHE_TYPE_DAY, self::SCHE_TYPE_MONTH, self::SCHE_TYPE_WEEK]],
@@ -88,6 +89,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
             'cookie' => '渠道的cookie设置',
             'user_agent' => '渠道的User-Agent设置',
             'alert_params' => '预警参数设置',
+            'data_type' => '渠道类型',
         ];
     }
 

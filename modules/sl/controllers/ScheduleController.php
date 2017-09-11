@@ -17,7 +17,7 @@ use yii\helpers\Json;
 /**
  * Default controller for the `sl` module
  */
-class DemoController extends \yii\web\Controller
+class ScheduleController extends \yii\web\Controller
 {
     /**
      * 计划任务
@@ -184,9 +184,24 @@ class DemoController extends \yii\web\Controller
 
             $pfArr = Yii::$app->getModule('sl')->params['PLATFORM_LIST'];
             $pfSettings = SettingHelper::getPfSetting( array_keys( $pfArr ));
+            $get = Yii::$app->request->get();
+
+            //fileter out the request `data_type` settings
+            $getPfSettings = [];
+            foreach ($pfSettings as $pfK => $pfV) 
+            {
+                $data_type = $pfV[$pfK . '_data_type'];
+                
+                if($data_type == $get['data_type'])
+                {
+                    $getPfSettings[$pfK] = $pfV;
+                }
+            }
 
             $productClassArr = SlScheduleProductClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
-            return $this->render('add-schedule', ['pfSettings' => $pfSettings, 'productClassArr' => $productClassArr]);
+            $viewName = 'add-' . $get['data_type'] . '-schedule';
+
+            return $this->render($viewName, ['pfSettings' => $getPfSettings, 'productClassArr' => $productClassArr]);
 
         }
         else if( Yii::$app->request->isAjax)
@@ -326,10 +341,25 @@ class DemoController extends \yii\web\Controller
 
             $pfArr = Yii::$app->getModule('sl')->params['PLATFORM_LIST'];
             $pfSettings = SettingHelper::getPfSetting( array_keys( $pfArr ));
+            
+            //fileter out the request `data_type` settings
+            $getPfSettings = [];
+            foreach ($pfSettings as $pfK => $pfV) 
+            {
+                $data_type = $pfV[$pfK . '_data_type'];
+                
+                if($data_type == $get['data_type'])
+                {
+                    $getPfSettings[$pfK] = $pfV;
+                }
+            }
+
+            
+            $viewName = 'add-' . $get['data_type'] . '-schedule';
 
             $productClassArr = SlScheduleProductClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
 
-            return $this->render('add-schedule', ['pfSettings' => $pfSettings,
+            return $this->render($viewName, ['pfSettings' => $getPfSettings,
                                                     'productClassArr' => $productClassArr,
                                                     'scheEditData' => $scheEditData,
                                                     'classSelectIds' => $classSelectIds,

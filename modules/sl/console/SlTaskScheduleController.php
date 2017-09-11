@@ -231,7 +231,7 @@ class SlTaskScheduleController extends Controller
 			if( !is_array($keyWordsArr) ) $keyWordsArr = [];
 
 			$insertList = [];
-
+			
 			foreach ($pfNameArr as $pfName)
 			{
 				foreach ($classArr as $className)
@@ -266,7 +266,7 @@ class SlTaskScheduleController extends Controller
 							else if( $schType == SlTaskScheduleConsole::SCHE_TYPE_DAY )//everyday repeat
 							{
 								if( isset( $hasExplodedTaskItemArr[$cron['id']] ) )
-									break 4;//Task schedule has been exploded
+									break 3;//Task schedule has been exploded
 
 								$taskTime = strtotime( date('Y-m-d').' '.$cron['sche_time'] );
 
@@ -292,12 +292,12 @@ class SlTaskScheduleController extends Controller
 							else if( $schType == SlTaskScheduleConsole::SCHE_TYPE_MONTH )//every month repeat
 							{
 								if( isset( $hasExplodedTaskItemArr[$cron['id']] ) )
-									break 4;//Task schedule has been exploded
+									break 3;//Task schedule has been exploded
 
 								$dayNo = date('j');//Day in this month
 								$scheDayNoArr = explode(',', $cron['month_days']);
 								if( !in_array( $dayNo, $scheDayNoArr ) )
-									break 4;//Not today to explode.
+									break 3;//Not today to explode.
 
 								$taskTime = strtotime( date('Y-m-d').' '.$cron['sche_time'] );
 
@@ -323,12 +323,12 @@ class SlTaskScheduleController extends Controller
 							else if( $schType == SlTaskScheduleConsole::SCHE_TYPE_WEEK )//every week repeat
 							{
 								if( isset( $hasExplodedTaskItemArr[$cron['id']] ) )
-									break 4;//Task schedule has been exploded
+									break 3;//Task schedule has been exploded
 
 								$dayNo = date('N');//Day in this week
 								$scheDayNoArr = explode(',', $cron['week_days']);
 								if( !in_array( $dayNo, $scheDayNoArr ) )
-									break 4;//Not today to explode.
+									break 3;//Not today to explode.
 
 								$taskTime = strtotime( date('Y-m-d').' '.$cron['sche_time'] );
 
@@ -359,8 +359,9 @@ class SlTaskScheduleController extends Controller
 
 			foreach ($pfNameArr as $pfName)
 			{
-				foreach ($classArr as $className)
-				{
+				// foreach ($classArr as $className)
+				// {
+					$className = '';
 					foreach ($keyWordsArr as $keyWords)
 					{
 						foreach ($catArr as $catName)
@@ -391,7 +392,7 @@ class SlTaskScheduleController extends Controller
 							else if( $schType == SlTaskScheduleConsole::SCHE_TYPE_DAY )//everyday repeat
 							{
 								if( isset( $hasExplodedTaskItemArr[$cron['id']] ) )
-									break 4;//Task schedule has been exploded
+									break 3;//Task schedule has been exploded
 
 								$taskTime = strtotime( date('Y-m-d').' '.$cron['sche_time'] );
 
@@ -417,12 +418,12 @@ class SlTaskScheduleController extends Controller
 							else if( $schType == SlTaskScheduleConsole::SCHE_TYPE_MONTH )//every month repeat
 							{
 								if( isset( $hasExplodedTaskItemArr[$cron['id']] ) )
-									break 4;//Task schedule has been exploded
+									break 3;//Task schedule has been exploded
 
 								$dayNo = date('j');//Day in this month
 								$scheDayNoArr = explode(',', $cron['month_days']);
 								if( !in_array( $dayNo, $scheDayNoArr ) )
-									break 4;//Not today to explode.
+									break 3;//Not today to explode.
 
 								$taskTime = strtotime( date('Y-m-d').' '.$cron['sche_time'] );
 
@@ -448,12 +449,12 @@ class SlTaskScheduleController extends Controller
 							else if( $schType == SlTaskScheduleConsole::SCHE_TYPE_WEEK )//every week repeat
 							{
 								if( isset( $hasExplodedTaskItemArr[$cron['id']] ) )
-									break 4;//Task schedule has been exploded
+									break 3;//Task schedule has been exploded
 
 								$dayNo = date('N');//Day in this week
 								$scheDayNoArr = explode(',', $cron['week_days']);
 								if( !in_array( $dayNo, $scheDayNoArr ) )
-									break 4;//Not today to explode.
+									break 3;//Not today to explode.
 
 								$taskTime = strtotime( date('Y-m-d').' '.$cron['sche_time'] );
 
@@ -479,7 +480,7 @@ class SlTaskScheduleController extends Controller
 							
 						}
 					}
-				}
+				// }
 			}
 
 			if( !empty( $insertList ) )

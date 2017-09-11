@@ -3,7 +3,7 @@ use app\modules\sl\models\SlTaskSchedule;
 use yii\helpers\Url;
 use yii\helpers\Json;
 
-$this->title = '新增计划任务';
+$this->title = '新增电商计划任务';
 $this->beginBlock("addScheJs");
 ?>
 
@@ -161,7 +161,7 @@ var curClsMapId,
 	function editCategory(){
 
 		$.ajax({
-        url: '/sl/demo/class-brand-manage',
+        url: '/sl/schedule/class-brand-manage',
         type: 'post',
         data: {_csrf:csrfToken},
         dataType: 'json',
@@ -238,7 +238,7 @@ var curClsMapId,
 						},
 						okHide: function(){
 							$.ajax({
-						        url: '/sl/demo/save-class-map',
+						        url: '/sl/schedule/save-class-map',
 						        type: 'post',
 						        data: {c:curCategory, m:curCategoryMap, _csrf:csrfToken},
 						        dataType: 'json',
@@ -266,7 +266,7 @@ var curClsMapId,
 		if(_c)
 		{
 			$.ajax({
-	        url: '/sl/demo/add-product-class',
+	        url: '/sl/schedule/add-product-class',
 	        type: 'post',
 	        data: {n:_c, _csrf:csrfToken},
 	        dataType: 'json',
@@ -409,7 +409,7 @@ var curClsMapId,
 	function editBrand()
 	{
 		$.ajax({
-        url: '/sl/demo/brand-class-manage',
+        url: '/sl/schedule/brand-class-manage',
         type: 'post',
         data: {_csrf:csrfToken},
         dataType: 'json',
@@ -486,7 +486,7 @@ var curClsMapId,
 						},
 						okHide: function(){
 							$.ajax({
-						        url: '/sl/demo/save-brand-map',
+						        url: '/sl/schedule/save-brand-map',
 						        type: 'post',
 						        data: {b:curBrand, m:curBrandMap, _csrf:csrfToken},
 						        dataType: 'json',
@@ -514,7 +514,7 @@ var curClsMapId,
 		if(_b)
 		{
 			$.ajax({
-	        url: '/sl/demo/add-product-brand',
+	        url: '/sl/schedule/add-product-brand',
 	        type: 'post',
 	        data: {n:_b, _csrf:csrfToken},
 	        dataType: 'json',
@@ -683,7 +683,7 @@ function savePf( pk ){
 	pfData = $.extend({}, pfData, {pk:pk, _csrf:csrfToken});
 
 	$.ajax({
-        url: '/sl/demo/update-schedule-settings',
+        url: '/sl/schedule/update-schedule-settings',
         type: 'post',
         data: pfData,
         dataType: 'json',
@@ -729,7 +729,7 @@ function onChangeRepeat(_e)
 function getProductClass()
 {
 	$.ajax({
-        url: '/sl/demo/get-product-class',
+        url: '/sl/schedule/get-product-class',
         type: 'post',
         data: {_csrf:csrfToken},
         dataType: 'json',
@@ -800,7 +800,7 @@ function onCheckProductClass(cid, _input)
 function getProductBrand(class_id, func )
 {
 	$.ajax({
-        url: '/sl/demo/get-product-brand',
+        url: '/sl/schedule/get-product-brand',
         type: 'post',
         data: {_csrf:csrfToken, class_id:class_id},
         dataType: 'json',
@@ -1214,7 +1214,7 @@ EOT;
 $this->registerJs($readyJs);
 ?>
 <div class="block clearfix">
-				<form id="addFrm" class="sui-validate sui-form" method="POST" action="/sl/demo/add-schedule" onsubmit="javascript:submitAddFrm();return false;">
+				<form id="addFrm" class="sui-validate sui-form" method="POST" action="/sl/schedule/add-schedule" onsubmit="javascript:submitAddFrm();return false;">
 				<div class="section clearfix">
 					<span class="title-prefix-md">新增计划任务</span>
 				</div>

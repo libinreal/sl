@@ -209,7 +209,7 @@ EOT;
     				+ '<td><span class="cell"><a href="javascript:updateCrontabStat( \''+ _rows[_i]['task_status'] +'\', \''+<?php echo SlTaskScheduleCrontab::CONTROL_STARTED;?>+'\', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
     				+ '<a href="javascript:updateCrontabStat(\''+ _rows[_i]['task_status'] +'\', \''+<?php echo SlTaskScheduleCrontab::CONTROL_STOPPED;?>+'\', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
     				+ '<a href="javascript:deleteCrontab(\''+_rows[_i]['id']+'\');" class="a--danger">删除</a>'
-    				+ '<a href="/sl/demo/task-item/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td>'
+    				+ '<a href="/sl/schedule/task-item/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td>'
     	}
     	_container.find('tr:gt(0)').remove();
     	_container.find('tr:eq(0)').after(_trStr);
@@ -229,7 +229,7 @@ EOT;
     		_okStat = <?php echo SlTaskScheduleCrontab::TASK_STATUS_COMPLETED; ?>,
     		_open = <?php echo SlTaskScheduleCrontab::CONTROL_STARTED;?>,
     		_stop = <?php echo SlTaskScheduleCrontab::CONTROL_STOPPED;?>,
-    		_updateCrontabUrl = '/sl/demo/update-task-sche-crontab',
+    		_updateCrontabUrl = '/sl/schedule/update-task-sche-crontab',
     		_container = $('.task_tables');
 
     		if(_curStat == _okStat)
@@ -336,7 +336,7 @@ EOT;
     function deleteCrontab(_id)
     {
     	var _updateCrontabData = {},
-    		_removeCrontabUrl = '/sl/demo/remove-crontab';
+    		_removeCrontabUrl = '/sl/schedule/remove-crontab';
 
 		_updateCrontabData['_csrf'] = csrfToken;
     	_updateCrontabData['id'] = _id;
@@ -376,7 +376,7 @@ $this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
 <div class="block clearfix">
 				<div class="section clearfix">
 					<span class="title-prefix-md"><?php echo $this->title; ?></span>
-					<div class="sl-add-text fr" style="display: none;" onclick="javascript:location.href='/sl/demo/add-schedule'">新增</div>
+					<div class="sl-add-text fr" style="display: none;" onclick="javascript:location.href='/sl/schedule/add-schedule'">新增</div>
 				</div>
 				<div class="sl-query-wrapper sui-form clearfix">
 					<form id="filterFrm">

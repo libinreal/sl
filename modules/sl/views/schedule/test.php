@@ -5,7 +5,7 @@ $this->beginBlock('test');
 
 $(function(){
 	$.ajax({
-        url: '/sl/demo/class-brand-manage',
+        url: '/sl/schedule/class-brand-manage',
         type: 'post',
         data: {_csrf:csrfToken},
         dataType: 'json',
