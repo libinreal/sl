@@ -54,6 +54,11 @@ class SlTaskScheduleCrontabAbnormal extends \yii\db\ActiveRecord
         ];
     }
 
+    public static function getDb()
+    {
+        return Yii::$app->getModule('sl')->db;
+    }
+
     public static function getDurationMsg($act_duration , $alert_duration)
     {
         $delay = (float)$act_duration - (float)$alert_duration;

@@ -409,7 +409,7 @@ var curClsMapId,
 	function edittag()
 	{
 		$.ajax({
-        url: '/sl/schedule/tag-class-manage',
+        url: '/sl/schedule/class-tag-manage',
         type: 'post',
         data: {_csrf:csrfToken},
         dataType: 'json',
@@ -1233,34 +1233,21 @@ $this->registerJs($readyJs);
 										style="width: 100%; box-sizing: border-box;height: 34px;" data-rules="required">
 								</div>
 							</div>
-							<div class="control-group mb1">
+							<!--div class="control-group mb1">
 								<label class="control-label" style="min-width: 68px;">关键字</label>
 								<div class="controls" style="width: 100%;">
 									<input type="text" name="key_words" value="<?php if(isset($scheEditData)): echo $scheEditData["key_words"]; endif;?>" class="input-xxlarge"
 										placeholder="在此输入关键字"
 										style="width: 100%; box-sizing: border-box;height: 34px;">
 								</div>
-							</div>
+							</div-->
 							<div class="sl-row--normal clearfix">
-								<div class="fl row__left-label">分类</div>
-								<button type="button" class="sui-btn btn-primary fr top-radius" onclick="editCategory()">分类维护</button>
+								<div class="fl row__left-label">已选标签(关键字)</div>
 							</div>
 							<div class="control-group mb1">
-								<label class="control-label sl-label-special" style="min-width: 76px;">
-									<label id="class_all_select" class="checkbox-pretty ">
-										<input type="checkbox"><span>全选</span>
-									</label>
-									<label id="class_all_cancel" class="checkbox-pretty ">
-										<input type="checkbox"><span>反选</span>
-									</label>
-								</label>
+								<div class="sl-label-empty"></div>
 								<div class="controls controls--special" style="width: 100%;">
-									<div class="sl-checkbox-group" id="product_class_tags" style="width: 100%; box-sizing: border-box;">
-										<?php
-											foreach ($productClassArr as $k => $v) {
-												echo '<label class="checkbox-pretty inline-block"><input data-index="'. $v['id'] . '" onclick="onCheckProductClass(\''. $v['id'] . '\', this);" name="class_name[]" type="checkbox" value="'.$v['name'].'"  data-rules="required"><span>'.$v['name'].'</span></label>';
-											}
-										?>
+									<div class="sl-checkbox-group" id="article_class_tags" style="width: 100%; box-sizing: border-box;">
 									</div>
 								</div>
 							</div>
@@ -1281,7 +1268,7 @@ $this->registerJs($readyJs);
 								<div class="controls controls--special" style="width: 100%;">
 									<div class="sl-checkbox-group" id="product_tag_tags" style="width: 100%; box-sizing: border-box;">
 										<?php
-											foreach ($productClassArr as $k => $v) {
+											foreach ($dataClassArr as $k => $v) {
 												echo '<div id="tag_cid_'. $v['id'] .'"></div>';
 											}
 										?>

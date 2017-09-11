@@ -1254,7 +1254,7 @@ $this->registerJs($readyJs);
 								<div class="controls controls--special" style="width: 100%;">
 									<div class="sl-checkbox-group" id="product_class_tags" style="width: 100%; box-sizing: border-box;">
 										<?php
-											foreach ($productClassArr as $k => $v) {
+											foreach ($dataClassArr as $k => $v) {
 												echo '<label class="checkbox-pretty inline-block"><input data-index="'. $v['id'] . '" onclick="onCheckProductClass(\''. $v['id'] . '\', this);" name="class_name[]" type="checkbox" value="'.$v['name'].'"  data-rules="required"><span>'.$v['name'].'</span></label>';
 											}
 										?>
@@ -1278,7 +1278,7 @@ $this->registerJs($readyJs);
 								<div class="controls controls--special" style="width: 100%;">
 									<div class="sl-checkbox-group" id="product_brand_tags" style="width: 100%; box-sizing: border-box;">
 										<?php
-											foreach ($productClassArr as $k => $v) {
+											foreach ($dataClassArr as $k => $v) {
 												echo '<div id="brand_cid_'. $v['id'] .'"></div>';
 											}
 										?>

@@ -11,6 +11,10 @@ use app\modules\sl\models\SlScheduleProductClass;
 use app\modules\sl\models\SlScheduleProductBrand;
 use app\modules\sl\models\SlScheduleProductClassBrand;
 use app\modules\sl\models\SlTaskScheduleCrontab;
+use app\modules\sl\models\SlScheduleArticleClass;
+use app\modules\sl\models\SlScheduleArticleTag;
+use app\modules\sl\models\SlScheduleArticleClassTag;
+
 use yii\web\Response;
 use app\modules\sl\components\SettingHelper;
 use yii\helpers\Json;
@@ -198,10 +202,18 @@ class ScheduleController extends \yii\web\Controller
                 }
             }
 
-            $productClassArr = SlScheduleProductClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
+            if( $get['data_type'] == 'product' )
+            {
+                $dataClassArr = SlScheduleProductClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
+            }
+            else if( $get['data_type'] == 'article' )
+            {
+                $dataClassArr = SlScheduleArticleClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
+            }   
+                
             $viewName = 'add-' . $get['data_type'] . '-schedule';
 
-            return $this->render($viewName, ['pfSettings' => $getPfSettings, 'productClassArr' => $productClassArr]);
+            return $this->render($viewName, ['pfSettings' => $getPfSettings, 'dataClassArr' => $dataClassArr]);
 
         }
         else if( Yii::$app->request->isAjax)
@@ -357,10 +369,17 @@ class ScheduleController extends \yii\web\Controller
             
             $viewName = 'add-' . $get['data_type'] . '-schedule';
 
-            $productClassArr = SlScheduleProductClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
+            if( $get['data_type'] == 'product' )
+            {
+                $dataClassArr = SlScheduleProductClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
+            }
+            else if( $get['data_type'] == 'article' )
+            {
+                $dataClassArr = SlScheduleArticleClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
+            }  
 
             return $this->render($viewName, ['pfSettings' => $getPfSettings,
-                                                    'productClassArr' => $productClassArr,
+                                                    'dataClassArr' => $dataClassArr,
                                                     'scheEditData' => $scheEditData,
                                                     'classSelectIds' => $classSelectIds,
                                                     'brandSelectIds' => $brandSelectIds,
@@ -970,6 +989,175 @@ class ScheduleController extends \yii\web\Controller
                 'msg'=>'',
                 'data'=>[]
             ];
+        }
+    }
+
+    /**
+     * 获取所有计划爬取的文章分类以及标签
+     * @method POST
+     */
+    public function actionClassTagManage()
+    {
+        if(Yii::$app->request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+
+            $classTag = SlScheduleArticleClass::find()
+                ->alias('c')
+                ->joinWith('articleTag')
+                ->select('c.id, c.name class_name, ct.tag_id, t.name tag_name')
+                ->asArray()
+                ->all();
+            $tag = SlScheduleArticleTag::find()
+                ->asArray()
+                ->all();
+
+            $ret['ct'] = $classTag;
+            $ret['t'] = $tag;
+
+            return [
+                    'code' => '0',
+                    'data' => $ret,
+                    'msg' => ''
+                ];
+        }
+    }
+
+    /**
+     * 添加计划爬取的文章分类
+     * @method POST
+     */
+    public function actionAddArticleClass()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $name = trim(Yii::$app->request->post('n', ''));
+        if($name)
+        {
+            Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleClass::tableName(). '([[name]]) VALUES(\''. $name.'\');')->execute();
+            $id = Yii::$app->getModule('sl')->db->getLastInsertID();
+
+            if($id)
+            {
+                return [
+                        'code' => '0',
+                        'data' => $id,
+                        'msg' => ''
+                    ];
+            }
+            else
+            {
+                return [
+                        'code' => '1',
+                        'data' => [],
+                        'msg' => 'Add Failed'
+                    ];
+            }
+        }
+
+        return [
+                'code' => '-1',
+                'data' => [],
+                'msg' => 'Invalid request data'
+            ];
+    }
+
+    /**
+     * 添加计划爬取的文章标签
+     * @method POST
+     */
+    public function actionAddArticleTag()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $name = trim(Yii::$app->request->post('n', ''));
+        if($name)
+        {
+            Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleTag::tableName(). '([[name]]) VALUES(\''. $name.'\');')->execute();
+            $id = Yii::$app->getModule('sl')->db->getLastInsertID();
+
+            if($id)
+            {
+                return [
+                        'code' => '0',
+                        'data' => $id,
+                        'msg' => ''
+                    ];
+            }
+            else
+            {
+                return [
+                        'code' => '1',
+                        'data' => [],
+                        'msg' => 'Add Failed'
+                    ];
+            }
+        }
+
+        return [
+                'code' => '-1',
+                'data' => [],
+                'msg' => 'Invalid request data'
+            ];
+    }
+
+    /**
+     * 保存爬取文章的分类和标签关系
+     * @method POST
+     */
+    public function actionSaveArticleClassTag()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $tags = Yii::$app->request->post('t', '');
+        $tagMap = Yii::$app->request->post('m', '');
+
+        if(empty($tagMap) || empty($tags) || !is_array($tags) || !is_array($tagMap))
+            return [
+                'code' => '-1',
+                'data' => [],
+                'msg' => 'Invalid request data'
+            ];
+
+        $tagValues = '';
+        $tags = array_values( $tags );
+
+        foreach ($tags as $brand)
+        {
+            $brand = trim($brand);
+            if(!$brand)
+                continue;
+
+            $tagValues .= '(\'' . $brand . '\'),';
+        }
+
+        $mapValues = '';
+        foreach ($tagMap as $_tid => $_cidArr)
+        {
+            foreach ($_cidArr as $_cid)
+            {
+                $mapValues .= '(' . $_tid . ',' . $_cid . '),';
+            }
+        }
+
+        $tRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleTag::tableName(). '([[name]]) VALUES '. substr($tagValues, 0,-1))->execute();
+        $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleClassTag::tableName(). '([[tag_id]], [[class_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
+
+        if($tRet !==false && $mRet !== false)
+        {
+            return [
+                    'code' => '0',
+                    'data' => [],
+                    'msg' => ''
+                ];
+        }
+        else
+        {
+            return [
+                    'code' => '1',
+                    'data' => [],
+                    'msg' => ''
+                ];
         }
     }
 

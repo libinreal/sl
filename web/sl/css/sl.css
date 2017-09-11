@@ -272,6 +272,11 @@ div.controls .label79{
 .row__left-label{
 	margin-left: 27px;
     margin-top: 4px;
+    width: 56px;
+}
+.sl-label-empty{
+	width:87px;
+	height: 1px;
 }
 .sui-form.form-horizontal .controls.controls--special {
 	font-size: 13px;
