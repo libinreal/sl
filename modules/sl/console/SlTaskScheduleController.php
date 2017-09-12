@@ -651,8 +651,18 @@ class SlTaskScheduleController extends Controller
 				$start_date_ret = preg_replace('/-/', '', substr($crontabIdArr[$cronId]['start_time'], 0, 10));
 				$crontab_data_table = 'ws_' . $crontabIdArr[$cronId]['sche_id']. '_'.$start_date_ret.'_'.$cronId;
 
-				$crontab_data_ct = Yii::$app->db->createCommand('SELECT COUNT(*) as ct FROM ' . $crontab_data_table)->queryOne();
-				$crontab_data_num = $crontab_data_ct ? $crontab_data_ct['ct'] : 0;
+				$tableCheck = Yii::$app->db->createCommand("SHOW TABLES LIKE '". $crontab_data_table . "'" )->queryOne();//检查数据存放表是否存在
+				
+				if(!$tableCheck)
+				{
+					$crontab_data_num = 0;
+				}
+				else
+				{
+					$crontab_data_ct = Yii::$app->db->createCommand('SELECT COUNT(*) as ct FROM ' . $crontab_data_table)->queryOne();
+					$crontab_data_num = $crontab_data_ct ? $crontab_data_ct['ct'] : 0;
+				}
+
 				$accomplished_duration = round( ($time_stamp - $cronActTimeArr[$cronId]) / 3600, 1);
 
 				$alert_params = Json::decode($crontabIdArr[$cronId]['alert_params']);
