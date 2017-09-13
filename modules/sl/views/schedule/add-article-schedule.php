@@ -430,27 +430,27 @@ var curClsMapId,
 	}
 
 	//添加标签
-	function addtag(_b)
+	function addTag(_t)
 	{
-		if(_b)
+		if(_t)
 		{
 			$.ajax({
 	        url: '/sl/schedule/add-article-tag',
 	        type: 'post',
-	        data: {n:_b, _csrf:csrfToken},
+	        data: {n:_t, _csrf:csrfToken},
 	        dataType: 'json',
 	        success: function (json_data) {
 		        	if(json_data.code == '0')
 		        	{
-		        		$('#tct').append('<div onclick="gettagMap('+json_data.data+');" class="sl-list__item" data-id="'+json_data.data+'"><div>'+ _b+'</div></div>');
-		        		$('#tct').parent().children('input').remove();
+		        		$('#ctt').append('<div onclick="getTagMap('+json_data.data+');" class="sl-list__item" data-id="'+json_data.data+'"><div>'+ _t+'</div></div>');
+		        		$('#ctt').parent().children('input').remove();
 
 		        		tagClsTagArr.push({
-	        				value:_b,
+	        				value:_t,
 	        				data:json_data.data
 	        			});
 
-						$('#tct-suggest').autocomplete('setOptions', {lookup:tagClsTagArr})
+						$('#ctt-suggest').autocomplete('setOptions', {lookup:tagClsTagArr})
 		        	}
 
 		        }
@@ -1101,9 +1101,8 @@ $this->registerJs($readyJs);
 							</div>
 
 							<div class="sl-row--normal clearfix">
-								<!--<div class="fl row__left-label ">添加标签</div>-->
-								<label class="control-label sl-label-special" style="min-width: 76px;">添加标签</label>
-								<div class="controls controls--special" style="padding: 4px 0;">
+								<div class="fl row__left-label ">添加标签</div>
+								<div class="controls controls--special" style="padding: 0px 7px;">
 										<input name="" value="" type="text" id="input_key_words" class="input-medium" style="height: 24px;width:274px;" /> 
 										<button class="sui-btn btn-bordered btn-xlarge btn-primary" type="button" id="btn_add_key_words" >确定</button>
 								</div>
@@ -1355,7 +1354,7 @@ $this->registerJs($readyJs);
 									</div>
 									<div class="sl-transfer__right fl">
 										<div class="cl-title clearfix">
-											<div class="cl-title__text fl">分类列表</div>
+											<div class="cl-title__text fl">标签列表</div>
 											<div class="sl-icon--add fr ctt-add"></div>
 										</div>
 										<input id="ctt-suggest" type="text" class="input-large" placeholder="搜索" />
