@@ -137,10 +137,6 @@ class ScheduleController extends \yii\web\Controller
             $items = $q->joinWith('productBrand')
                         ->asArray()
                         ->all();
-            /*$commandQuery = clone $q;
-            echo $commandQuery->createCommand()->getRawSql();exit;*/
-
-
 
             foreach ($items as &$v) {
                 unset($v['productBrand']);
@@ -405,7 +401,6 @@ class ScheduleController extends \yii\web\Controller
             //数据验证失败
             if ( !$scheModel->load( $post, '' ) || !$scheModel->validate() )
             {
-                // var_dump( $scheModel->getErrors());exit;
                 return [
                     'code' => -1,
                     'msg' => 'Submit data error',
@@ -605,16 +600,34 @@ class ScheduleController extends \yii\web\Controller
             ];
 
         $brandValues = '';
-        $brands = array_values( $brands );
+        // $brands = array_values( $brands );
 
-        foreach ($brands as $brand)
+        $newBrandIds = [];
+        foreach ($brands as $bid => $brand)
         {
             $brand = trim($brand);
             if(!$brand)
                 continue;
+            
+            $newBrandIds[] = $bid;
 
-            $brandValues .= '(\'' . $brand . '\'),';
+            $brandValues .= '(' . $bid . ', \'' . $brand . '\'),';
         }
+
+        $origBrands = SlScheduleProductBrand::find()->select('id')->asArray()->all();
+        //Brands and maps to be deleted 
+        $delBrandIds = [];
+        foreach ($origBrands as $oB) 
+        {
+            if(!in_array( $oB['id'], $newBrandIds ))
+                $delBrandIds[] = $oB['id'];
+        }
+        //deleted records in brands and maps
+        if(!empty( $delBrandIds ))
+        {
+            SlScheduleProductBrand::deleteAll(['in', 'id', $delBrandIds]);
+        }
+        SlScheduleProductClassBrand::deleteAll();
 
         $mapValues = '';
         foreach ($brandMap as $_bid => $_cidArr)
@@ -625,7 +638,7 @@ class ScheduleController extends \yii\web\Controller
             }
         }
 
-        $bRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductBrand::tableName(). '([[name]]) VALUES '. substr($brandValues, 0,-1))->execute();
+        $bRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductBrand::tableName(). '([[id]], [[name]]) VALUES '. substr($brandValues, 0,-1))->execute();
         $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClassBrand::tableName(). '([[brand_id]], [[class_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
 
         if($bRet !==false && $mRet !== false)
@@ -633,8 +646,7 @@ class ScheduleController extends \yii\web\Controller
             return [
                     'code' => '0',
                     'data' => [],
-                    'msg' => 'INSERT IGNORE INTO '.SlScheduleProductBrand::tableName(). '([[name]]) VALUES '. substr($brandValues, 0,-1) . '  ----  ' .
-                        'INSERT IGNORE INTO '.SlScheduleProductClassBrand::tableName(). '([[brand_id]], [[class_id]]) VALUES '. substr($mapValues, 0,-1)
+                    'msg' => ''
                 ];
         }
         else
@@ -665,16 +677,34 @@ class ScheduleController extends \yii\web\Controller
             ];
 
         $clsValues = '';
-        $clses = array_values( $clses );
 
-        foreach ($clses as $cls)
+        $newClsIds = [];
+
+        foreach ($clses as $cid => $cls)
         {
             $cls = trim($cls);
             if(!$cls)
                 continue;
 
-            $clsValues .= '(\'' . $cls . '\'),';
+            $newClsIds[] = $cid;
+
+            $clsValues .= '(' . $cid . ', \'' . $cls . '\'),';
         }
+
+        $origClses = SlScheduleProductClass::find()->select('id')->asArray()->all();
+        //Classes and maps to be deleted 
+        $delClsIds = [];
+        foreach ($origClses as $oC) 
+        {
+            if(!in_array( $oC['id'], $newClsIds ))
+                $delClsIds[] = $oC['id'];
+        }
+        //deleted records in classes and maps
+        if(!empty( $delClsIds ))
+        {
+            SlScheduleProductClass::deleteAll(['in', 'id', $delClsIds]);
+        }
+        SlScheduleProductClassBrand::deleteAll();
 
         $mapValues = '';
         foreach ($clsMap as $_cid => $_bidArr)
@@ -685,7 +715,7 @@ class ScheduleController extends \yii\web\Controller
             }
         }
 
-        $cRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClass::tableName(). '([[name]]) VALUES '. substr($clsValues, 0,-1))->execute();
+        $cRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClass::tableName(). '([[id]], [[name]]) VALUES '. substr($clsValues, 0,-1))->execute();
         $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClassBrand::tableName(). '([[class_id]], [[brand_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
 
         if($cRet !==false && $mRet !== false)
@@ -802,8 +832,6 @@ class ScheduleController extends \yii\web\Controller
                     $d['act_time'] = '';
             }
             unset($d);
-            /*$commandQuery = clone $scheQuery;
-            echo $commandQuery->createCommand()->getRawSql();exit;*/
 
              return  [
                     'code'=>'0',
@@ -862,8 +890,6 @@ class ScheduleController extends \yii\web\Controller
                     $d['act_time'] = '';
             }
             unset($d);
-            /*$commandQuery = clone $scheQuery;
-            echo $commandQuery->createCommand()->getRawSql();exit;*/
 
              return  [
                     'code'=>'0',
@@ -1110,9 +1136,10 @@ class ScheduleController extends \yii\web\Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $tags = Yii::$app->request->post('t', '');
-        $tagMap = Yii::$app->request->post('m', '');
+        $clses = Yii::$app->request->post('c', '');
+        $clsMap = Yii::$app->request->post('m', '');
 
-        if(empty($tagMap) || empty($tags) || !is_array($tags) || !is_array($tagMap))
+        if(empty($clsMap) || empty($tags) || !is_array($tags) || !is_array($clsMap))
             return [
                 'code' => '-1',
                 'data' => [],
@@ -1120,28 +1147,75 @@ class ScheduleController extends \yii\web\Controller
             ];
 
         $tagValues = '';
-        $tags = array_values( $tags );
+        $clsValues = '';
 
-        foreach ($tags as $brand)
+        $newClsIds = [];
+        $newTagIds = [];
+
+        foreach ($tags as $tid => $tag)
         {
-            $brand = trim($brand);
-            if(!$brand)
+            $tag = trim($tag);
+            if(!$tag)
                 continue;
 
-            $tagValues .= '(\'' . $brand . '\'),';
+            $newTagIds[] = $tid;
+
+            $tagValues .= '('. $tid . ', \'' . $tag . '\'),';
+        }
+
+        foreach ($clses as $cid => $cls)
+        {
+            $cls = trim($cls);
+            if(!$cls)
+                continue;
+
+            $newClsIds[] = $cid;
+
+            $clsValues .= '(' . $cid . ', \'' . $cls . '\'),';
         }
 
         $mapValues = '';
-        foreach ($tagMap as $_tid => $_cidArr)
+        foreach ($clsMap as $_cid => $_cidArr)
         {
-            foreach ($_cidArr as $_cid)
+            foreach ($_cidArr as $_tid)
             {
-                $mapValues .= '(' . $_tid . ',' . $_cid . '),';
+                $mapValues .= '(' . $_cid . ',' . $_tid . '),';
             }
         }
 
-        $tRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleTag::tableName(). '([[name]]) VALUES '. substr($tagValues, 0,-1))->execute();
-        $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleClassTag::tableName(). '([[tag_id]], [[class_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
+        $origClses = SlScheduleArticleClass::find()->select('id')->asArray()->all();
+        //Classes and maps to be deleted 
+        $delClsIds = [];
+        foreach ($origClses as $oC) 
+        {
+            if(!in_array( $oC['id'], $newClsIds ))
+                $delClsIds[] = $oC['id'];
+        }
+
+        $origTags = SlScheduleArticleTag::find()->select('id')->asArray()->all();
+        //Classes and maps to be deleted 
+        $delTagIds = [];
+        foreach ($origTags as $oT) 
+        {
+            if(!in_array( $oT['id'], $newTagIds ))
+                $delTagIds[] = $oT['id'];
+        }        
+
+        if(!empty($delClsIds))
+        {
+            SlScheduleArticleClass::deleteAll(['in', 'id', $delClsIds]);
+            SlScheduleArticleClassTag::deleteAll(['in', 'class_id', $delClsIds]);
+        }
+
+        if(!empty($delTagIds))
+        {
+            SlScheduleArticleTag::deleteAll(['in', 'id', $delTagIds]);
+            SlScheduleArticleClassTag::deleteAll(['in', 'tag_id', $delTagIds]);
+        }
+
+        $tRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleTag::tableName(). '([[id]], [[name]]) VALUES '. substr($tagValues, 0,-1))->execute();
+        $tRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleClass::tableName(). '([[id]], [[name]]) VALUES '. substr($clsValues, 0,-1))->execute();
+        $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleClassTag::tableName(). '([[class_id]], [[tag_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
 
         if($tRet !==false && $mRet !== false)
         {

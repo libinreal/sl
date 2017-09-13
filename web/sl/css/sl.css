@@ -353,7 +353,7 @@ div.controls .label79{
     background-repeat: no-repeat;
     background-image: url(../img/icon_trash.png);
 }
-.cdc-del, .bdb-del{
+.ctt-del, .ctc-del, .cdc-del, .bdb-del{
 	content: '';
 	position: absolute;
 	right: 7px;

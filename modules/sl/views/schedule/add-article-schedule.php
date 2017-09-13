@@ -158,115 +158,13 @@ var curClsMapId,
 	tagClsTagArr = [],
 	tagClsClsArr = [];
 
-	function editCategory(){
-
-		$.ajax({
-        url: '/sl/schedule/class-tag-manage',
-        type: 'post',
-        data: {_csrf:csrfToken},
-        dataType: 'json',
-        success: function (json_data) {
-	        	if(json_data.code == '0')
-	        	{
-	        		curCategory = {}
-	        		curTag = {}
-	        		curCategoryMap = {}
-	        		categoryJsonData = json_data.data
-
-	        		clsTagClsArr = []
-					clsTagTagArr = []
-
-	        		for( var _k in categoryJsonData.ct)
-	        		{
-	        			//Init curCategory
-	        			curCategory[categoryJsonData.ct[_k].id] = categoryJsonData.ct[_k].class_name
-
-	        			//Init curCategoryMap
-	        			if(!curCategoryMap[categoryJsonData.ct[_k].id])
-	        				curCategoryMap[categoryJsonData.ct[_k].id] = []
-
-	        			for(var _m in categoryJsonData.ct[_k].producttag)
-	        			{
-	        				curCategoryMap[categoryJsonData.ct[_k].id].push(categoryJsonData.ct[_k].producttag[_m].id)
-	        			}
-
-	        			clsTagClsArr.push({
-	        				value:categoryJsonData.ct[_k].class_name,
-	        				data:categoryJsonData.ct[_k].id
-	        			});
-
-
-	        		}
-
-					for( var _k in categoryJsonData.b)
-	        		{
-	        			//Init curTag
-	        			curTag[categoryJsonData.b[_k].id] = categoryJsonData.b[_k].name
-
-	        			clsTagTagArr.push({
-	        				value:categoryJsonData.b[_k].name,
-	        				data:categoryJsonData.b[_k].id
-	        			});
-	        		}
-
-        			new ModalBuilder('template1', {
-						title: '新增分类',
-						shown: function(){
-							//搜索框
-							$('#ctc-suggest').autocomplete({
-								lookup:clsTagClsArr,
-								minChars:0,
-							    onSelect: function(s) {
-							    	getClassMap(s.data)
-							    }
-							});
-
-							$('#ctt-suggest').autocomplete({
-								lookup:clsTagTagArr,
-								minChars:0,
-							    onSelect: function(s) {
-							    	addClassMap(s.data)
-							    }
-							});
-
-							//添加分类
-							$('.ctc-add').on('click', function(){
-								if($('#ctc').parent().children('input').length > 0)
-									return;
-								$('#ctc').after('<input type="text" onblur="addCategory(this.value);" class="input-medium" placeholder="新分类" style="margin-left: 9px;width: 180px;box-sizing: border-box;height: 34px;">');
-							})
-						},
-						okHide: function(){
-							$.ajax({
-						        url: '/sl/schedule/save-class-map',
-						        type: 'post',
-						        data: {c:curCategory, m:curCategoryMap, _csrf:csrfToken},
-						        dataType: 'json',
-						        success: function (json_data) {
-
-						        		console.log(JSON.stringify(json_data))
-							        }
-							});
-						},
-						cancelHide: function(){
-
-						},
-					}, json_data.data);
-	        	}
-
-	        }
-	    });
-
-
-	}
-
 	//添加分类
 	function addCategory(_c)
 	{
 		if(_c)
 		{
 			$.ajax({
-	        url: '/sl/schedule/add-product-class',
+	        url: '/sl/schedule/add-article-class',
 	        type: 'post',
 	        data: {n:_c, _csrf:csrfToken},
 	        dataType: 'json',
@@ -304,9 +202,9 @@ var curClsMapId,
 			if(t.attr('data-id')==_cid)
 			{
 				t.addClass('is-active');
-				t.append('<div class="cdc-del"></div>')
+				t.append('<div class="ctc-del"></div>')
 
-				$('.cdc-del').on('click', {id:_cid}, delClass)
+				$('.ctc-del').on('click', {id:_cid}, delClass)
 			}
 		})
 
@@ -325,37 +223,53 @@ var curClsMapId,
 		$('#ct').html(bDom);
 	}
 	//把标签加到对应类下
-	function addClassMap(_bid)
+	function addClassMap(_tid)
 	{
-		_bid = String(_bid)
+		_tid = String(_tid)
 
 		if(!curClsMapId) return;//未选择分类
 
-		if($.inArray(_bid, curCategoryMap[curClsMapId]) > -1)
+		if($.inArray(_tid, curCategoryMap[curClsMapId]) > -1)
 		{
 			return;//已存在该标签
 		}
 
-		curCategoryMap[curClsMapId].push(_bid)
+		//删除标签按钮
+		$('#ctt').children('div').each(function(){
+			var t = $(this)
+
+			t.children('div:eq(1)').remove();
+				t.removeClass('is-active')
+
+			if(t.attr('data-id')==_tid)
+			{
+				t.addClass('is-active');
+				t.append('<div class="ctt-del"></div>')
+
+				$('.ctt-del').on('click', {id:_tid}, delTag)
+			}
+		})
+
+		curCategoryMap[curClsMapId].push(_tid)
 
 		$('#ct').children('div').each(function(){ $(this).removeClass('is-active');});
 
-		$('#ct').append('<div class="sl-list__item is-active" data-id="' +	_bid  	+	'"	'
-					+	'	onclick="removeCategory('+	_bid	+');">'
-					+	curTag[_bid]
+		$('#ct').append('<div class="sl-list__item is-active" data-id="' +	_tid  	+	'"	'
+					+	'	onclick="removeCategory('+	_tid	+');">'
+					+	curTag[_tid]
 					+	'</div>');
 
 	}
 
 	//从分类下移除标签
-	function removeCategory(_bid)
+	function removeCategory(_tid)
 	{
-		_bid = String(_bid)
-		var _pos = $.inArray(_bid, curCategoryMap[curClsMapId])
+		_tid = String(_tid)
+		var _pos = $.inArray(_tid, curCategoryMap[curClsMapId])
 		curCategoryMap[curClsMapId].splice(_pos, 1);
 
 		$('#ct').find('div').each(function(){
-			if($(this).attr('data-id') == _bid)
+			if($(this).attr('data-id') == _tid)
 			{
 				$(this).remove();
 			}
@@ -406,8 +320,9 @@ var curClsMapId,
 		return false;
 	}
 
-	function edittag()
+	function editTag()
 	{
+		
 		$.ajax({
         url: '/sl/schedule/class-tag-manage',
         type: 'post',
@@ -418,77 +333,84 @@ var curClsMapId,
 	        	{
 	        		curCategory = {}
 	        		curTag = {}
-	        		curTagMap = {}
-	        		tagJsonData = json_data.data
+	        		curCategoryMap = {}
+	        		categoryJsonData = json_data.data
 
-	        		tagClsTagArr = []
-					tagClsClsArr = []
+	        		clsTagClsArr = []
+					clsTagTagArr = []
 
-	        		for( var _k in tagJsonData.tc)
+	        		for( var _k in categoryJsonData.ct)
 	        		{
-	        			//Init curTag
-	        			curTag[tagJsonData.tc[_k].id] = tagJsonData.tc[_k].tag_name
+	        			//Init curCategory
+	        			curCategory[categoryJsonData.ct[_k].id] = categoryJsonData.ct[_k].class_name
 
-	        			//Init curTagMap
-	        			if(!curTagMap[tagJsonData.tc[_k].id])
-	        				curTagMap[tagJsonData.tc[_k].id] = []
+	        			//Init curCategoryMap
+	        			if(!curCategoryMap[categoryJsonData.ct[_k].id])
+	        				curCategoryMap[categoryJsonData.ct[_k].id] = []
 
-	        			for(var _m in tagJsonData.tc[_k].productClass)
+	        			for(var _m in categoryJsonData.ct[_k].producttag)
 	        			{
-	        				curTagMap[tagJsonData.tc[_k].id].push(tagJsonData.tc[_k].productClass[_m].id)
+	        				curCategoryMap[categoryJsonData.ct[_k].id].push(categoryJsonData.ct[_k].producttag[_m].id)
 	        			}
 
-	        			tagClsTagArr.push({
-	        				value:tagJsonData.tc[_k].tag_name,
-	        				data:tagJsonData.tc[_k].id
+	        			clsTagClsArr.push({
+	        				value:categoryJsonData.ct[_k].class_name,
+	        				data:categoryJsonData.ct[_k].id
 	        			});
 
 
 	        		}
 
-					for( var _k in tagJsonData.c)
+					for( var _k in categoryJsonData.t)
 	        		{
 	        			//Init curTag
-	        			curCategory[tagJsonData.c[_k].id] = tagJsonData.c[_k].name
+	        			curTag[categoryJsonData.t[_k].id] = categoryJsonData.t[_k].name
 
-	        			tagClsClsArr.push({
-	        				value:tagJsonData.c[_k].name,
-	        				data:tagJsonData.c[_k].id
+	        			clsTagTagArr.push({
+	        				value:categoryJsonData.t[_k].name,
+	        				data:categoryJsonData.t[_k].id
 	        			});
 	        		}
 
-        			new ModalBuilder('template2', {
-						title: '新增标签',
+        			new ModalBuilder('template1', {
+						title: '新增分类',
 						shown: function(){
 							//搜索框
-							$('#tct-suggest').autocomplete({
-								lookup:tagClsTagArr,
+							$('#ctc-suggest').autocomplete({
+								lookup:clsTagClsArr,
 								minChars:0,
 							    onSelect: function(s) {
-							    	gettagMap(s.data)
+							    	getClassMap(s.data)
 							    }
 							});
 
-							$('#tcc-suggest').autocomplete({
-								lookup:tagClsClsArr,
+							$('#ctt-suggest').autocomplete({
+								lookup:clsTagTagArr,
 								minChars:0,
 							    onSelect: function(s) {
-							    	addtagMap(s.data)
+							    	addClassMap(s.data)
 							    }
 							});
+
+							//添加分类
+							$('.ctc-add').on('click', function(){
+								if($('#ctc').parent().children('input').length > 0)
+									return;
+								$('#ctc').after('<input type="text" onblur="addCategory(this.value);" class="input-medium" placeholder="新分类" style="margin-left: 9px;width: 180px;box-sizing: border-box;height: 34px;">');
+							})
 
 							//添加标签
-							$('.tct-add').on('click', function(){
-								if($('#tct').parent().children('input').length > 0)
+							$('.ctt-add').on('click', function(){
+								if($('#ctt').parent().children('input').length > 0)
 									return;
-								$('#tct').after('<input type="text" onblur="addtag(this.value);" class="input-medium" placeholder="新标签" style="margin-left: 9px;width: 180px;box-sizing: border-box;height: 34px;">');
+								$('#ctt').after('<input type="text" onblur="addTag(this.value);" class="input-medium" placeholder="新标签" style="margin-left: 9px;width: 180px;box-sizing: border-box;height: 34px;">');
 							})
 						},
 						okHide: function(){
 							$.ajax({
-						        url: '/sl/schedule/save-tag-map',
+						        url: '/sl/schedule/save-class-map',
 						        type: 'post',
-						        data: {b:curTag, m:curTagMap, _csrf:csrfToken},
+						        data: {c:curCategory, m:curCategoryMap, _csrf:csrfToken},
 						        dataType: 'json',
 						        success: function (json_data) {
 
@@ -505,7 +427,6 @@ var curClsMapId,
 	        }
 	    });
 
-
 	}
 
 	//添加标签
@@ -514,7 +435,7 @@ var curClsMapId,
 		if(_b)
 		{
 			$.ajax({
-	        url: '/sl/schedule/add-product-tag',
+	        url: '/sl/schedule/add-article-tag',
 	        type: 'post',
 	        data: {n:_b, _csrf:csrfToken},
 	        dataType: 'json',
@@ -537,81 +458,8 @@ var curClsMapId,
 		}
 	}
 
-	//显示标签下的类
-	function gettagMap(_bid)
-	{
-		_bid = String(_bid)
-		curTagMapId = _bid;
-
-		$('#tct').children('div').each(function(){
-			var t = $(this)
-
-			t.children('div:eq(1)').remove();
-				t.removeClass('is-active')
-
-			if(t.attr('data-id')==_bid)
-			{
-				t.addClass('is-active');
-				t.append('<div class="bdb-del"></div>')
-
-				$('.bdb-del').on('click', {id:_bid}, deltag)
-			}
-		})
-
-		var cDom = ''
-
-		for(var _k in curTagMap[_bid])
-		{
-
-			cDom += '<div class="sl-list__item" data-id="' +	curTagMap[_bid][_k]  	+	'"	'
-					+	'	onclick="removetag('+	curTagMap[_bid][_k]	+');">'
-					+	curCategory[curTagMap[_bid][_k]]
-					+	'</div>'
-
-		}
-
-		$('#tc').html(cDom);
-	}
-	//把类加到标签下
-	function addtagMap(_cid)
-	{
-		_cid = String(_cid)
-
-		if(!curTagMapId) return;//未选择标签
-
-		if($.inArray(_cid, curTagMap[curTagMapId]) > -1)
-		{
-			return;//已存在该类
-		}
-
-		curTagMap[curTagMapId].push(_cid)
-
-		$('#tc').children('div').each(function(){ $(this).removeClass('is-active');});
-
-		$('#tc').append('<div class="sl-list__item is-active" data-id="' +	_cid  	+	'"	'
-					+	'	onclick="removetag('+	_cid	+');">'
-					+	curCategory[_cid]
-					+	'</div>');
-
-	}
-
-	//从标签下移除分类
-	function removetag(_cid)
-	{
-		_cid = String(_cid)
-		var _pos = $.inArray(_cid, curTagMap[curTagMapId])
-		curTagMap[curTagMapId].splice(_pos, 1);
-
-		$('#tc').find('div').each(function(){
-			if($(this).attr('data-id') == _cid)
-			{
-				$(this).remove();
-			}
-		});
-	}
-
 	//删除标签
-	function deltag(e)
+	function delTag(e)
 	{
 		e.preventDefault();
 		_bid = String(e.data.id)
@@ -1253,8 +1101,17 @@ $this->registerJs($readyJs);
 							</div>
 
 							<div class="sl-row--normal clearfix">
+								<!--<div class="fl row__left-label ">添加标签</div>-->
+								<label class="control-label sl-label-special" style="min-width: 76px;">添加标签</label>
+								<div class="controls controls--special" style="padding: 4px 0;">
+										<input name="" value="" type="text" id="input_key_words" class="input-medium" style="height: 24px;width:274px;" /> 
+										<button class="sui-btn btn-bordered btn-xlarge btn-primary" type="button" id="btn_add_key_words" >确定</button>
+								</div>
+							</div>
+
+							<div class="sl-row--normal clearfix">
 								<div class="fl row__left-label">标签</div>
-								<button type="button" class="sui-btn btn-primary fr top-radius" onclick="edittag()">标签维护</button>
+								<button type="button" class="sui-btn btn-primary fr top-radius" onclick="editTag()">标签维护</button>
 							</div>
 							<div class="control-group mb1">
 								<label class="control-label sl-label-special" style="min-width: 76px;">
@@ -1360,7 +1217,7 @@ $this->registerJs($readyJs);
 								<label class="control-label" style="min-width: 68px;padding-right: 10px;">抓取内容</label>
 								<div class="controls">
 									<label class="checkbox-pretty inline-block" style="margin-bottom: 0;line-height: 34px;">
-										<input value="商品" name="dt_category[]" type="checkbox" data-rules="required"><span>商品</span>
+										<input value="文章" name="dt_category[]" type="checkbox" data-rules="required"><span>文章</span>
 									</label>
 									
 								</div>
@@ -1454,7 +1311,7 @@ $this->registerJs($readyJs);
 				</div>
 				</form>
 			</div>
-<script id="template1" type="text/html">
+		<script id="template1" type="text/html">
 			<div id="myModal1" tabindex="-1" role="dialog" data-hasfoot="false" class="sui-modal hide fade">
 			  <div class="modal-dialog">
 				<div class="modal-content">
@@ -1498,83 +1355,14 @@ $this->registerJs($readyJs);
 									</div>
 									<div class="sl-transfer__right fl">
 										<div class="cl-title clearfix">
-											<div class="cl-title__text fl">标签列表</div>
+											<div class="cl-title__text fl">分类列表</div>
+											<div class="sl-icon--add fr ctt-add"></div>
 										</div>
 										<input id="ctt-suggest" type="text" class="input-large" placeholder="搜索" />
 										<div class="sl-list-block">
 											<div class="sl-list sl-list--tag" id="ctt">
-												{{each b as bv}}
-												<div onclick="addClassMap({{bv.id}});" class="sl-list__item" data-id="{{bv.id}}">{{bv.name}}</div>
-												{{/each}}
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-				  </div>
-				  <div class="modal-footer">
-					<button type="button" data-ok="modal" class="sui-btn btn-primary btn-borderadius sl-btn--md">提交</button>
-					<button type="button" data-dismiss="modal" class="sui-btn btn-borderadius sl-btn--md" style="margin-left: 80px;">取消</button>
-				  </div>
-				</div>
-			  </div>
-			</div>
-		</script>
-
-		<script id="template2" type="text/html">
-			<div id="myModal2" tabindex="-1" role="dialog" data-hasfoot="false" class="sui-modal hide fade">
-			  <div class="modal-dialog">
-				<div class="modal-content">
-				  <div class="modal-header">
-					<h4 id="myModalLabel" class="modal-title">Modal title111</h4>
-				  </div>
-				  <div class="modal-body">
-						<div class="sl-category-wrapper sui-form clearfix">
-							<div class="sl-category__left fl" >
-								<div class="cl-title clearfix">
-									<div class="cl-title__text fl">标签列表</div>
-									<div class="sl-icon--add fr tct-add"></div>
-								</div>
-								<input id="tct-suggest" type="text" class="input-large" placeholder="搜索" />
-								<div class="sl-list-block">
-									<div class="sl-list sl-list--tag"  id="tct">
-										{{each tc as bv}}
-										<div data-id="{{bv.id}}" onclick="gettagMap({{bv.id}});" class="sl-list__item"><div>{{bv.tag_name}}</div></div>
-										{{/each}}
-									</div>
-
-
-								</div>
-
-							</div>
-							<div class="sl-category__right fl">
-								<div class="sl-transfer clearfix">
-									<div class="sl-transfer__left fl">
-										<div class="cl-title clearfix" style="padding-bottom: 46px;">
-											<div class="cl-title__text fl">关联分类</div>
-										</div>
-										<div class="sl-list-block">
-											<div class="sl-list sl-list--linkedCategory" id="tc">
-											</div>
-										</div>
-									</div>
-									<div class="sl-transfer__btns fl">
-										<div class="slt-btns">
-											<div class="slt-btn"><i class="sui-icon icon-arrow-fat-right sl-icon--arrow"></i></div>
-											<div class="slt-btn" style="margin-top: 5px;"><i class="sui-icon icon-arrow-fat-left sl-icon--arrow"></i></div>
-										</div>
-
-									</div>
-									<div class="sl-transfer__right fl">
-										<div class="cl-title clearfix">
-											<div class="cl-title__text fl">分类列表</div>
-										</div>
-										<input type="text" id="tcc-suggest" class="input-large" placeholder="搜索" />
-										<div class="sl-list-block">
-											<div class="sl-list sl-list--category" id="tcc">
-												{{each c as cv}}
-												<div data-id="{{cv.id}}" onclick="addtagMap({{cv.id}});" class="sl-list__item">{{cv.name}}</div>
+												{{each t as tv}}
+												<div onclick="addClassMap({{tv.id}});" class="sl-list__item" data-id="{{tv.id}}">{{tv.name}}</div>
 												{{/each}}
 											</div>
 										</div>
