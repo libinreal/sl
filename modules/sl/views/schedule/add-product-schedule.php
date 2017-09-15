@@ -281,6 +281,8 @@ var curClsMapId,
 	        				data:json_data.data
 	        			});
 
+	        			curCategory[json_data.data] = _c;
+
 						$('#cbc-suggest').autocomplete( 'setOptions', {lookup:clsBrandClsArr})
 		        	}
 
@@ -528,6 +530,8 @@ var curClsMapId,
 	        				value:_b,
 	        				data:json_data.data
 	        			});
+
+	        			curBrand[json_data.data] = _b;
 
 						$('#bcb-suggest').autocomplete('setOptions', {lookup:brandClsBrandArr})
 		        	}
@@ -1255,7 +1259,7 @@ $this->registerJs($readyJs);
 									<div class="sl-checkbox-group" id="product_class_tags" style="width: 100%; box-sizing: border-box;">
 										<?php
 											foreach ($dataClassArr as $k => $v) {
-												echo '<label class="checkbox-pretty inline-block"><input data-index="'. $v['id'] . '" onclick="onCheckProductClass(\''. $v['id'] . '\', this);" name="class_name[]" type="checkbox" value="'.$v['name'].'"  data-rules="required"><span>'.$v['name'].'</span></label>';
+												echo '<label class="checkbox-pretty inline-block"><input data-index="'. $v['id'] . '" onclick="onCheckProductClass(\''. $v['id'] . '\', this);" name="class_name[]" type="checkbox" value="'.$v['class_name'].'"  data-rules="required"><span>'.$v['class_name'].'</span></label>';
 											}
 										?>
 									</div>

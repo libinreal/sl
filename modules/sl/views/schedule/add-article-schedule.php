@@ -179,6 +179,8 @@ var curClsMapId,
 	        				data:json_data.data
 	        			});
 
+	        			curCategory[json_data.data] = _c
+
 						$('#ctc-suggest').autocomplete( 'setOptions', {lookup:clsTagClsArr})
 		        	}
 
@@ -227,13 +229,6 @@ var curClsMapId,
 	{
 		_tid = String(_tid)
 
-		if(!curClsMapId) return;//未选择分类
-
-		if($.inArray(_tid, curCategoryMap[curClsMapId]) > -1)
-		{
-			return;//已存在该标签
-		}
-
 		//删除标签按钮
 		$('#ctt').children('div').each(function(){
 			var t = $(this)
@@ -250,14 +245,21 @@ var curClsMapId,
 			}
 		})
 
-		curCategoryMap[curClsMapId].push(_tid)
+		if(curClsMapId)//已选择分类
+		{
+			if($.inArray(_tid, curCategoryMap[curClsMapId]) > -1)
+			{
+				return;//已存在该标签
+			}
+			curCategoryMap[curClsMapId].push(_tid)
 
-		$('#ct').children('div').each(function(){ $(this).removeClass('is-active');});
+			$('#ct').children('div').each(function(){ $(this).removeClass('is-active');});
 
-		$('#ct').append('<div class="sl-list__item is-active" data-id="' +	_tid  	+	'"	'
-					+	'	onclick="removeCategory('+	_tid	+');">'
-					+	curTag[_tid]
-					+	'</div>');
+			$('#ct').append('<div class="sl-list__item is-active" data-id="' +	_tid  	+	'"	'
+						+	'	onclick="removeCategory('+	_tid	+');">'
+						+	curTag[_tid]
+						+	'</div>');
+		}
 
 	}
 
@@ -348,9 +350,9 @@ var curClsMapId,
 	        			if(!curCategoryMap[categoryJsonData.ct[_k].id])
 	        				curCategoryMap[categoryJsonData.ct[_k].id] = []
 
-	        			for(var _m in categoryJsonData.ct[_k].producttag)
+	        			for(var _m in categoryJsonData.ct[_k].articleTag)
 	        			{
-	        				curCategoryMap[categoryJsonData.ct[_k].id].push(categoryJsonData.ct[_k].producttag[_m].id)
+	        				curCategoryMap[categoryJsonData.ct[_k].id].push(categoryJsonData.ct[_k].articleTag[_m].id)
 	        			}
 
 	        			clsTagClsArr.push({
@@ -408,9 +410,9 @@ var curClsMapId,
 						},
 						okHide: function(){
 							$.ajax({
-						        url: '/sl/schedule/save-class-map',
+						        url: '/sl/schedule/save-article-class-tag',
 						        type: 'post',
-						        data: {c:curCategory, m:curCategoryMap, _csrf:csrfToken},
+						        data: {c:curCategory, m:curCategoryMap, t:curTag, _csrf:csrfToken},
 						        dataType: 'json',
 						        success: function (json_data) {
 
@@ -429,7 +431,57 @@ var curClsMapId,
 
 	}
 
-	//添加标签
+	//添加标签(页面添加)
+	function addArticleTag()
+	{
+
+	}
+
+	//刷新页面标签
+	function refreshArticleTag()
+	{
+		var ctDom = $('#article_class_tags'),
+			tDom = $('#article_tags'),
+			ctStr = '',
+			tStr = '',
+			clStr = '',
+			tlStr = '',
+			cCheck = ''
+
+
+		for(var _k in class_map)
+		{
+			//class label
+			clStr = '<div class="tc-div"><label class="checkbox-pretty inline-block"><input value="' + class_map[_k]['class_name'] +'" name="class_name[]" type="checkbox" data-rules="required" checked="">		<span>'+ class_map[_k]['class_name'] +'</span></label></div>';
+			
+			//tags label
+			tlStr = '<div class="tct-div">'
+			for(var _t in class_map[_k]['articleTag'])
+			{
+				cCheck = ''
+				
+				if($.inArray(class_map[_k]['articleTag']['id'], tag_select) > -1 )
+				{
+					cCheck = 'checked'
+				}
+
+				tlStr += '<label class="checkbox-pretty inline-block '+ cCheck +'"><input value="' + class_map[_k]['articleTag'][_t] + ' name="tag_name[]" type="checkbox" data-rules="required" checked="'+ cCheck +'"><span>'+  +'</span></label>'
+			}
+			tlStr += '</div>'
+
+			//class tags label
+			ctStr += '<div id="'+ class_map[_k]['id'] +'">' + clStr + tlStr +'</div>';
+
+		}
+
+		//render `article_class_tags` html
+		ctDom.html(ctStr)
+
+
+
+	}
+
+	//添加标签(对话框添加)
 	function addTag(_t)
 	{
 		if(_t)
@@ -442,15 +494,17 @@ var curClsMapId,
 	        success: function (json_data) {
 		        	if(json_data.code == '0')
 		        	{
-		        		$('#ctt').append('<div onclick="getTagMap('+json_data.data+');" class="sl-list__item" data-id="'+json_data.data+'"><div>'+ _t+'</div></div>');
+		        		$('#ctt').append('<div onclick="addClassMap('+json_data.data+');" class="sl-list__item" data-id="'+json_data.data+'"><div>'+ _t+'</div></div>');
 		        		$('#ctt').parent().children('input').remove();
 
-		        		tagClsTagArr.push({
+		        		clsTagTagArr.push({
 	        				value:_t,
 	        				data:json_data.data
 	        			});
 
-						$('#ctt-suggest').autocomplete('setOptions', {lookup:tagClsTagArr})
+	        			curTag[json_data.data] = _t
+
+						$('#ctt-suggest').autocomplete('setOptions', {lookup:clsTagTagArr})
 		        	}
 
 		        }
@@ -462,30 +516,53 @@ var curClsMapId,
 	function delTag(e)
 	{
 		e.preventDefault();
-		_bid = String(e.data.id)
+		_tid = String(e.data.id)
 
 		$.confirm({
 			title:'提示',
 			body:'是否删除标签和关联分类？',
 			okHide:function(){
-				delete curTag[_bid];
-				delete curTagMap[_bid];
+				delete curTag[_tid];
 
-				$('#tct').children('div').each(function(){
-					if($(this).attr('data-id') == _bid)
+				$('#ctt').children('div').each(function(){
+					if($(this).attr('data-id') == _tid)
 					{
 						$(this).remove();
 					}
 				})
 
-				$('#tc').empty()
-				if(_bid == curTagMapId)
-					curTagMapId = null;
+				var _pos
+				for(var _cid in curCategoryMap)
+				{
+
+					_pos = $.inArray(_tid, curCategoryMap[_cid])
+
+					if( _pos > -1 )
+					{
+						curCategoryMap[_cid].splice(_pos, 1);//delete tag in maps array
+
+						if(curClsMapId == _cid)// delete tag in the map div.
+						{
+							$("#ct").children("div").each(function(){
+								
+								var t = $(this)
+								
+								if(t.attr('data-id') == _tid)
+								{
+									t.remove();								
+								}
+
+							})
+						}
+					}
+
+				}
+
 
     			var _kDel
-    			for(var _k in tagClsTagArr)
+    			for(var _k in clsTagTagArr)
     			{
-    				if( String(tagClsTagArr[_k].data) == _bid)
+    				if( String(clsTagTagArr[_k].data) == _tid)
     				{
     					_kDel = _k
     					break;
@@ -493,9 +570,9 @@ var curClsMapId,
     			}
 
     			if(_kDel)
-    				tagClsTagArr.splice(_kDel, 1);
+    				clsTagTagArr.splice(_kDel, 1);
 
-				$('#tct-suggest').autocomplete('setOptions', {lookup:tagClsTagArr})
+				$('#ctt-suggest').autocomplete('setOptions', {lookup:clsTagTagArr})
 			}
 		})
 
@@ -570,109 +647,6 @@ function onChangeRepeat(_e)
 	}
 }
 
-/**
- * 获取最新的产品分类列表
- * @return void
- */
-function getProductClass()
-{
-	$.ajax({
-        url: '/sl/schedule/get-product-class',
-        type: 'post',
-        data: {_csrf:csrfToken},
-        dataType: 'json',
-        success: function (json_data) {
-        	if(json_data.code == '0')
-        	{
-        		var items = json_data.data;
-        		var items_len = items.length;
-        		var html_str = '';
-
-        		for(var i = 0;i < items_len;i++)
-        		{
-        			html_str += '<label class="checkbox-pretty inline-block"><input data-index="'+ items[i]['id'] +'" onclick="onCheckProductClass(\''+ items[i]['id'] +'\', this);" value="'+ items[i]['name'] +'" name="class_name[]" type="checkbox"><span>'+ items[i]['name'] +'</span></label>';
-        		}
-        		$('#product_tag_tags').html(html_str);
-        	}
-
-        }
-    });
-}
-
-/**
- * 选择产品分类触发
- * @param  cid 分类id
- * @param  _input 分类选框
- * @return
- */
-function onCheckProductClass(cid, _input)
-{
-	_input = $(_input)
-	var stat = $.inArray(cid, class_select) < 0//不在列表中 值为true
-
-	getProducttag(cid, function(){
-		//console.log(' getProducttag stat aft '+ stat);
-		if( stat )
-		{
-			$('#product_tag_tags').children('#tag_cid_'+cid).find(".checkbox-pretty").each(function(){
-
-				_e = $(this)
-				_e.addClass('checked')
-				_e.find('input').attr('checked', true)
-
-			});
-
-			class_select.push(cid);
-			_input.attr('checked', true)
-			_input.parent().hasClass('checked') || _input.parent().addClass('checked')
-		}
-		else
-		{
-			var _i = $.inArray(cid, class_select)
-			class_select.splice(_i, 1);
-			$('#tag_cid_'+cid).html('');
-
-			_input.attr('checked', false)
-			_input.parent().hasClass('checked') && _input.parent().removeClass('checked')
-		}
-
-	});
-
-}
-
-/**
- * 获取最新的产品标签列表
- * @param class_id class_id
- * @return void
- */
-function getProducttag(class_id, func )
-{
-	$.ajax({
-        url: '/sl/schedule/get-product-tag',
-        type: 'post',
-        data: {_csrf:csrfToken, class_id:class_id},
-        dataType: 'json',
-        success: function (json_data) {
-        	if(json_data.code == '0')
-        	{
-        		var items = json_data.data;
-        		var items_len = items.length;
-        		var html_str = '';
-
-    			for(var j = 0;j< items_len;j++)//标签
-    			{
-    				html_str += '<label class="checkbox-pretty inline-block"><input value="'+ items[j]['name'] +'" name="tag_name[]" type="checkbox"><span>'+ items[j]['name'] +'</span></label>';
-    			}
-    			$('#product_tag_tags').children('#tag_cid_'+class_id).html(html_str);
-
-        		if(func) func();
-
-        	}
-
-        }
-    });
-}
-
 var class_stat = [true,true],
 	tag_stat = [true,true],
 	class_select = <?php if(!empty($classSelectIds)): echo Json::encode($classSelectIds); else: echo '[]'; endif;?>,
@@ -688,114 +662,6 @@ var class_stat = [true,true],
 	sche_time_set = <?php if(!empty($scheEditData) && !empty($scheEditData["sche_time"]) ): /*var_dump($scheEditData);exit;*/echo "'".$scheEditData["sche_time"]."'";else: echo "\"\"";endif;?>,
 	week_days_set = <?php if(!empty($scheEditData)  && !empty($scheEditData["week_days"]) ): echo "'".$scheEditData["week_days"]."'";else: echo "\"\"";endif;?>,
 	month_days_set = <?php if(!empty($scheEditData)  && !empty($scheEditData["month_days"]) ): echo "'".$scheEditData["month_days"]."'";else: echo "\"\"";endif;?>;
-
-//全选
-$('#class_all_select').on('click', 'input', function(e){
-	var stat = class_stat[0]
-
-	if(stat)
-		$(this).addClass('checked');
-	else
-		$(this).removeClass('checked');
-
-	$('#product_class_tags').find('.checkbox-pretty').each(function(){
-
-		_e = $(this)
-		var _ei = $.inArray(_e.find('input').attr('data-index'), class_select)
-
-		if(_ei < 0 )
-		{
-			_e.addClass('checked');
-			var _input = _e.find('input')
-			_input.attr('checked', true);
-
-			onCheckProductClass(_input.attr('data-index'), _input);
-		}
-		else
-		{
-			_e.removeClass('checked');
-			var _input = _e.find('input')
-			_input.attr('checked', false);
-
-			onCheckProductClass(_input.attr('data-index'), _input);
-		}
-	})
-
-	class_stat[0] = !stat
-})
-//反选
-$('#class_all_cancel').on('click', 'input',  function(e){
-
-	var stat = class_stat[1]
-
-	if(stat)
-		$(this).addClass('checked');
-	else
-		$(this).removeClass('checked');
-
-	$('#product_class_tags').find('.checkbox-pretty').each(function(){
-		_e = $(this)
-
-		if(!_e.hasClass('checked'))
-		{
-			_e.addClass('checked');
-			var _input = _e.find('input')
-			_input.attr('checked', true);
-
-			onCheckProductClass(_input.attr('data-index'), _input);
-		}
-		else
-		{
-			_e.removeClass('checked');
-			var _input = _e.find('input')
-			_input.attr('checked', false);
-
-			onCheckProductClass(_input.attr('data-index'), _input);
-		}
-	})
-
-	class_stat[1] = !stat
-})
-
-//全选
-$('#tag_all_select').on('click', 'input', function(e){
-
-	var stat = tag_stat[0]
-
-	$('#product_tag_tags').find('.checkbox-pretty').each(function(){
-		_e = $(this)
-		if(!_e.hasClass('checked'))
-		{
-			_e.addClass('checked');
-			_e.find('input').attr('checked', true);
-		}
-		else
-		{
-			_e.removeClass('checked');
-			_e.find('input').attr('checked', false);
-		}
-	})
-	tag_stat[0] = !stat
-})
-//反选
-$('#tag_all_cancel').on('click', 'input', function(e){
-	var stat = tag_stat[1]
-
-	$('#product_tag_tags').find('.checkbox-pretty').each(function(){
-		_e = $(this)
-		if(_e.hasClass('checked')){
-			_e.removeClass('checked');
-			_e.find('input').attr('checked', false);
-		}
-		else if(!_e.hasClass('checked'))
-		{
-			_e.addClass('checked');
-			_e.find('input').attr('checked', true);
-		}
-	})
-	tag_stat[1] = !stat
-})
-
 
 //周点击
 $("#sche_week_tags").on("click", "li", function(_e){
@@ -913,35 +779,6 @@ $this->registerJs($this->blocks['addScheJs'], \yii\web\View::POS_END);
 app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 
 $readyJs =<<<EOT
-	//编辑-标签-初始化
-	$('#product_class_tags').find("input").each(function(){
-		var _e = $(this)
-		var cid = _e.attr('data-index')
-		var ctStr//类下的标签
-		if( $.inArray(cid, class_select) > -1)
-		{
-			_e.attr('checked', true)
-			_e.parent().addClass('checked');
-
-			ctObj = {};
-			for(var ct in class_map)
-			{
-				if( class_map[ct]['id'] == cid && $.inArray(class_map[ct]['tag_id'], tag_select) > -1 )
-				{
-					if( ctObj[cid] )
-						ctObj[cid] += '<label class="checkbox-pretty inline-block checked"><input value="'+ class_map[ct]['name'] +'" name="tag_name[]" type="checkbox" data-rules="required" checked="true"><span>'+ class_map[ct]['name'] +'</span></label>';
-					else
-						ctObj[cid] = '<label class="checkbox-pretty inline-block checked"><input value="'+ class_map[ct]['name'] +'" name="tag_name[]" type="checkbox" data-rules="required" checked="true"><span>'+ class_map[ct]['name'] +'</span></label>';
-				}
-			}
-
-			for(var b in  ctObj)//标签
-			{
-				$('#tag_cid_'+b).html(ctObj[b])
-			}
-		}
-	})
-
 	//渠道-初始化
 	$(".tab-pane").find("input[name='pf_name[]']").each(function(){
 		var _pfCookie,
@@ -1095,7 +932,7 @@ $this->registerJs($readyJs);
 							<div class="control-group mb1">
 								<div class="sl-label-empty"></div>
 								<div class="controls controls--special" style="width: 100%;">
-									<div class="sl-checkbox-group" id="article_class_tags" style="width: 100%; box-sizing: border-box;">
+									<div class="sl-checkbox-group" id="article_tags" style="width: 100%; box-sizing: border-box;">
 									</div>
 								</div>
 							</div>
@@ -1104,7 +941,7 @@ $this->registerJs($readyJs);
 								<div class="fl row__left-label ">添加标签</div>
 								<div class="controls controls--special" style="padding: 0px 7px;">
 										<input name="" value="" type="text" id="input_key_words" class="input-medium" style="height: 24px;width:274px;" /> 
-										<button class="sui-btn btn-bordered btn-xlarge btn-primary" type="button" id="btn_add_key_words" >确定</button>
+										<button class="sui-btn btn-bordered btn-xlarge btn-primary" type="button" id="btn_add_key_words" onclick="addArticleTag();" >确定</button>
 								</div>
 							</div>
 
@@ -1113,21 +950,9 @@ $this->registerJs($readyJs);
 								<button type="button" class="sui-btn btn-primary fr top-radius" onclick="editTag()">标签维护</button>
 							</div>
 							<div class="control-group mb1">
-								<label class="control-label sl-label-special" style="min-width: 76px;">
-									<label  id="tag_all_select" class="checkbox-pretty ">
-										<input type="checkbox"><span>全选</span>
-									</label>
-									<label  id="tag_all_cancel" class="checkbox-pretty ">
-										<input type="checkbox"><span>反选</span>
-									</label>
-								</label>
+								<div class="sl-label-empty"></div>
 								<div class="controls controls--special" style="width: 100%;">
-									<div class="sl-checkbox-group" id="product_tag_tags" style="width: 100%; box-sizing: border-box;">
-										<?php
-											foreach ($dataClassArr as $k => $v) {
-												echo '<div id="tag_cid_'. $v['id'] .'"></div>';
-											}
-										?>
+									<div class="sl-checkbox-group" id="article_class_tags" style="width: 100%; box-sizing: border-box;">
 									</div>
 								</div>
 							</div>
@@ -1361,7 +1186,7 @@ $this->registerJs($readyJs);
 										<div class="sl-list-block">
 											<div class="sl-list sl-list--tag" id="ctt">
 												{{each t as tv}}
-												<div onclick="addClassMap({{tv.id}});" class="sl-list__item" data-id="{{tv.id}}">{{tv.name}}</div>
+												<div onclick="addClassMap({{tv.id}});" class="sl-list__item" data-id="{{tv.id}}"><div>{{tv.name}}</div></div>
 												{{/each}}
 											</div>
 										</div>

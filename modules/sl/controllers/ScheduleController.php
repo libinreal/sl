@@ -367,11 +367,23 @@ class ScheduleController extends \yii\web\Controller
 
             if( $get['data_type'] == 'product' )
             {
-                $dataClassArr = SlScheduleProductClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
+                $dataClassArr = SlScheduleProductClass::find()
+                ->alias('c')
+                ->joinWith('productBrand')
+                ->select('c.id, c.name class_name, cb.brand_id, b.name brand_name')
+                ->asArray()
+                ->all();
+                
             }
             else if( $get['data_type'] == 'article' )
             {
-                $dataClassArr = SlScheduleArticleClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
+                $dataClassArr = SlScheduleArticleClass::find()
+                ->alias('c')
+                ->joinWith('articleTag')
+                ->select('c.id, c.name class_name, ct.tag_id, t.name tag_name')
+                ->asArray()
+                ->all();
+                
             }  
 
             return $this->render($viewName, ['pfSettings' => $getPfSettings,
@@ -589,15 +601,8 @@ class ScheduleController extends \yii\web\Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $brands = Yii::$app->request->post('b', '');
-        $brandMap = Yii::$app->request->post('m', '');
-
-        if(empty($brandMap) || empty($brands) || !is_array($brands) || !is_array($brandMap))
-            return [
-                'code' => '-1',
-                'data' => [],
-                'msg' => 'Invalid request data'
-            ];
+        $brands = Yii::$app->request->post('b', []);
+        $brandMap = Yii::$app->request->post('m', []);
 
         $brandValues = '';
         // $brands = array_values( $brands );
@@ -638,8 +643,14 @@ class ScheduleController extends \yii\web\Controller
             }
         }
 
-        $bRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductBrand::tableName(). '([[id]], [[name]]) VALUES '. substr($brandValues, 0,-1))->execute();
-        $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClassBrand::tableName(). '([[brand_id]], [[class_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
+        $bRet = true;
+        $mRet = true;
+
+        if(!empty($brandValues))
+            $bRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductBrand::tableName(). '([[id]], [[name]]) VALUES '. substr($brandValues, 0,-1))->execute();
+
+        if(!empty($mapValues))
+            $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClassBrand::tableName(). '([[brand_id]], [[class_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
 
         if($bRet !==false && $mRet !== false)
         {
@@ -666,15 +677,8 @@ class ScheduleController extends \yii\web\Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $clses = Yii::$app->request->post('c', '');
-        $clsMap = Yii::$app->request->post('m', '');
-
-        if(empty($clsMap) || empty($clses) || !is_array($clses) || !is_array($clsMap))
-            return [
-                'code' => '-1',
-                'data' => [],
-                'msg' => 'Invalid request data'
-            ];
+        $clses = Yii::$app->request->post('c', []);
+        $clsMap = Yii::$app->request->post('m', []);
 
         $clsValues = '';
 
@@ -715,8 +719,14 @@ class ScheduleController extends \yii\web\Controller
             }
         }
 
-        $cRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClass::tableName(). '([[id]], [[name]]) VALUES '. substr($clsValues, 0,-1))->execute();
-        $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClassBrand::tableName(). '([[class_id]], [[brand_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
+        $cRet = true;
+        $mRet = true;
+
+        if(!empty($clsValues))
+            $cRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClass::tableName(). '([[id]], [[name]]) VALUES '. substr($clsValues, 0,-1))->execute();
+
+        if(!empty($mapValues))
+            $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClassBrand::tableName(). '([[class_id]], [[brand_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
 
         if($cRet !==false && $mRet !== false)
         {
@@ -1135,16 +1145,9 @@ class ScheduleController extends \yii\web\Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $tags = Yii::$app->request->post('t', '');
-        $clses = Yii::$app->request->post('c', '');
-        $clsMap = Yii::$app->request->post('m', '');
-
-        if(empty($clsMap) || empty($tags) || !is_array($tags) || !is_array($clsMap))
-            return [
-                'code' => '-1',
-                'data' => [],
-                'msg' => 'Invalid request data'
-            ];
+        $tags = Yii::$app->request->post('t', []);
+        $clses = Yii::$app->request->post('c', []);
+        $clsMap = Yii::$app->request->post('m', []);
 
         $tagValues = '';
         $clsValues = '';
@@ -1204,20 +1207,29 @@ class ScheduleController extends \yii\web\Controller
         if(!empty($delClsIds))
         {
             SlScheduleArticleClass::deleteAll(['in', 'id', $delClsIds]);
-            SlScheduleArticleClassTag::deleteAll(['in', 'class_id', $delClsIds]);
         }
 
         if(!empty($delTagIds))
         {
             SlScheduleArticleTag::deleteAll(['in', 'id', $delTagIds]);
-            SlScheduleArticleClassTag::deleteAll(['in', 'tag_id', $delTagIds]);
         }
 
-        $tRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleTag::tableName(). '([[id]], [[name]]) VALUES '. substr($tagValues, 0,-1))->execute();
-        $tRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleClass::tableName(). '([[id]], [[name]]) VALUES '. substr($clsValues, 0,-1))->execute();
-        $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleClassTag::tableName(). '([[class_id]], [[tag_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
+        SlScheduleArticleClassTag::deleteAll();
 
-        if($tRet !==false && $mRet !== false)
+        $tRet = true;
+        $cRet = true;
+        $mRet = true;
+
+        if(!empty($tagValues))
+            $tRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleTag::tableName(). '([[id]], [[name]]) VALUES '. substr($tagValues, 0,-1))->execute();
+
+        if(!empty($clsValues))
+            $cRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleClass::tableName(). '([[id]], [[name]]) VALUES '. substr($clsValues, 0,-1))->execute();
+
+        if(!empty($mapValues))
+            $mRet = Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleClassTag::tableName(). '([[class_id]], [[tag_id]]) VALUES '. substr($mapValues, 0,-1))->execute();
+
+        if($tRet !==false && $mRet !== false && $cRet !== false)
         {
             return [
                     'code' => '0',
