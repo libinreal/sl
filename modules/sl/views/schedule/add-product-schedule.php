@@ -281,6 +281,9 @@ var curClsMapId,
 	        				data:json_data.data
 	        			});
 
+	        			if(!curCategoryMap[json_data.data])
+	        				curCategoryMap[json_data.data] = [];
+
 	        			curCategory[json_data.data] = _c;
 
 						$('#cbc-suggest').autocomplete( 'setOptions', {lookup:clsBrandClsArr})
@@ -529,7 +532,10 @@ var curClsMapId,
 		        		brandClsBrandArr.push({
 	        				value:_b,
 	        				data:json_data.data
-	        			});
+	 	       			});
+
+	 	       			if(!curBrandMap[json_data.data])
+	        				curBrandMap[json_data.data] = [];
 
 	        			curBrand[json_data.data] = _b;
 
@@ -1237,7 +1243,7 @@ $this->registerJs($readyJs);
 							<div class="control-group mb1">
 								<label class="control-label" style="min-width: 68px;">关键字</label>
 								<div class="controls" style="width: 100%;">
-									<input type="text" name="key_words" value="<?php if(isset($scheEditData)): echo $scheEditData["key_words"]; endif;?>" class="input-xxlarge"
+									<input type="text" name="key_words" value="" class="input-xxlarge"
 										placeholder="在此输入关键字"
 										style="width: 100%; box-sizing: border-box;height: 34px;">
 								</div>

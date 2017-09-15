@@ -365,6 +365,9 @@ div.controls .label79{
     background-repeat: no-repeat;
     background-image: url(../img/icon_trash1.png);
 }
+.tct-div{
+	margin-left: 26px;
+}
 .sl-list__item{
 	position: relative;
 }

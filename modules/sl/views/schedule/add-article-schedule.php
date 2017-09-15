@@ -144,19 +144,22 @@ $this->beginBlock("addScheJs");
 })(jQuery)
 
 var curClsMapId,
-	curTagMapId,
 	categoryJsonData,
-	tagJsonData,
-	curCategory,//分类列表
-	curCategoryMap,//分类 关联标签
-	curTag,//关键字列表
-	curTagMap,//关键字 关联分类
+
+	//PHP data
+	curCategoryDefault = <?php if(!empty($articleClassArr)): echo Json::encode($articleClassArr);else: echo '{}';endif;?>,//分类列表
+	curCategoryMapDefault = <?php if(!empty($curCategoryMap)): echo Json::encode($curCategoryMap);else:echo '{}';endif;?>,//分类 关联标签
+	curTagDefault = <?php if(!empty($articleTagArr)): echo Json::encode($articleTagArr);else:echo '{}';endif;?>,//关键字列表
+
+	//JS data
+	curCategory = {},//分类列表
+	curCategoryMap = {},//分类 关联标签
+	curTag = {},//关键字列表	
+
 	modal1 = null,
 	modal2 = null,
 	clsTagClsArr = [],
-	clsTagTagArr = [],
-	tagClsTagArr = [],
-	tagClsClsArr = [];
+	clsTagTagArr = [];
 
 	//添加分类
 	function addCategory(_c)
@@ -178,6 +181,14 @@ var curClsMapId,
 	        				value:_c,
 	        				data:json_data.data
 	        			});
+
+	        			if(!curCategoryMap[json_data.data])
+	        			{
+	        				curCategoryMap[json_data.data] = [];
+	        				article_class_stat[json_data.data] = false;
+	        			}
+
+
 
 	        			curCategory[json_data.data] = _c
 
@@ -414,10 +425,48 @@ var curClsMapId,
 						        type: 'post',
 						        data: {c:curCategory, m:curCategoryMap, t:curTag, _csrf:csrfToken},
 						        dataType: 'json',
-						        success: function (json_data) {
+						        success: function(json_data){
+						        	if(json_data.code == '0')
+						        	{
+						        		//增加的分类
+						        		for(var _k in curCategory)
+						        		{
+						        			if(!curCategoryDefault[_k])
+						        			{
+						        				article_class_stat[_k] = false
+						        			}	
+						        		}
+						        		//减少的分类
+						        		for(var _k in curCategoryDefault)
+						        		{
+						        			if(!curCategory[_k])
+						        			{
+						        				delete article_class_stat[_k]
+						        			}
+						        		}
 
-						        		console.log(JSON.stringify(json_data))
-							        }
+						        		var _inputValue, _tagSelectIndex
+						        		//减少的标签
+						        		for(var _k in curTagDefault)
+						        		{
+						        			if(!curTag[_k])
+						        			{
+						        				_tagSelectIndex = $.inArray(curTag[_k], tag_name_select)
+						        				if(_tagSelectIndex > -1)
+						        				{
+						        					tag_name_select.splice(_tagSelectIndex, 1)
+						        					tag_select.splice(_tagSelectIndex, 1)
+						        				}
+						        			}
+						        		}
+
+						        		curCategoryMapDefault = curCategoryMap
+						        		curCategoryDefault = curCategory
+						        		curTagDefault = curTag
+
+						        		refreshArticleTag();
+						        	}
+						        }
 							});
 						},
 						cancelHide: function(){
@@ -434,52 +483,181 @@ var curClsMapId,
 	//添加标签(页面添加)
 	function addArticleTag()
 	{
+		var _t = $('#input_key_words').val()
+		if(_t.length > 0)
+		{
+			$.ajax({
+	        url: '/sl/schedule/add-article-tag',
+	        type: 'post',
+	        data: {n:_t, _csrf:csrfToken},
+	        dataType: 'json',
+	        success: function (json_data) {
+		        	if(json_data.code == '0')
+		        	{
+	        			curTagDefault[json_data.data] = _t
+	        			curCategoryMapDefault['0'].push(json_data.data)
 
+	        			//默认勾选
+	        			tag_name_select.push( _t )
+						tag_select.push( json_data.data )
+
+	        			refreshArticleTag();
+		        	}
+
+		        }
+		    });
+		}
 	}
 
 	//刷新页面标签
 	function refreshArticleTag()
 	{
+	console.log('refreshArticleTag  ------  tag_select ' +  JSON.stringify(tag_select) + ' -------  tag_name_select ' + JSON.stringify(tag_name_select));
 		var ctDom = $('#article_class_tags'),
 			tDom = $('#article_tags'),
 			ctStr = '',
 			tStr = '',
 			clStr = '',
 			tlStr = '',
-			cCheck = ''
+			tCheck = '',
+			cCheck = '';
 
-
-		for(var _k in class_map)
+		//init '未分类' 标签 ------开始-------
+		if(!curCategoryMapDefault['0'])
 		{
+			curCategoryDefault['0'] = '未分类'
+			var _classedTags = [], _noClassedTags = []
+
+			for(var _k in curCategoryMapDefault)
+			{
+				_classedTags = _classedTags.concat( curCategoryMapDefault[_k] );
+			}
+
+			for(var _i in curTagDefault)
+			{
+				if($.inArray(_i, _classedTags ) == -1)
+					_noClassedTags.push(_i)
+			}
+
+			curCategoryMapDefault['0'] = _noClassedTags;
+		}
+		//init '未分类' 标签 ------结束-------
+
+		for(var _k in curCategoryMapDefault)
+		{
+
+			cCheck = ''
+			if(article_class_stat[_k])
+				cCheck = 'checked'
+
 			//class label
-			clStr = '<div class="tc-div"><label class="checkbox-pretty inline-block"><input value="' + class_map[_k]['class_name'] +'" name="class_name[]" type="checkbox" data-rules="required" checked="">		<span>'+ class_map[_k]['class_name'] +'</span></label></div>';
+			clStr = '<div class="tc-div"><label class="checkbox-pretty inline-block cbcl '+ cCheck +'"><input value="' + curCategoryDefault[_k] +'" name="class_name[]" type="checkbox" data-rules="required" checked="'+ cCheck +'"/>		<span>'+ curCategoryDefault[_k] +'</span></label></div>';
 			
 			//tags label
 			tlStr = '<div class="tct-div">'
-			for(var _t in class_map[_k]['articleTag'])
+			for(var _i in curCategoryMapDefault[_k])
 			{
-				cCheck = ''
+				tCheck = ''
 				
-				if($.inArray(class_map[_k]['articleTag']['id'], tag_select) > -1 )
+				if($.inArray(curCategoryMapDefault[_k][_i], tag_select) > -1 )
 				{
-					cCheck = 'checked'
+					tCheck = 'checked'
+					tStr += '<div>' + curTagDefault[curCategoryMapDefault[_k][_i]] + '</div>'
 				}
 
-				tlStr += '<label class="checkbox-pretty inline-block '+ cCheck +'"><input value="' + class_map[_k]['articleTag'][_t] + ' name="tag_name[]" type="checkbox" data-rules="required" checked="'+ cCheck +'"><span>'+  +'</span></label>'
+				tlStr += '<label class="checkbox-pretty inline-block cbtl '+ tCheck +'" data-id="'+ curCategoryMapDefault[_k][_i] +'"><input value="' + curTagDefault[curCategoryMapDefault[_k][_i]] + '" name="tag_name[]" type="checkbox" data-rules="required" checked="'+ tCheck +'" /><span>'+ curTagDefault[curCategoryMapDefault[_k][_i]] +'</span></label>'
 			}
 			tlStr += '</div>'
 
-			//class tags label
-			ctStr += '<div id="'+ class_map[_k]['id'] +'">' + clStr + tlStr +'</div>';
+			//merge class and label string
+			ctStr += '<div data-id="'+ _k +'">' + clStr + tlStr +'</div>';
 
 		}
 
 		//render `article_class_tags` html
 		ctDom.html(ctStr)
+		tDom.html(tStr)
 
+		//add events
+		$('.tc-div').on('click', 'input', function(e){
+			var _cs, _stat, _cn = e.currentTarget.value, _tDom = $(this).parent().parent().parent().children('.tct-div')
 
+			for(var _k in curCategoryDefault)
+			{
+				if(_cn == curCategoryDefault[_k])
+					_cs = _k//cur click category id
+			}
 
-	}
+			article_class_stat[_cs] = !article_class_stat[_cs]//update cur category checkbox's stat
+			_stat = article_class_stat[_cs]//get cur category checkbox's stat
+
+			//cur category click 
+			if(_stat)
+			{
+				$(e.currentTarget).parent().addClass('checked');
+				$(e.currentTarget).attr('checked', true);
+			}
+			else
+			{
+				$(e.currentTarget).parent().removeClass('checked');
+				$(e.currentTarget).attr('checked', false);
+			}
+
+			var _inputValue, _tagSelectIndex
+
+			_tDom.find('.checkbox-pretty').each(function(){
+				_e = $(this)
+				if(_stat && !_e.hasClass('checked'))//to select all
+				{
+					_e.addClass('checked');
+					_e.find('input').attr('checked', true);
+				}
+				else if(!_stat && _e.hasClass('checked'))
+				{
+					_e.removeClass('checked');
+					_e.find('input').attr('checked', false);
+				}
+
+				//_e.click();
+				_inputValue = _e.find('input').attr('value')
+				_tagSelectIndex = $.inArray( _inputValue, tag_name_select)
+
+				if(_stat && _tagSelectIndex == -1)
+				{
+					tag_name_select.push( _inputValue )
+					tag_select.push( _e.attr('data-id') )
+				}
+
+				if(!_stat && _tagSelectIndex > -1)
+				{
+					tag_name_select.splice( _tagSelectIndex, 1 )
+					tag_select.splice( _tagSelectIndex, 1 )
+				}
+			})
+
+			refreshArticleTag();
+
+		})
+
+		$('.tct-div').on('click', '.checkbox-pretty', function(e){
+			var _inputValue = $(e.currentTarget).children('input').val(),
+				_tagSelectIndex = $.inArray( _inputValue, tag_name_select),
+				_tagSelectId = $(e.currentTarget).attr('data-id')
+				
+			if(_tagSelectIndex == -1)
+			{
+				tag_name_select.push(_inputValue);
+				tag_select.push(_tagSelectId)
+			}
+
+			else
+			{
+				tag_name_select.splice( _tagSelectIndex, 1 )
+				tag_select.splice(_tagSelectIndex)
+			}
+			refreshArticleTag();
+		})
+	}	
 
 	//添加标签(对话框添加)
 	function addTag(_t)
@@ -647,10 +825,10 @@ function onChangeRepeat(_e)
 	}
 }
 
-var class_stat = [true,true],
-	tag_stat = [true,true],
-	class_select = <?php if(!empty($classSelectIds)): echo Json::encode($classSelectIds); else: echo '[]'; endif;?>,
-	tag_select = <?php if(!empty($tagSelectIds)): echo Json::encode($tagSelectIds); else: echo '[]'; endif;?>,
+var article_class_stat = [],
+	tag_name_select = <?php if(!empty($scheEditData)  && !empty($scheEditData["key_words"]) ): echo Json::encode($scheEditData["key_words"]);else: echo '[]';endif;?>,
+	tag_select = <?php if(!empty($kwSelectIds)): echo Json::encode($kwSelectIds); else: echo '[]'; endif;?>,
+
 	class_map = <?php if(!empty($classMap)): echo Json::encode($classMap);else:echo '[]';endif;?>,
 		//编辑-渠道设置-初始化
 	pf_select = <?php if(!empty($scheEditData)  && !empty($scheEditData["pf_name"]) ):echo $scheEditData["pf_name"];else: echo '[]';endif;?>,
@@ -779,6 +957,20 @@ $this->registerJs($this->blocks['addScheJs'], \yii\web\View::POS_END);
 app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 
 $readyJs =<<<EOT
+	//可用标签-渲染
+	refreshArticleTag();
+	//已选分类
+	for(var _k in curCategoryMap)
+	{
+		article_class_stat[_k] = false
+	}
+	//已选标签
+	for(var _k in curTag)
+	{
+		article_tag_stat[_k] = false
+	}
+
+
 	//渠道-初始化
 	$(".tab-pane").find("input[name='pf_name[]']").each(function(){
 		var _pfCookie,
@@ -921,7 +1113,7 @@ $this->registerJs($readyJs);
 							<!--div class="control-group mb1">
 								<label class="control-label" style="min-width: 68px;">关键字</label>
 								<div class="controls" style="width: 100%;">
-									<input type="text" name="key_words" value="<?php if(isset($scheEditData)): echo $scheEditData["key_words"]; endif;?>" class="input-xxlarge"
+									<input type="text" name="key_words" value="" class="input-xxlarge"
 										placeholder="在此输入关键字"
 										style="width: 100%; box-sizing: border-box;height: 34px;">
 								</div>

@@ -299,6 +299,7 @@ class ScheduleController extends \yii\web\Controller
             $alert_params = Json::decode( $scheEditData['alert_params'] );
 
             $user_agent = Json::decode( $scheEditData['user_agent'] );
+            $keyWords = Json::decode( $scheEditData['key_words'] );
 
             if( !is_array($cookie) || empty( $cookie ) ) $cookie = [];
             if( !is_array($user_agent) || empty( $user_agent ) ) $user_agent = [];
@@ -309,6 +310,7 @@ class ScheduleController extends \yii\web\Controller
             if( !is_array($classArr) ) $classArr = [];
 
             if( !is_array($catArr) ) $catArr = [];
+            if( !is_array($keyWords) ) $keyWords = [];
 
             $scheEditData['pfNameArr'] = $pfNameArr;
             $scheEditData['brandArr'] = $brandArr;
@@ -319,33 +321,18 @@ class ScheduleController extends \yii\web\Controller
             $scheEditData['user_agent'] = $user_agent;
 
             $scheEditData['alert_params'] = $alert_params;
+            $scheEditData['key_words'] = $keyWords;
 
-            $classSelect = SlScheduleProductClass::find()->select('id')->indexBy('id')->where(['in', 'name', $classArr])->asArray()->all();
-            $brandSelect = SlScheduleProductBrand::find()->select('id')->indexBy('id')->where(['in', 'name', $brandArr])->asArray()->all();
-            $classMap = SlScheduleProductClassBrand::find()
-                        ->alias('cb')
-                        ->select('c.id, cb.brand_id, cb.class_id, b.name')
-                        ->joinWith('productClass')
-                        ->joinWith('productBrand')
-                        ->where(['in', 'c.name', $classArr])
-                        ->orderBy('c.id')
-                        ->asArray()->all();
+            //product classes and brands
+            $classSelectIds = [];
+            $brandSelectIds = [];
+            $classMap = [];
+            //article classes and tags
+            $kwSelectIds = [];
+            $articleClassArr = [];
+            $articleTagArr = [];
 
-            foreach ($classMap as &$c)
-            {
-                unset($c['productClass']);
-                unset($c['productBrand']);
-            }
-
-            unset($c);
-
-            $funcElementStr = function(&$_ele, $_ele_key){$_ele = strval($_ele);};
-
-            $classSelectIds = array_keys($classSelect);
-            $brandSelectIds = array_keys($brandSelect);
-
-            array_walk( $classSelectIds, $funcElementStr );
-            array_walk( $brandSelectIds, $funcElementStr );
+            $curCategoryMap = [];
 
             $pfArr = Yii::$app->getModule('sl')->params['PLATFORM_LIST'];
             $pfSettings = SettingHelper::getPfSetting( array_keys( $pfArr ));
@@ -364,15 +351,43 @@ class ScheduleController extends \yii\web\Controller
 
             
             $viewName = 'add-' . $get['data_type'] . '-schedule';
+            $funcElementStr = function(&$_ele, $_ele_key){$_ele = strval($_ele);};
 
             if( $get['data_type'] == 'product' )
             {
+                //get class and brand relation
                 $dataClassArr = SlScheduleProductClass::find()
                 ->alias('c')
                 ->joinWith('productBrand')
                 ->select('c.id, c.name class_name, cb.brand_id, b.name brand_name')
                 ->asArray()
                 ->all();
+
+                //get selected classes and brands
+                $classSelect = SlScheduleProductClass::find()->select('id')->indexBy('id')->where(['in', 'name', $classArr])->asArray()->all();
+                $brandSelect = SlScheduleProductBrand::find()->select('id')->indexBy('id')->where(['in', 'name', $brandArr])->asArray()->all();
+                $classMap = SlScheduleProductClassBrand::find()
+                            ->alias('cb')
+                            ->select('c.id, cb.brand_id, cb.class_id, b.name')
+                            ->joinWith('productClass')
+                            ->joinWith('productBrand')
+                            ->where(['in', 'c.name', $classArr])
+                            ->orderBy('c.id')
+                            ->asArray()->all();
+
+                foreach ($classMap as &$c)
+                {
+                    unset($c['productClass']);
+                    unset($c['productBrand']);
+                }
+
+                unset($c);
+
+                $classSelectIds = array_keys($classSelect);
+                $brandSelectIds = array_keys($brandSelect);
+
+                array_walk( $classSelectIds, $funcElementStr );
+                array_walk( $brandSelectIds, $funcElementStr );
                 
             }
             else if( $get['data_type'] == 'article' )
@@ -383,14 +398,65 @@ class ScheduleController extends \yii\web\Controller
                 ->select('c.id, c.name class_name, ct.tag_id, t.name tag_name')
                 ->asArray()
                 ->all();
-                
-            }  
+
+                //get tags
+                $tagArr = SlScheduleArticleTag::find()->asArray()->all();
+                foreach ($tagArr as $w) 
+                {
+                    if(in_array( $w['name'], $keyWords))
+                        $kwSelectIds[] = strval($w['id']);
+                    $articleTagArr[$w['id']] = $w['name'];
+                }
+
+                //get classes
+                foreach ($dataClassArr as $d) 
+                {
+                    $articleClassArr[$d['id']] = $d['class_name'];
+                }
+
+                $classMapArr = SlScheduleArticleClassTag::find()
+                    ->alias('ct')
+                    ->select('c.id, ct.tag_id, ct.class_id, t.name tag_name, c.name class_name')
+                    ->joinWith('articleTag')
+                    ->joinWith('articleClass')
+                    ->asArray()
+                    ->orderBy('c.id ASC')
+                    ->all();
+
+                $classMap = [];
+                foreach ($classMapArr as $c) 
+                {
+                    if(!isset($classMap[$c['id']]))
+                    {
+                        $classMap[$c['id']] = array(
+                                                    'name' => $c['class_name'], 
+                                                    'tags' => array()
+                                            );
+
+                        $curCategoryMap[$c['id']] = array();
+                    }
+
+                    $curCategoryMap[$c['id']][] = strval($c['tag_id']);
+
+                    $classMap[$c['id']]['tags'][$c['tag_id']] = array($c['tag_name']);
+                }
+            } 
 
             return $this->render($viewName, ['pfSettings' => $getPfSettings,
                                                     'dataClassArr' => $dataClassArr,
                                                     'scheEditData' => $scheEditData,
+
+                                                    //product data
                                                     'classSelectIds' => $classSelectIds,
                                                     'brandSelectIds' => $brandSelectIds,
+                                                    
+                                                    //article data
+                                                    'kwSelectIds' => $kwSelectIds,
+                                                    'articleClassArr' => $articleClassArr,
+                                                    'articleTagArr' => $articleTagArr,
+
+                                                    'curCategoryMap' => $curCategoryMap,
+
                                                     'classMap' => $classMap,
                                                     ]);
         }
@@ -1180,6 +1246,10 @@ class ScheduleController extends \yii\web\Controller
         $mapValues = '';
         foreach ($clsMap as $_cid => $_cidArr)
         {
+            //未分类
+            if($_cid == '0')
+                continue;
+
             foreach ($_cidArr as $_tid)
             {
                 $mapValues .= '(' . $_cid . ',' . $_tid . '),';

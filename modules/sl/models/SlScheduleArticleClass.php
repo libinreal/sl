@@ -41,6 +41,11 @@ class SlScheduleArticleClass extends \yii\db\ActiveRecord
         ];
     }
 
+    public static function primaryKey()
+    {
+        return ['id'];
+    }
+    
     public static function getDb()
     {
         return Yii::$app->getModule('sl')->db;

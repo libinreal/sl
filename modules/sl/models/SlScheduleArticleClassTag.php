@@ -46,4 +46,27 @@ class SlScheduleArticleClassTag extends \yii\db\ActiveRecord
     {
         return Yii::$app->getModule('sl')->db;
     }    
+
+    public static function primaryKey()
+    {
+        return ['tag_id', 'class_id'];
+    }
+
+    /**
+     * * 获取关联标签
+     * @return [type] [description]
+     */
+    public function getArticleTag()
+    {
+        return $this->hasMany(SlScheduleArticleTag::className(), ['id' => 'tag_id'])->from(SlScheduleArticleTag::tableName() . ' t');
+    }
+
+    /**
+     * 获取关联分类
+     * @return [type] [description]
+     */
+    public function getArticleClass()
+    {
+        return $this->hasMany(SlScheduleArticleClass::className(), ['id' => 'class_id'])->from(SlScheduleArticleClass::tableName() . ' c');
+    }
 }
