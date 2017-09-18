@@ -803,6 +803,38 @@ function onCheckProductClass(cid, _input)
 }
 
 /**
+  *全选产品分类
+  *@return  
+  */
+function onCheckAllClass()
+{
+	var stat = class_stat[0]
+
+	$('#product_class_tags').find('.checkbox-pretty').each(function(){
+
+		_e = $(this)
+		var _ei = $.inArray(_e.find('input').attr('data-index'), class_select)
+
+		if(_ei < 0 && stat)//to check this class
+		{
+			_e.addClass('checked');
+			var _input = _e.find('input')
+			_input.attr('checked', true);
+
+			onCheckProductClass(_input.attr('data-index'), _input);
+		}
+		else if(_ei >= 0 && !stat)//to uncheck this class
+		{
+			_e.removeClass('checked');
+			var _input = _e.find('input')
+			_input.attr('checked', false);
+
+			onCheckProductClass(_input.attr('data-index'), _input);
+		}
+	})
+}
+
+/**
  * 获取最新的产品品牌列表
  * @param class_id class_id
  * @return void
@@ -860,28 +892,7 @@ $('#class_all_select').on('click', 'input', function(e){
 	else
 		$(this).removeClass('checked');
 
-	$('#product_class_tags').find('.checkbox-pretty').each(function(){
-
-		_e = $(this)
-		var _ei = $.inArray(_e.find('input').attr('data-index'), class_select)
-
-		if(_ei < 0 )
-		{
-			_e.addClass('checked');
-			var _input = _e.find('input')
-			_input.attr('checked', true);
-
-			onCheckProductClass(_input.attr('data-index'), _input);
-		}
-		else
-		{
-			_e.removeClass('checked');
-			var _input = _e.find('input')
-			_input.attr('checked', false);
-
-			onCheckProductClass(_input.attr('data-index'), _input);
-		}
-	})
+	onCheckAllClass();
 
 	class_stat[0] = !stat
 })
@@ -926,7 +937,7 @@ $('#brand_all_select').on('click', 'input', function(e){
 
 	$('#product_brand_tags').find('.checkbox-pretty').each(function(){
 		_e = $(this)
-		if(!_e.hasClass('checked'))
+		if(stat)
 		{
 			_e.addClass('checked');
 			_e.find('input').attr('checked', true);
