@@ -198,18 +198,66 @@ class ScheduleController extends \yii\web\Controller
                 }
             }
 
+            //article classes and tags
+            $articleClassArr = [];
+            $articleTagArr = [];
+
             if( $get['data_type'] == 'product' )
             {
                 $dataClassArr = SlScheduleProductClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
             }
             else if( $get['data_type'] == 'article' )
             {
-                $dataClassArr = SlScheduleArticleClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
+                $dataClassArr = SlScheduleArticleClass::find()
+                ->alias('c')
+                ->joinWith('articleTag')
+                ->select('c.id, c.name class_name, ct.tag_id, t.name tag_name')
+                ->asArray()
+                ->all();
+
+                //get tags
+                $tagArr = SlScheduleArticleTag::find()->asArray()->all();
+                foreach ($tagArr as $w) 
+                {
+                    $articleTagArr[$w['id']] = $w['name'];
+                }
+
+                //get classes
+                foreach ($dataClassArr as $d) 
+                {
+                    $articleClassArr[$d['id']] = $d['class_name'];
+                }
+
+                $classMapArr = SlScheduleArticleClassTag::find()
+                    ->alias('ct')
+                    ->select('c.id, ct.tag_id, ct.class_id, t.name tag_name, c.name class_name')
+                    ->joinWith('articleTag')
+                    ->joinWith('articleClass')
+                    ->asArray()
+                    ->orderBy('c.id ASC')
+                    ->all();
+
+                foreach ($classMapArr as $c) 
+                {
+                    if(!isset($curCategoryMap[$c['id']]))
+                    {
+                        $curCategoryMap[$c['id']] = array();
+                    }
+
+                    $curCategoryMap[$c['id']][] = strval($c['tag_id']);
+
+                }
             }   
                 
             $viewName = 'add-' . $get['data_type'] . '-schedule';
 
-            return $this->render($viewName, ['pfSettings' => $getPfSettings, 'dataClassArr' => $dataClassArr]);
+            return $this->render($viewName, [   
+                                                'pfSettings' => $getPfSettings,
+                                                'dataClassArr' => $dataClassArr,
+                                                'articleClassArr' => $articleClassArr,
+                                                'curCategoryMap' => $curCategoryMap,
+                                                'articleTagArr' => $articleTagArr
+                                            ]);
 
         }
         else if( Yii::$app->request->isAjax)
@@ -564,6 +612,16 @@ class ScheduleController extends \yii\web\Controller
         $name = trim(Yii::$app->request->post('n', ''));
         if($name)
         {
+            $find = SlScheduleProductClass::find()->select('id')->where('name = :name', [':name' => $name])->asArray()->one();
+            if($find)
+            {
+                return [
+                        'code' => '4',
+                        'data' => [],
+                        'msg' => 'Data exists'
+                    ];   
+            }
+
             Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductClass::tableName(). '([[name]]) VALUES(\''. $name.'\');')->execute();
             $id = Yii::$app->getModule('sl')->db->getLastInsertID();
 
@@ -600,6 +658,16 @@ class ScheduleController extends \yii\web\Controller
         $name = trim(Yii::$app->request->post('n', ''));
         if($name)
         {
+            $find = SlScheduleProductBrand::find()->select('id')->where('name = :name', [':name' => $name])->asArray()->one();
+            if($find)
+            {
+                return [
+                        'code' => '4',
+                        'data' => [],
+                        'msg' => 'Data exists'
+                    ];   
+            }
+
             Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleProductBrand::tableName(). '([[name]]) VALUES(\''. $name.'\');')->execute();
             $id = Yii::$app->getModule('sl')->db->getLastInsertID();
 
@@ -1136,6 +1204,16 @@ class ScheduleController extends \yii\web\Controller
         $name = trim(Yii::$app->request->post('n', ''));
         if($name)
         {
+            $find = SlScheduleArticleClass::find()->select('id')->where('name = :name', [':name' => $name])->asArray()->one();
+            if($find)
+            {
+                return [
+                        'code' => '4',
+                        'data' => [],
+                        'msg' => 'Data exists'
+                    ];   
+            }
+
             Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleClass::tableName(). '([[name]]) VALUES(\''. $name.'\');')->execute();
             $id = Yii::$app->getModule('sl')->db->getLastInsertID();
 
@@ -1175,6 +1253,16 @@ class ScheduleController extends \yii\web\Controller
         $name = trim(Yii::$app->request->post('n', ''));
         if($name)
         {
+            $find = SlScheduleArticleTag::find()->select('id')->where('name = :name', [':name' => $name])->asArray()->one();
+            if($find)
+            {
+                return [
+                        'code' => '4',
+                        'data' => [],
+                        'msg' => 'Data exists'
+                    ];   
+            }
+
             Yii::$app->getModule('sl')->db->createCommand('INSERT IGNORE INTO '.SlScheduleArticleTag::tableName(). '([[name]]) VALUES(\''. $name.'\');')->execute();
             $id = Yii::$app->getModule('sl')->db->getLastInsertID();
 

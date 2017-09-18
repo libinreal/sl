@@ -166,6 +166,17 @@ var curClsMapId,
 	{
 		if(_c)
 		{
+			_c = _c.replace(/(^\s*)|(\s*$)/g,"")
+			for(var _i in curCategory)
+			{
+				if(curCategory[_i] == _c)
+				{
+					$.alert('分类已存在')
+					return;
+					
+				}
+			}
+
 			$.ajax({
 	        url: '/sl/schedule/add-article-class',
 	        type: 'post',
@@ -418,6 +429,13 @@ var curClsMapId,
 									return;
 								$('#ctt').after('<input type="text" onblur="addTag(this.value);" class="input-medium" placeholder="新标签" style="margin-left: 9px;width: 180px;box-sizing: border-box;height: 34px;">');
 							})
+
+							//默认选中第一分类
+							for(var _i in curCategory)
+							{
+								getClassMap(_i);
+								break;
+							}
 						},
 						okHide: function(){
 							$.ajax({
@@ -484,8 +502,19 @@ var curClsMapId,
 	function addArticleTag()
 	{
 		var _t = $('#input_key_words').val()
-		if(_t.length > 0)
+		if(_t)
 		{
+			_t = _t.replace(/(^\s*)|(\s*$)/g,"")
+			for(var _i in curTagDefault)
+			{
+				if(curTagDefault[_i] == _t)
+				{
+					$.alert('标签已存在')
+					return;
+					
+				}
+			}
+
 			$.ajax({
 	        url: '/sl/schedule/add-article-tag',
 	        type: 'post',
@@ -512,7 +541,7 @@ var curClsMapId,
 	//刷新页面标签
 	function refreshArticleTag()
 	{
-	console.log('refreshArticleTag  ------  tag_select ' +  JSON.stringify(tag_select) + ' -------  tag_name_select ' + JSON.stringify(tag_name_select));
+	//console.log('refreshArticleTag  ------  tag_select ' +  JSON.stringify(tag_select) + ' -------  tag_name_select ' + JSON.stringify(tag_name_select));
 		var ctDom = $('#article_class_tags'),
 			tDom = $('#article_tags'),
 			ctStr = '',
@@ -551,7 +580,7 @@ var curClsMapId,
 				cCheck = 'checked'
 
 			//class label
-			clStr = '<div class="tc-div"><label class="checkbox-pretty inline-block cbcl '+ cCheck +'"><input value="' + curCategoryDefault[_k] +'" name="class_name[]" type="checkbox" data-rules="required" checked="'+ cCheck +'"/>		<span>'+ curCategoryDefault[_k] +'</span></label></div>';
+			clStr = '<div class="tc-div"><label class="checkbox-pretty inline-block cbcl '+ cCheck +'"><input value="' + curCategoryDefault[_k] +'" name="class_name[]" type="checkbox" data-rules="required" ' + (cCheck ? ('checked="'+ cCheck +'"') : '' )+ '/><span>'+ curCategoryDefault[_k] +'</span></label></div>';
 			
 			//tags label
 			tlStr = '<div class="tct-div">'
@@ -562,10 +591,10 @@ var curClsMapId,
 				if($.inArray(curCategoryMapDefault[_k][_i], tag_select) > -1 )
 				{
 					tCheck = 'checked'
-					tStr += '<div>' + curTagDefault[curCategoryMapDefault[_k][_i]] + '</div>'
+					
 				}
 
-				tlStr += '<label class="checkbox-pretty inline-block cbtl '+ tCheck +'" data-id="'+ curCategoryMapDefault[_k][_i] +'"><input value="' + curTagDefault[curCategoryMapDefault[_k][_i]] + '" name="tag_name[]" type="checkbox" data-rules="required" checked="'+ tCheck +'" /><span>'+ curTagDefault[curCategoryMapDefault[_k][_i]] +'</span></label>'
+				tlStr += '<label class="checkbox-pretty inline-block cbtl '+ tCheck +'" data-id="'+ curCategoryMapDefault[_k][_i] +'"><input value="' + curTagDefault[curCategoryMapDefault[_k][_i]] + '" name="key_words[]" type="checkbox" data-rules="required" ' +(tCheck ? ('checked="'+ tCheck +'"') : '' ) +'/><span>'+ curTagDefault[curCategoryMapDefault[_k][_i]] +'</span></label>'
 			}
 			tlStr += '</div>'
 
@@ -576,6 +605,12 @@ var curClsMapId,
 
 		//render `article_class_tags` html
 		ctDom.html(ctStr)
+
+		//render `article_tags` html
+		for(var _i in tag_name_select)
+		{
+			tStr += '<div>' + tag_name_select[_i] + '</div>'
+		}
 		tDom.html(tStr)
 
 		//add events
@@ -653,7 +688,7 @@ var curClsMapId,
 			else
 			{
 				tag_name_select.splice( _tagSelectIndex, 1 )
-				tag_select.splice(_tagSelectIndex)
+				tag_select.splice(_tagSelectIndex, 1)
 			}
 			refreshArticleTag();
 		})
@@ -664,6 +699,18 @@ var curClsMapId,
 	{
 		if(_t)
 		{
+			_t = _t.replace(/(^\s*)|(\s*$)/g,"")
+			for(var _i in curTag)
+			{
+				if(curTag[_i] == _t)
+				{
+					$.alert('标签已存在')
+					return;
+				}
+			}
+			
+
+
 			$.ajax({
 	        url: '/sl/schedule/add-article-tag',
 	        type: 'post',
@@ -828,8 +875,6 @@ function onChangeRepeat(_e)
 var article_class_stat = [],
 	tag_name_select = <?php if(!empty($scheEditData)  && !empty($scheEditData["key_words"]) ): echo Json::encode($scheEditData["key_words"]);else: echo '[]';endif;?>,
 	tag_select = <?php if(!empty($kwSelectIds)): echo Json::encode($kwSelectIds); else: echo '[]'; endif;?>,
-
-	class_map = <?php if(!empty($classMap)): echo Json::encode($classMap);else:echo '[]';endif;?>,
 		//编辑-渠道设置-初始化
 	pf_select = <?php if(!empty($scheEditData)  && !empty($scheEditData["pf_name"]) ):echo $scheEditData["pf_name"];else: echo '[]';endif;?>,
 	ua_set = <?php if(!empty($scheEditData)  && !empty($scheEditData["user_agent"]) ): echo Json::encode($scheEditData["user_agent"]);else: echo '[]';endif;?>,
@@ -1118,31 +1163,36 @@ $this->registerJs($readyJs);
 										style="width: 100%; box-sizing: border-box;height: 34px;">
 								</div>
 							</div-->
-							<div class="sl-row--normal clearfix">
-								<div class="fl row__left-label">已选标签(关键字)</div>
-							</div>
+					
 							<div class="control-group mb1">
-								<div class="sl-label-empty"></div>
+								<label class="control-label" style="min-width: 68px;vertical-align: top;">已选标签(关键字)</label>
 								<div class="controls controls--special" style="width: 100%;">
 									<div class="sl-checkbox-group" id="article_tags" style="width: 100%; box-sizing: border-box;">
 									</div>
 								</div>
 							</div>
 
-							<div class="sl-row--normal clearfix">
+							<!--div class="sl-row--normal clearfix">
 								<div class="fl row__left-label ">添加标签</div>
 								<div class="controls controls--special" style="padding: 0px 7px;">
+										<input name="" value="" type="text" id="input_key_words" class="input-medium" style="height: 24px;width:274px;" /> 
+										<button class="sui-btn btn-bordered btn-xlarge btn-primary" type="button" id="btn_add_key_words" onclick="addArticleTag();" >确定</button>
+								</div>
+							</div-->
+							<div class="control-group mb1">
+								<label class="control-label" style="min-width: 68px;vertical-align: top;">添加标签</label>
+								<div class="controls controls--special">
 										<input name="" value="" type="text" id="input_key_words" class="input-medium" style="height: 24px;width:274px;" /> 
 										<button class="sui-btn btn-bordered btn-xlarge btn-primary" type="button" id="btn_add_key_words" onclick="addArticleTag();" >确定</button>
 								</div>
 							</div>
 
 							<div class="sl-row--normal clearfix">
-								<div class="fl row__left-label">标签</div>
+								<!--div class="fl row__left-label"></div-->
 								<button type="button" class="sui-btn btn-primary fr top-radius" onclick="editTag()">标签维护</button>
 							</div>
 							<div class="control-group mb1">
-								<div class="sl-label-empty"></div>
+								<label class="control-label" style="min-width: 68px;vertical-align: top;">备选标签</label>
 								<div class="controls controls--special" style="width: 100%;">
 									<div class="sl-checkbox-group" id="article_class_tags" style="width: 100%; box-sizing: border-box;">
 									</div>

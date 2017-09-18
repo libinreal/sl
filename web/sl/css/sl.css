@@ -368,6 +368,11 @@ div.controls .label79{
 .tct-div{
 	margin-left: 26px;
 }
+#article_tags>div{
+	display: inline-block;
+	width: 79px;
+	margin-bottom: 12px;
+}
 .sl-list__item{
 	position: relative;
 }
