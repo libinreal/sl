@@ -201,10 +201,17 @@ class ScheduleController extends \yii\web\Controller
             //article classes and tags
             $articleClassArr = [];
             $articleTagArr = [];
+            $curCategoryMap = [];
 
             if( $get['data_type'] == 'product' )
             {
-                $dataClassArr = SlScheduleProductClass::find()->orderBy('id')->indexBy('id')->asArray()->all();
+                //get class and brand relation
+                $dataClassArr = SlScheduleProductClass::find()
+                ->alias('c')
+                ->joinWith('productBrand')
+                ->select('c.id, c.name class_name, cb.brand_id, b.name brand_name')
+                ->asArray()
+                ->all();
             }
             else if( $get['data_type'] == 'article' )
             {
