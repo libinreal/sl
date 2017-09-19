@@ -229,7 +229,7 @@ EOT;
     		_okStat = <?php echo SlTaskScheduleCrontab::TASK_STATUS_COMPLETED; ?>,
     		_open = <?php echo SlTaskScheduleCrontab::CONTROL_STARTED;?>,
     		_stop = <?php echo SlTaskScheduleCrontab::CONTROL_STOPPED;?>,
-    		_updateCrontabUrl = '/sl/schedule/update-task-sche-crontab',
+    		_updateCrontabUrl = '/sl/schedule/update-task-sche-crontab-stat',
     		_container = $('.task_tables');
 
     		if(_curStat == _okStat)

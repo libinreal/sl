@@ -19,9 +19,10 @@ use Yii;
  */
 class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
 {
-    const CONTROL_STOPPED = 0;
+    const CONTROL_DEFAULT = 0;
     const CONTROL_STARTED = 1;
-    const CONTROL_RESTARTED = 2;
+    const CONTROL_STOPPED = 2;
+    const CONTROL_RESTARTED = 3;
 
     const TASK_STATUS_UNSTARTED = 0;
     const TASK_STATUS_EXECUTING = 1;
@@ -45,7 +46,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
     {
         return [
             [['name'], 'string'],
-            ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_STARTED]],
+            ['control_status', 'in', 'range' => [self::CONTROL_DEFAULT, self::CONTROL_STARTED, self::CONTROL_STOPPED, self::CONTROL_RESTARTED]],
             ['is_delete', 'in', 'range' => [self::NOT_DELETED, self::DELETED]],
             [['start_time, act_time'], 'safe'],
             [['task_progress'], 'number'],
@@ -69,7 +70,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
             'task_progress' => '任务进度',
             'sche_id' => '计划id',
             'task_status' => '任务状态(0:未启动1:正在进行2:已完成)',
-            'control_status' => '控制开关(0:停止1:运行2:重启)',
+            'control_status' => '控制开关(0:默认1:运行2:停止3:重启)',
             'is_delete' => '是否删除（0：未删除1：已删除）',
         ];
     }

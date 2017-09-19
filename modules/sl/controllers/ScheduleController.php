@@ -1055,7 +1055,7 @@ class ScheduleController extends \yii\web\Controller
      * method: POST
      * @return string
      */
-    public function actionUpdateTaskScheCrontab()
+    public function actionUpdateTaskScheCrontabStat()
     {
         if(Yii::$app->request->isPost)
         {
@@ -1079,41 +1079,49 @@ class ScheduleController extends \yii\web\Controller
                 return $defaultRet;
             }
 
-            $cronModel->save();
-
             /*** 任务项状态更新 ***/
             if($cronModel->control_status == SlTaskScheduleCrontab::CONTROL_STOPPED)//停止（未开始）
             {
-                Yii::$app->getModule('sl')
+                $updateResult = Yii::$app->getModule('sl')
                     ->db
+                    //update tb set complete_status = close, control_status = stopped , task_status = open where cron_id = 1 and task_status = close and control_status in (restarted, started, default)
                     ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_CLOSE.', control_status = '.SlTaskItem::CONTROL_STOPPED .
-                                            ', task_status = ' . SlTaskItem::TASK_STATUS_OPEN .
-                                            ' WHERE cron_id = '. $cronModel->id. ' AND task_status = '.SlTaskItem::TASK_STATUS_CLOSE)
+                                            ', task_status = ' . SlTaskItem::TASK_STATUS_OPEN .//置为开始状态
+                                            ' WHERE cron_id = '. $cronModel->id. ' AND task_status = '.SlTaskItem::TASK_STATUS_CLOSE .
+                                            ' AND control_status  IN ('. SlTaskItem::CONTROL_RESTARTED . ', '. SlTaskItem::CONTROL_STARTED . ', ' . SlTaskItem::CONTROL_DEFAULT . ')')//当前未开始
                     ->execute();
             }
             else if($cronModel->control_status == SlTaskScheduleCrontab::CONTROL_STARTED)//启动(未开始)
             {
-                Yii::$app->getModule('sl')
+                $updateResult = Yii::$app->getModule('sl')
                     ->db
+                    //update tb set complete_status = open, control_status = started, task_status = close where cron_id = 1 and task_status = open and control_status = stopped
                     ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_STARTED .
                                     ', task_status = ' . SlTaskItem::TASK_STATUS_CLOSE .
-                                    ' WHERE cron_id = '. $cronModel->id. ' AND task_status = '.SlTaskItem::TASK_STATUS_CLOSE . ', AND control_status = '.SlTaskItem::CONTROL_STOPPED)
+                                    ' WHERE cron_id = '. $cronModel->id. ' AND task_status = '.SlTaskItem::TASK_STATUS_OPEN . ' AND control_status = '.SlTaskItem::CONTROL_STOPPED)
                     ->execute();
             }
             else if($cronModel->control_status == SlTaskScheduleCrontab::CONTROL_RESTARTED)//重启（已开始）
             {
-                Yii::$app->getModule('sl')
+                $updateResult = Yii::$app->getModule('sl')
                     ->db
-                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_RESTARTED.' WHERE cron_id = '. $cronModel->id. ' AND task_status <> '.SlTaskItem::TASK_STATUS_COMPLETE)
+                    //update tb set complete_status = open, control_status = restarted, task_status = close where cron_id = 1 and task_status in(open, completed) and control_status in(default ,started, restarted)
+                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_RESTARTED.
+                                    ', task_status = '. SlTaskItem::TASK_STATUS_CLOSE . ' WHERE cron_id = '. $cronModel->id. ' AND task_status IN(' . SlTaskItem::TASK_STATUS_OPEN .
+                                    ', '. SlTaskItem::TASK_STATUS_COMPLETE. ') AND control_status IN('.SlTaskItem::CONTROL_DEFAULT.', '. SlTaskItem::CONTROL_RESTARTED .', '.
+                                    SlTaskItem::CONTROL_STARTED . ')')
                     ->execute();
             }
             /*** 任务项状态更新 ***/
 
-            return  [
-                    'code'=>'0',
-                    'msg'=>'Success',
-                    'data'=>[]
-                    ];
+            if($updateResult)
+                return  [
+                        'code'=>'0',
+                        'msg'=>'Success',
+                        'data'=>[]
+                        ];
+            else
+                return  $defaultRet;
         }
     }
 
@@ -1121,7 +1129,7 @@ class ScheduleController extends \yii\web\Controller
      * 更新任务项状态
      * @return
      */
-    public function actionUpdateTaskItem()
+    public function actionUpdateTaskItemStat()
     {
         if(Yii::$app->request->isPost)
         {
@@ -1145,13 +1153,53 @@ class ScheduleController extends \yii\web\Controller
                 return $defaultRet;
             }
 
-            $itemModel->save();
+            /*** 任务项状态更新 ***/
+            if($itemModel->control_status == SlTaskItem::CONTROL_STOPPED)//停止（未开始）
+            {
+                $updateResult = Yii::$app->getModule('sl')
+                    ->db
+                    //update tb set complete_status = close, control_status = stopped , task_status = open where cron_id = 1 and task_status = close and control_status in (restarted, started, default)
+                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_CLOSE.', control_status = '.SlTaskItem::CONTROL_STOPPED .
+                                            ', task_status = ' . SlTaskItem::TASK_STATUS_OPEN .//置为开始状态
+                                            ' WHERE id = '. $itemModel->id. ' AND task_status = '.SlTaskItem::TASK_STATUS_CLOSE .
+                                            ' AND control_status  IN ('. SlTaskItem::CONTROL_RESTARTED . ', '. SlTaskItem::CONTROL_STARTED . ', ' . SlTaskItem::CONTROL_DEFAULT . ')')//当前未开始
+                    ->execute();
+            }
+            else if($itemModel->control_status == SlTaskScheduleCrontab::CONTROL_STARTED)//启动(未开始)
+            {
+                $updateResult = Yii::$app->getModule('sl')
+                    ->db
+                    //update tb set complete_status = open, control_status = started, task_status = close where cron_id = 1 and task_status = open and control_status = stopped
+                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_STARTED .
+                                    ', task_status = ' . SlTaskItem::TASK_STATUS_CLOSE .
+                                    ' WHERE id = '. $itemModel->id. ' AND task_status = '.SlTaskItem::TASK_STATUS_OPEN . ' AND control_status = '.SlTaskItem::CONTROL_STOPPED)
+                    ->execute(); 
+            }
+            else if($itemModel->control_status == SlTaskScheduleCrontab::CONTROL_RESTARTED)//重启（已开始）
+            {
+                $updateResult = Yii::$app->getModule('sl')
+                    ->db
+                    //update tb set complete_status = open, control_status = restarted, task_status = close where cron_id = 1 and task_status in(open, completed) and control_status in(default ,started, restarted)
+                    ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_RESTARTED.
+                                    ', task_status = '. SlTaskItem::TASK_STATUS_CLOSE . ' WHERE id = '. $itemModel->id. ' AND task_status IN(' . SlTaskItem::TASK_STATUS_OPEN .
+                                    ', '. SlTaskItem::TASK_STATUS_COMPLETE. ') AND control_status IN('.SlTaskItem::CONTROL_DEFAULT.', '. SlTaskItem::CONTROL_RESTARTED .', '.
+                                    SlTaskItem::CONTROL_STARTED . ')')
+                    ->execute();
+            }
 
-            return  [
-                    'code'=>'0',
-                    'msg'=>'Success',
-                    'data'=>[]
-                    ];
+            if($updateResult)
+            {
+                return  [
+                        'code'=>'0',
+                        'msg'=>'Success',
+                        'data'=>[]
+                        ];
+            }
+            else
+            {
+                $defaultRet['msg'] = 'Updated failed';
+                return  $defaultRet;
+            }
         }
     }
 

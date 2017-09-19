@@ -172,9 +172,20 @@ EOT;
 
     var taskStatArr =<?php echo Json::encode([
     	SlTaskItem::TASK_STATUS_CLOSE => '未启动',
-    	SlTaskItem::TASK_STATUS_OPEN => '已启动',
+    	SlTaskItem::TASK_STATUS_OPEN => '正在进行',
     	SlTaskItem::TASK_STATUS_COMPLETE => '已完成',
     ]) ?>;
+
+    var TASK_STAT = {
+            'TASK_STATUS_CLOSE':<?php echo '\''.SlTaskItem::TASK_STATUS_CLOSE.'\''; ?>,
+            'TASK_STATUS_OPEN':<?php echo '\''.SlTaskItem::TASK_STATUS_OPEN.'\''; ?>,
+            'TASK_STATUS_COMPLETE':<?php echo '\''.SlTaskItem::TASK_STATUS_COMPLETE.'\''; ?>,
+
+            'CONTROL_DEFAULT':<?php echo '\''.SlTaskItem::CONTROL_DEFAULT.'\'';?>,
+            'CONTROL_STARTED':<?php echo '\''.SlTaskItem::CONTROL_STARTED.'\'';?>,
+            'CONTROL_STOPPED':<?php echo '\''.SlTaskItem::CONTROL_STOPPED.'\'';?>,
+            'CONTROL_RESTARTED':<?php echo '\''.SlTaskItem::CONTROL_RESTARTED.'\'';?>
+            }
 
     /**
      * 显示任务数据
@@ -185,29 +196,49 @@ EOT;
     {
     	var _container = $('.task_tables'),
     		_trStr = '',
-    		_trLen = _rows.length
+    		_trLen = _rows.length,
+            _statStr = '';
 
     	for(var _i = 0;_i < _trLen;_i++)
     	{
+            if(_rows[_i]['control_status'] == TASK_STAT['CONTROL_STOPPED'])
+            {
+                _statStr = '已停止'
+            }
+            else
+            {
+                _statStr = taskStatArr[_rows[_i]['complete_status']]
+                
+            }
+            
     		_trStr += '<tr task-id="'+_rows[_i]['id']+'"><td><span class="cell">'+ _rows[_i]['id'] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['sche_id'] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['name'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['sche_id'] +'</span></td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['name'] +'</span></td>'
 
-    				+ '<td><span class="cell">'+ _rows[_i]['brand_name'].substr(0, 5) +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['key_words'].substr(0, 5) +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['pf_name'].substr(0, 5) +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['brand_name'].substr(0, 5) +'</span></td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['key_words'].substr(0, 5) +'</span></td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['pf_name'].substr(0, 5) +'</span></td>'
 
-    				+ '<td><span class="cell">'+ _rows[_i]['dt_category'] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ taskStatArr[_rows[_i]['complete_status']] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ ((_rows[_i]['task_progress']) * 100).toFixed(2) +'%</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['dt_category'] +'</span></td>'
+    				+ '<td><span class="cell">'+ _statStr +'</span></td>'
+    				+ '<td><span class="cell">'+ ((_rows[_i]['task_progress']) * 100).toFixed(2) +'%</span></td>'
 
-                    + '<td><span class="cell">'+ _rows[_i]['task_time'] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['act_time'] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['complete_time'] +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ _rows[_i]['task_time'] +'</span></td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['act_time'] +'</span></td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['complete_time'] +'</span></td>';
 
-    				+ '<td><span class="cell"><a href="javascript:updateTaskStat( \''+ _rows[_i]['complete_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_OPEN;?>+'\', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
-    				+ '<a href="javascript:updateTaskStat(\''+ _rows[_i]['complete_status'] +'\', \''+<?php echo SlTaskItem::TASK_STATUS_CLOSE;?>+'\', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
-    				+ '<a href="javascript:deleteItem(\''+_rows[_i]['id']+'\');" class="a--danger">删除</a>'
+    				if( _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_OPEN'] && _rows[_i]['control_status'] == TASK_STAT['CONTROL_STOPPED'] )//启动
+                    {
+                        _trStr += '<td><span class="cell"><a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_STARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">启动</a></span></td>'
+                    }
+                    else if( _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_CLOSE'] && (_rows[_i]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_STARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] ) )//停止
+                    {
+    				    _trStr += '<td><span class="cell"><a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_STOPPED'] +', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a></span></td>'
+                    }
+                    else if( (_rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_OPEN'] || _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_COMPLETE'] ) && (_rows[_i]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_STARTED']) )//重启
+                    {
+                        _trStr += '<td><span class="cell"><a href="javascript:updateTaskStat(  '+ TASK_STAT['CONTROL_RESTARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">重启</a></span></td>'   
+                    }
     	}
     	_container.find('tr:gt(0)').remove();
     	_container.find('tr:eq(0)').after(_trStr);
@@ -215,114 +246,71 @@ EOT;
 
     /**
      * 更改每日任务状态
-     * @param  string _curStat 当前任务状态
      * @param  string _ctrlStat 更改的状态
      * @param  string _id 要更改的任务id
      * @return boolean
      */
-    function updateTaskStat(_curStat, _ctrlStat, _id)
+    function updateTaskStat(_ctrlStat, _id)
     {
-        var _unstartStat = <?php echo SlTaskItem::TASK_STATUS_CLOSE; ?>,
-            _startStat = <?php echo SlTaskItem::TASK_STATUS_OPEN; ?>,
-            _okStat = <?php echo SlTaskItem::TASK_STATUS_COMPLETE; ?>,
-            _open = <?php echo SlTaskItem::CONTROL_RESTARTED;?>,
-            _stop = <?php echo SlTaskItem::CONTROL_STOPPED;?>,
-            _updateItemUrl = '/sl/schedule/update-task-item',
-            _container = $('.task_tables');
+        var _actStr,
+            _actRetStr,
+            _opStr,
+        _updateItemUrl = '/sl/schedule/update-task-item-stat',
+        _container = $('.task_tables');
 
-            if(_curStat == _okStat)
-            {
-                $.alert('已完成');
-                return;
-            }
 
-            if( _ctrlStat == _open && _curStat == _unstartStat)//启动
-            {
-                var _updateItemData = {};
-                _updateItemData['_csrf'] = csrfToken;
+        var _updateItemData = {};
+        _updateItemData['_csrf'] = csrfToken;
 
-                _updateItemData['id'] = _id;
-                _updateItemData['complete_status'] = _startStat;
-                _updateItemData['control_status'] = _ctrlStat;
+        _updateItemData['id'] = _id;
+        _updateItemData['control_status'] = _ctrlStat;
 
-                $.confirm({
-                    title: '弹框',
-                    body: '是否启动任务项'+ _id +'?',
-                    okHide: function(){
-                        $.ajax({
-                            crossDomain: true,
-                            url: _updateItemUrl,
-                            type: 'post',
-                            data: _updateItemData,
-                            dataType: 'json',
-                            success: function (json_data) {
-                                // console.log(JSON.stringify(json_data));
-                                if(json_data.code == '0')
-                                {
-                                    _container.find("tr[task-id='"+_id+"']").find("td:eq(7)").find("span").html("已启动");
-                                    $.alert('启动任务项'+_id+'成功');
-                                }
-                                else
-                                {
-                                    $.alert('启动任务项'+_id+'失败');
-                                }
+        if(_ctrlStat == TASK_STAT['CONTROL_STARTED'])
+        {
+            _actStr = '启动'
+            _opStr = '<a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_STOPPED'] +', '+_id+');" class="a--danger">停止</a>'
+        }
+        else if(_ctrlStat == TASK_STAT['CONTROL_STOPPED'])
+        {
+            _actStr = '停止'
+            _actRetStr = '已停止'
+            _opStr = '<a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_STARTED'] +', '+_id+');" class="a--success">启动</a>'
+        }
+        else if(_ctrlStat == TASK_STAT['CONTROL_RESTARTED'])
+        {
+            _actStr = '重启'
+            _opStr = '<a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_RESTARTED'] +', '+_id+');" class="a--success">重启</a>'
+        }
 
-                            }
-                        });
+        $.confirm({
+            title: '弹框',
+            body: '是否'+_actStr+'任务项'+ _id +'?',
+            okHide: function(){
+                $.ajax({
+                    crossDomain: true,
+                    url: _updateItemUrl,
+                    type: 'post',
+                    data: _updateItemData,
+                    dataType: 'json',
+                    success: function (json_data) {
+                        if(json_data.code == '0')
+                        {
+                            if(_actRetStr)
+                                _container.find("tr[task-id='"+_id+"']").find("td:eq(7)").find("span").html(_actRetStr);
+                            _container.find("tr[task-id='"+_id+"']").find("td:eq(12)").find("span").html(_opStr);
+
+                            $.alert(_actStr+'任务项'+_id+'成功');
+                        }
+                        else
+                        {
+                            $.alert(_actStr+'任务项'+_id+'失败');
+                        }
+
                     }
-                })
-            }
-            else if( _ctrlStat == _stop && _curStat != _unstartStat)//关闭
-            {
-                var _updateItemData = {};
-                _updateItemData['_csrf'] = csrfToken;
-
-                _updateItemData['id'] = _id;
-                _updateItemData['complete_status'] = _unstartStat;
-                _updateItemData['control_status'] = _ctrlStat;
-
-                $.confirm({
-                    title: '弹框',
-                    body: '是否停止任务项'+ _id +'?',
-                    okHide: function(){
-                        $.ajax({
-                            crossDomain: true,
-                            url: _updateItemUrl,
-                            type: 'post',
-                            data: _updateItemData,
-                            dataType: 'json',
-                            success: function (json_data) {
-                                // console.log(JSON.stringify(json_data));
-                                if(json_data.code == '0')
-                                {
-                                    _container.find("tr[task-id='"+_id+"']").find("td:eq(7)").find("span").html("未启动");
-                                    $.alert('停止任务项'+_id+'成功');
-                                }
-                                else
-                                {
-                                    $.alert('停止任务项'+_id+'失败');
-                                }
-
-                            }
-                        });
-                    }
-                })
-
-            }
-            else if(_ctrlStat == _open)
-            {
-                $.alert({
-                    title: '提示',
-                    body: '已启动!',
                 });
             }
-            else if(_ctrlStat == _stop)
-            {
-                $.alert({
-                    title: '提示',
-                    body: '未启动!',
-                });
-            }
+        })
+
         return true;
     }
 

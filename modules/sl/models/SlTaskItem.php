@@ -34,9 +34,10 @@ class SlTaskItem extends \yii\db\ActiveRecord
     const PAGING_NO = 0;
     const PAGING_YES = 1;
 
-    const CONTROL_STOPPED = 0;
+    const CONTROL_DEFAULT = 0;
     const CONTROL_STARTED = 1;
-    const CONTROL_RESTARTED = 2;
+    const CONTROL_STOPPED = 2;
+    const CONTROL_RESTARTED = 3;
 
     const TASK_STATUS_CLOSE = 0;
     const TASK_STATUS_OPEN = 1;
@@ -60,7 +61,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
         return [
             [['sche_id', 'cron_id', 'task_status', 'control_status', 'task_time', 'act_time', 'update_time', 'create_time', 'complete_time', 'paging'], 'integer'],
             [['task_status', 'complete_status'], 'in', 'range' => [self::TASK_STATUS_CLOSE, self::TASK_STATUS_OPEN, self::TASK_STATUS_COMPLETE]],
-            ['control_status', 'in', 'range' => [self::CONTROL_STOPPED, self::CONTROL_RESTARTED]],
+            ['control_status', 'in', 'range' => [self::CONTROL_DEFAULT, self::CONTROL_STARTED, self::CONTROL_STOPPED, self::CONTROL_RESTARTED]],
             ['paging', 'in', 'range' => [self::PAGING_NO, self::PAGING_YES]],
             ['is_delete', 'in', 'range' => [self::NOT_DELETED, self::DELETED]],
             [['name', 'cookie', 'user_agent', 'dt_category', 'pf_name'], 'string'],
@@ -89,7 +90,7 @@ class SlTaskItem extends \yii\db\ActiveRecord
             'key_words' => '关键字',
             'task_status' => '',
             'complete_status' => '子任务状态(0:未启动1:已启动2:已完成)',
-            'control_status' => '子任务控制状态(0:停止1:运行2:重启)',
+            'control_status' => '子任务控制状态(0:默认1:运行2:停止3:重启)',
             'task_progress' => '任务进度,最小值0.0000,最大值1.0000',
             'task_time' => '计划开始时间',
             'act_time' => '实际开始时间',
