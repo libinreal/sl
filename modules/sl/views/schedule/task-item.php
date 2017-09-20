@@ -268,18 +268,18 @@ EOT;
         if(_ctrlStat == TASK_STAT['CONTROL_STARTED'])
         {
             _actStr = '启动'
-            _opStr = '<a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_STOPPED'] +', '+_id+');" class="a--danger">停止</a>'
+            _opStr = '<a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_STOPPED'] +', \''+_id+'\');" class="a--danger">停止</a>'
         }
         else if(_ctrlStat == TASK_STAT['CONTROL_STOPPED'])
         {
             _actStr = '停止'
             _actRetStr = '已停止'
-            _opStr = '<a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_STARTED'] +', '+_id+');" class="a--success">启动</a>'
+            _opStr = '<a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_STARTED'] +', \''+_id+'\');" class="a--success">启动</a>'
         }
         else if(_ctrlStat == TASK_STAT['CONTROL_RESTARTED'])
         {
             _actStr = '重启'
-            _opStr = '<a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_RESTARTED'] +', '+_id+');" class="a--success">重启</a>'
+            _opStr = '<a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_RESTARTED'] +', \''+_id+'\');" class="a--success">重启</a>'
         }
 
         $.confirm({

@@ -544,7 +544,7 @@ class ScheduleController extends \yii\web\Controller
             $scheModel->save();
 
             /*** 实际任务状态更新 ***/
-            if($scheModel->sche_status == SlTaskSchedule::SCHE_STATUS_CLOSE)
+            /*if($scheModel->sche_status == SlTaskSchedule::SCHE_STATUS_CLOSE)
             {
                 Yii::$app->getModule('sl')
                     ->db
@@ -568,7 +568,7 @@ class ScheduleController extends \yii\web\Controller
                     ->db
                     ->createCommand('UPDATE '.SlTaskItem::tableName().' SET [[task_status]] = '.SlTaskItem::TASK_STATUS_OPEN.', [[control_status]] = '.SlTaskItem::CONTROL_RESTARTED.' WHERE [[sche_id]] = '. $scheModel->id . ' AND [[task_status]] <> '.SlTaskItem::TASK_STATUS_COMPLETE)
                     ->execute();
-            }
+            }*/
             /*** 实际任务状态更新 ***/
 
 
@@ -1064,7 +1064,7 @@ class ScheduleController extends \yii\web\Controller
 
             $defaultRet = [
                     'code' => '-1',
-                    'msg' => 'Crontab data error',
+                    'msg' => 'Request data error',
                     'data' => []
             ];
 
@@ -1079,9 +1079,13 @@ class ScheduleController extends \yii\web\Controller
                 return $defaultRet;
             }
 
+            $updateResult = false;
+
             /*** 任务项状态更新 ***/
             if($cronModel->control_status == SlTaskScheduleCrontab::CONTROL_STOPPED)//停止（未开始）
             {
+                $cronModel->task_status = SlTaskScheduleCrontab::TASK_STATUS_EXECUTING;
+
                 $updateResult = Yii::$app->getModule('sl')
                     ->db
                     //update tb set complete_status = close, control_status = stopped , task_status = open where cron_id = 1 and task_status = close and control_status in (restarted, started, default)
@@ -1093,6 +1097,8 @@ class ScheduleController extends \yii\web\Controller
             }
             else if($cronModel->control_status == SlTaskScheduleCrontab::CONTROL_STARTED)//启动(未开始)
             {
+                $cronModel->task_status = SlTaskScheduleCrontab::TASK_STATUS_UNSTARTED;
+
                 $updateResult = Yii::$app->getModule('sl')
                     ->db
                     //update tb set complete_status = open, control_status = started, task_status = close where cron_id = 1 and task_status = open and control_status = stopped
@@ -1103,6 +1109,8 @@ class ScheduleController extends \yii\web\Controller
             }
             else if($cronModel->control_status == SlTaskScheduleCrontab::CONTROL_RESTARTED)//重启（已开始）
             {
+                $cronModel->task_status = SlTaskScheduleCrontab::TASK_STATUS_UNSTARTED;
+
                 $updateResult = Yii::$app->getModule('sl')
                     ->db
                     //update tb set complete_status = open, control_status = restarted, task_status = close where cron_id = 1 and task_status in(open, completed) and control_status in(default ,started, restarted)
@@ -1112,16 +1120,21 @@ class ScheduleController extends \yii\web\Controller
                                     SlTaskItem::CONTROL_STARTED . ')')
                     ->execute();
             }
-            /*** 任务项状态更新 ***/
 
-            if($updateResult)
+            /*** 任务项状态更新 ***/
+            $defaultRet['msg'] = 'Data error';
+            if($updateResult && $cronModel->save())
+            {
                 return  [
                         'code'=>'0',
                         'msg'=>'Success',
                         'data'=>[]
                         ];
+            }
             else
+            {
                 return  $defaultRet;
+            }
         }
     }
 
@@ -1152,6 +1165,8 @@ class ScheduleController extends \yii\web\Controller
             {
                 return $defaultRet;
             }
+
+            $updateResult = false;
 
             /*** 任务项状态更新 ***/
             if($itemModel->control_status == SlTaskItem::CONTROL_STOPPED)//停止（未开始）
