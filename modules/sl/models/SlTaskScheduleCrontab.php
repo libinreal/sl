@@ -85,6 +85,11 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
         return $this->hasOne(SlTaskSchedule::className(), ['id' => 'sche_id'])->from(SlTaskSchedule::tableName() . ' sche');
     }
 
+    public function getItems()
+    {
+        return $this->hasMany(SlTaskItem::className(), ['cron_id' => 'id'])->from(SlTaskItem::tableName() . ' item');
+    }    
+
     public function getSearchQuery()
     {
         $query = static::find();
@@ -97,7 +102,7 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
             return false;
         }
 
-        $query->where(['is_delete' => self::NOT_DELETED]);
+        $query->where(['cron.is_delete' => self::NOT_DELETED]);
 
         $query->alias('cron')->joinWith('schedule');
 

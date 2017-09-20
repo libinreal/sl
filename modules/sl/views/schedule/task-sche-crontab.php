@@ -1,5 +1,6 @@
 <?php
 use app\modules\sl\models\SlTaskSchedule;
+use app\modules\sl\models\SlTaskItem;
 use app\modules\sl\models\SlTaskScheduleCrontab;
 use yii\helpers\Url;
 use yii\helpers\Json;
@@ -184,6 +185,10 @@ EOT;
             'TASK_STATUS_COMPLETED':<?php echo '\''.SlTaskScheduleCrontab::TASK_STATUS_COMPLETED.'\''; ?>,
             'TASK_STATUS_ABNORMAL':<?php echo '\''.SlTaskScheduleCrontab::TASK_STATUS_ABNORMAL.'\''; ?>,
 
+            'TASK_ITEM_CLOSE':<?php echo '\''.SlTaskItem::TASK_STATUS_CLOSE.'\''; ?>,
+            'TASK_ITEM_OPEN':<?php echo '\''.SlTaskItem::TASK_STATUS_OPEN.'\''; ?>,
+            'TASK_ITEM_COMPLETE':<?php echo '\''.SlTaskItem::TASK_STATUS_COMPLETE.'\''; ?>,
+
             'CONTROL_DEFAULT':<?php echo '\''.SlTaskScheduleCrontab::CONTROL_DEFAULT.'\'';?>,
             'CONTROL_STARTED':<?php echo '\''.SlTaskScheduleCrontab::CONTROL_STARTED.'\'';?>,
             'CONTROL_STOPPED':<?php echo '\''.SlTaskScheduleCrontab::CONTROL_STOPPED.'\'';?>,
@@ -197,7 +202,8 @@ EOT;
      */
     function showTaskData( _rows )
     {
-    	var _container = $('.task_tables'),
+    	var _curItemStat,
+            _container = $('.task_tables'),
     		_trStr = '',
     		_trLen = _rows.length,
             _statStr = '';
@@ -230,24 +236,42 @@ EOT;
     				+ '<td><span class="cell">'+ _rows[_i]['act_time'] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ _rows[_i]['complete_time'] +'</span>'+ '</td>'
 
-                    if( _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_UNSTARTED'] && _rows[_i]['control_status'] == TASK_STAT['CONTROL_STOPPED'] )//启动
-                    {
-                        _trStr += '<td><span class="cell"><a href="javascript:updateCrontabStat( '+ TASK_STAT['CONTROL_STARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
-                    }
-                    else if( _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_EXECUTING'] && (_rows[_i]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_STARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] ) )//停止
-                    {
-                        _trStr += '<td><span class="cell"><a href="javascript:updateCrontabStat( '+ TASK_STAT['CONTROL_STOPPED'] +', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
-                    }
-                    else if( (_rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_EXECUTING'] || _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_COMPLETED'] || _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_ABNORMAL'] ) && (_rows[_i]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_STARTED']) )//重启
-                    {
-                        _trStr += '<td><span class="cell"><a href="javascript:updateCrontabStat(  '+ TASK_STAT['CONTROL_RESTARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">重启</a>'   
-                    }
-                    else
-                    {
-                        _trStr += '<td><span class="cell">'
-                    }
+                    + '<td><span class="cell">'
 
-    				_trStr += '<a href="/sl/schedule/task-item/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td>'
+            //add operations base on task_items task_status and control_status
+
+            _curItemStat = {};
+            var _testBool
+            for(var _s in _rows[_i]['items'])
+            {
+                if( _rows[_i]['items'][_s]['task_status'] == TASK_STAT['TASK_ITEM_OPEN'] && _rows[_i]['items'][_s]['control_status'] == TASK_STAT['CONTROL_STOPPED'] )//启动
+                {
+                    _curItemStat['start'] = '';
+                }
+                else if( _rows[_i]['items'][_s]['task_status'] == TASK_STAT['TASK_ITEM_CLOSE'] && (_rows[_i]['items'][_s]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['items'][_s]['control_status'] == TASK_STAT['CONTROL_STARTED'] || _rows[_i]['items'][_s]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] ) )//停止
+                {
+                    _curItemStat['stop'] = '';
+                }   
+                else if( (_rows[_i]['items'][_s]['task_status'] == TASK_STAT['TASK_ITEM_OPEN'] || _rows[_i]['items'][_s]['task_status'] == TASK_STAT['TASK_ITEM_COMPLETE'] ) && (_rows[_i]['items'][_s]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] || _rows[_i]['items'][_s]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['items'][_s]['control_status'] == TASK_STAT['CONTROL_STARTED']) )//重启
+                {
+                    _curItemStat['restart'] = '';
+                }
+                //_testBool = (_rows[_i]['items'][_s]['task_status'] == TASK_STAT['TASK_ITEM_OPEN'] || _rows[_i]['items'][_s]['task_status'] == TASK_STAT['TASK_ITEM_COMPLETE'] ) && (_rows[_i]['items'][_s]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] || _rows[_i]['items'][_s]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['items'][_s]['control_status'] == TASK_STAT['CONTROL_STARTED']);
+                //_testBool = _rows[_i]['items'][_s]['task_status'] == TASK_STAT['TASK_ITEM_OPEN'] && _rows[_i]['items'][_s]['control_status'] == TASK_STAT['CONTROL_DEFAULT'];
+                //console.log(' ' +  _testBool + '  ' + _rows[_i]['items'][_s]['task_status'] + '  ' + TASK_STAT['TASK_ITEM_OPEN'] + '  ' + _rows[_i]['items'][_s]['control_status'] + '  ' +TASK_STAT['CONTROL_DEFAULT']);
+            }
+
+            for(var _o in _curItemStat)
+            {
+                if(_o == 'start' )
+                    _trStr += '<a href="javascript:updateCrontabStat( '+ TASK_STAT['CONTROL_STARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
+                else if(_o == 'stop' )
+                    _trStr += '<a href="javascript:updateCrontabStat( '+ TASK_STAT['CONTROL_STOPPED'] +', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
+                else if(_o == 'restart' )
+                    _trStr += '<a href="javascript:updateCrontabStat(  '+ TASK_STAT['CONTROL_RESTARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">重启</a>'
+            }
+
+    	   _trStr += '<a href="/sl/schedule/task-item/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td>'
     	}
     	_container.find('tr:gt(0)').remove();
     	_container.find('tr:eq(0)').after(_trStr);

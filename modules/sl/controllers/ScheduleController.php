@@ -1019,12 +1019,22 @@ class ScheduleController extends \yii\web\Controller
             $totals = $scheCronQuery->count();
 
             $data = $scheCronQuery
-                        ->select('cron.id, cron.name, cron.start_time, cron.complete_time, cron.act_time, cron.task_status, cron.control_status, cron.task_progress, cron.sche_id, sche.key_words, sche.dt_category, sche.pf_name, sche.brand_name')
+                        ->joinWith('items')
+                        ->select('cron.id, cron.name, cron.start_time, cron.complete_time, cron.act_time, cron.task_status, cron.control_status, cron.task_progress, cron.sche_id, sche.key_words, sche.dt_category, sche.pf_name, sche.brand_name, item.id item_id')
                         ->limit( $pageSize )
                         ->offset( ($pageNo - 1) * $pageSize )
                         ->asArray()
                         ->orderBy('cron.id DESC')
                         ->all();
+
+            $funcSaveStat = function(&$_ele, $_ele_key){
+                $newEle = array();
+                foreach($_ele as $_ele_k=>$_ele_v)
+                {
+                    if($_ele_k != 'control_status' && $_ele_k != 'task_status')
+                        unset($_ele[$_ele_k]);
+                }
+            };
 
             foreach ($data as &$d)
             {
@@ -1039,6 +1049,9 @@ class ScheduleController extends \yii\web\Controller
                     $d['act_time'] = date('Y-m-d H:i:s', $d['act_time']);
                 else
                     $d['act_time'] = '';
+
+                //get crontab operate status array
+                array_walk($d['items'], $funcSaveStat);
             }
             unset($d);
 

@@ -71,8 +71,8 @@ class SlTaskScheduleController extends Controller
 					$startTime,
 					0,
 					$sche['id'],
-					SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING,
-					SlTaskScheduleCrontabConsole::CONTROL_STARTED,
+					SlTaskScheduleCrontabConsole::TASK_STATUS_UNSTARTED,
+					SlTaskScheduleCrontabConsole::CONTROL_DEFAULT,
 					time()
 				];
 			}
@@ -86,8 +86,8 @@ class SlTaskScheduleController extends Controller
 					$startTime,
 					0,
 					$sche['id'],
-					SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING,
-					SlTaskScheduleCrontabConsole::CONTROL_STARTED,
+					SlTaskScheduleCrontabConsole::TASK_STATUS_UNSTARTED,
+					SlTaskScheduleCrontabConsole::CONTROL_DEFAULT,
 					time()
 				];
 			}
@@ -106,8 +106,8 @@ class SlTaskScheduleController extends Controller
 					$startTime,
 					0,
 					$sche['id'],
-					SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING,
-					SlTaskScheduleCrontabConsole::CONTROL_STARTED,
+					SlTaskScheduleCrontabConsole::TASK_STATUS_UNSTARTED,
+					SlTaskScheduleCrontabConsole::CONTROL_DEFAULT,
 					time()
 				];
 			}
@@ -126,8 +126,8 @@ class SlTaskScheduleController extends Controller
 					$startTime,
 					0,
 					$sche['id'],
-					SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING,
-					SlTaskScheduleCrontabConsole::CONTROL_STARTED,
+					SlTaskScheduleCrontabConsole::TASK_STATUS_UNSTARTED,
+					SlTaskScheduleCrontabConsole::CONTROL_DEFAULT,
 					time()
 				];
 			}
@@ -506,7 +506,7 @@ class SlTaskScheduleController extends Controller
 			->alias('cron')
 			->joinWith('schedule')
 			->select('sche.alert_params, cron.id, cron.sche_id, cron.name, cron.act_time, cron.start_time')
-			->where('task_status='.SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING )
+			->where('in', 'task_status', [SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING, SlTaskScheduleCrontabConsole::TASK_STATUS_UNSTARTED] )
 			->asArray()
 			->indexBy('id')
 			->all();
