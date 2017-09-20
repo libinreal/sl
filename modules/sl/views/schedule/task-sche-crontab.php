@@ -179,9 +179,9 @@ EOT;
     ]) ?>;
 
     var TASK_STAT = {
-            'TASK_STATUS_CLOSE':<?php echo '\''.SlTaskScheduleCrontab::TASK_STATUS_UNSTARTED.'\''; ?>,
-            'TASK_STATUS_OPEN':<?php echo '\''.SlTaskScheduleCrontab::TASK_STATUS_EXECUTING.'\''; ?>,
-            'TASK_STATUS_COMPLETE':<?php echo '\''.SlTaskScheduleCrontab::TASK_STATUS_COMPLETED.'\''; ?>,
+            'TASK_STATUS_UNSTARTED':<?php echo '\''.SlTaskScheduleCrontab::TASK_STATUS_UNSTARTED.'\''; ?>,
+            'TASK_STATUS_EXECUTING':<?php echo '\''.SlTaskScheduleCrontab::TASK_STATUS_EXECUTING.'\''; ?>,
+            'TASK_STATUS_COMPLETED':<?php echo '\''.SlTaskScheduleCrontab::TASK_STATUS_COMPLETED.'\''; ?>,
             'TASK_STATUS_ABNORMAL':<?php echo '\''.SlTaskScheduleCrontab::TASK_STATUS_ABNORMAL.'\''; ?>,
 
             'CONTROL_DEFAULT':<?php echo '\''.SlTaskScheduleCrontab::CONTROL_DEFAULT.'\'';?>,
@@ -230,15 +230,15 @@ EOT;
     				+ '<td><span class="cell">'+ _rows[_i]['act_time'] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ _rows[_i]['complete_time'] +'</span>'+ '</td>'
 
-                    if( _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_OPEN'] && _rows[_i]['control_status'] == TASK_STAT['CONTROL_STOPPED'] )//启动
+                    if( _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_UNSTARTED'] && _rows[_i]['control_status'] == TASK_STAT['CONTROL_STOPPED'] )//启动
                     {
                         _trStr += '<td><span class="cell"><a href="javascript:updateCrontabStat( '+ TASK_STAT['CONTROL_STARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
                     }
-                    else if( _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_CLOSE'] && (_rows[_i]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_STARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] ) )//停止
+                    else if( _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_EXECUTING'] && (_rows[_i]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_STARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] ) )//停止
                     {
                         _trStr += '<td><span class="cell"><a href="javascript:updateCrontabStat( '+ TASK_STAT['CONTROL_STOPPED'] +', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
                     }
-                    else if( (_rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_OPEN'] || _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_COMPLETE'] || _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_ABNORMAL'] ) && (_rows[_i]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_STARTED']) )//重启
+                    else if( (_rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_EXECUTING'] || _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_COMPLETED'] || _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_ABNORMAL'] ) && (_rows[_i]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_STARTED']) )//重启
                     {
                         _trStr += '<td><span class="cell"><a href="javascript:updateCrontabStat(  '+ TASK_STAT['CONTROL_RESTARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">重启</a>'   
                     }

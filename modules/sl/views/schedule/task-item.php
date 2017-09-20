@@ -297,6 +297,15 @@ EOT;
                         {
                             if(_actRetStr)
                                 _container.find("tr[task-id='"+_id+"']").find("td:eq(7)").find("span").html(_actRetStr);
+
+                            if(_ctrlStat == TASK_STAT['CONTROL_RESTARTED'])//重启
+                            {
+                                _container.find("tr[task-id='"+_id+"']").find("td:eq(7)").find("span").html('未启动');
+                                _container.find("tr[task-id='"+_id+"']").find("td:eq(8)").find("span").html('0.00%');
+                                _container.find("tr[task-id='"+_id+"']").find("td:eq(10)").find("span").html('');
+                                _container.find("tr[task-id='"+_id+"']").find("td:eq(11)").find("span").html('');
+
+                            }
                             _container.find("tr[task-id='"+_id+"']").find("td:eq(12)").find("span").html(_opStr);
 
                             $.alert(_actStr+'任务项'+_id+'成功');

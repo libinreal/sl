@@ -1084,7 +1084,7 @@ class ScheduleController extends \yii\web\Controller
             /*** 任务项状态更新 ***/
             if($cronModel->control_status == SlTaskScheduleCrontab::CONTROL_STOPPED)//停止（未开始）
             {
-                $cronModel->task_status = SlTaskScheduleCrontab::TASK_STATUS_EXECUTING;
+                $cronModel->task_status = SlTaskScheduleCrontab::TASK_STATUS_UNSTARTED;
 
                 $updateResult = Yii::$app->getModule('sl')
                     ->db
@@ -1097,7 +1097,7 @@ class ScheduleController extends \yii\web\Controller
             }
             else if($cronModel->control_status == SlTaskScheduleCrontab::CONTROL_STARTED)//启动(未开始)
             {
-                $cronModel->task_status = SlTaskScheduleCrontab::TASK_STATUS_UNSTARTED;
+                $cronModel->task_status = SlTaskScheduleCrontab::TASK_STATUS_EXECUTING;
 
                 $updateResult = Yii::$app->getModule('sl')
                     ->db
@@ -1109,12 +1109,13 @@ class ScheduleController extends \yii\web\Controller
             }
             else if($cronModel->control_status == SlTaskScheduleCrontab::CONTROL_RESTARTED)//重启（已开始）
             {
-                $cronModel->task_status = SlTaskScheduleCrontab::TASK_STATUS_UNSTARTED;
+                $cronModel->task_status = SlTaskScheduleCrontab::TASK_STATUS_EXECUTING;
 
                 $updateResult = Yii::$app->getModule('sl')
                     ->db
                     //update tb set complete_status = open, control_status = restarted, task_status = close where cron_id = 1 and task_status in(open, completed) and control_status in(default ,started, restarted)
                     ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_RESTARTED.
+                                    ', act_time = 0, complete_time = 0, task_progress = 0.0000'.
                                     ', task_status = '. SlTaskItem::TASK_STATUS_CLOSE . ' WHERE cron_id = '. $cronModel->id. ' AND task_status IN(' . SlTaskItem::TASK_STATUS_OPEN .
                                     ', '. SlTaskItem::TASK_STATUS_COMPLETE. ') AND control_status IN('.SlTaskItem::CONTROL_DEFAULT.', '. SlTaskItem::CONTROL_RESTARTED .', '.
                                     SlTaskItem::CONTROL_STARTED . ')')
@@ -1196,6 +1197,7 @@ class ScheduleController extends \yii\web\Controller
                     ->db
                     //update tb set complete_status = open, control_status = restarted, task_status = close where cron_id = 1 and task_status in(open, completed) and control_status in(default ,started, restarted)
                     ->createCommand('UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_RESTARTED.
+                                    ', act_time = 0, complete_time = 0, task_progress = 0.0000'.
                                     ', task_status = '. SlTaskItem::TASK_STATUS_CLOSE . ' WHERE id = '. $itemModel->id. ' AND task_status IN(' . SlTaskItem::TASK_STATUS_OPEN .
                                     ', '. SlTaskItem::TASK_STATUS_COMPLETE. ') AND control_status IN('.SlTaskItem::CONTROL_DEFAULT.', '. SlTaskItem::CONTROL_RESTARTED .', '.
                                     SlTaskItem::CONTROL_STARTED . ')')
@@ -1206,7 +1208,11 @@ class ScheduleController extends \yii\web\Controller
             {
                 return  [
                         'code'=>'0',
-                        'msg'=>'Success',
+                        'msg'=>'UPDATE '.SlTaskItem::tableName().' SET complete_status = '.SlTaskItem::TASK_STATUS_OPEN.', control_status = '.SlTaskItem::CONTROL_RESTARTED.
+                                    ', act_time = 0, complete_time = 0, task_progress = 0.0000'.
+                                    ', task_status = '. SlTaskItem::TASK_STATUS_CLOSE . ' WHERE id = '. $itemModel->id. ' AND task_status IN(' . SlTaskItem::TASK_STATUS_OPEN .
+                                    ', '. SlTaskItem::TASK_STATUS_COMPLETE. ') AND control_status IN('.SlTaskItem::CONTROL_DEFAULT.', '. SlTaskItem::CONTROL_RESTARTED .', '.
+                                    SlTaskItem::CONTROL_STARTED . ')',
                         'data'=>[]
                         ];
             }
