@@ -20,6 +20,10 @@ class SlTaskScheduleCrontabAbnormal extends \yii\db\ActiveRecord
     const ABNORMAL_TYPE_NUM_LESS = 2;
     const ABNORMAL_TYPE_NUM_MORE = 4;
 
+    const RESOLVE_TYPE_UNRESOLVED = 0;
+    const RESOLVE_TYPE_RESOLVED = 0;
+    const RESOLVE_TYPE_IGNORED = 0;
+
     /**
      * @inheritdoc
      */
@@ -35,7 +39,7 @@ class SlTaskScheduleCrontabAbnormal extends \yii\db\ActiveRecord
     {
         return [
             [['cron_id', 'sche_id', 'msg'], 'required'],
-            [['cron_id', 'sche_id', 'abnormal_type'], 'integer'],
+            [['cron_id', 'sche_id', 'abnormal_type', 'resolve_stat', 'add_time'], 'integer'],
             [['msg'], 'string'],
         ];
     }
@@ -51,6 +55,8 @@ class SlTaskScheduleCrontabAbnormal extends \yii\db\ActiveRecord
             'sche_id' => '计划id',
             'abnormal_type' => '异常类型(0:正常1:爬取时间异常2:爬取数量过小4:爬取数量过大)',
             'msg' => '异常信息',
+            'resolve_stat' => '解决状态(0:未解决1:已解决2:忽略)',
+            'add_time' => '添加时间',
         ];
     }
 
@@ -62,16 +68,18 @@ class SlTaskScheduleCrontabAbnormal extends \yii\db\ActiveRecord
     public static function getDurationMsg($act_duration , $alert_duration)
     {
         $delay = (float)$act_duration - (float)$alert_duration;
-        return "爬取持续时间为$act_duration小时，预警时间$alert_duration小时，超时$delay小时";
+        return "抓取时间{$act_duration}h，预警时间{$alert_duration}h，超时{$delay}h";
     }
 
     public static function getNumMinMsg($act_num, $alert_min)
     {
-        return "抓取总计$act_num条数据，少于预警值$alert_min条";
+        $distance = $alert_min - $act_num;
+        return "抓取共{$act_num}条，预警值{$alert_min}条，缺少{$diff}条";
     }
 
     public static function getNumMaxMsg($act_num, $alert_max)
     {
-        return "抓取总计$act_num条数据，多于预警值$alert_max条";
+        $distance = $alert_max - $act_num;
+        return "抓取总计{$act_num}条数据，多于预警值{$alert_max}条";
     }
 }
