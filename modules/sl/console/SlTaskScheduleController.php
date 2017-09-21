@@ -506,7 +506,7 @@ class SlTaskScheduleController extends Controller
 			->alias('cron')
 			->joinWith('schedule')
 			->select('sche.alert_params, cron.id, cron.sche_id, cron.name, cron.act_time, cron.start_time')
-			->where('in', 'task_status', [SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING, SlTaskScheduleCrontabConsole::TASK_STATUS_UNSTARTED] )
+			->where(['in', 'cron.task_status', [SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING, SlTaskScheduleCrontabConsole::TASK_STATUS_UNSTARTED] ])
 			->asArray()
 			->indexBy('id')
 			->all();
