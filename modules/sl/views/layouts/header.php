@@ -8,7 +8,9 @@ use yii\helpers\Html;
 <header style="left: 0px;">
     <nav class="top-nav clearfix">
         <div class="nav-left">
-            <a href="/sl/schedule/index">SL</a>
+            <a href="/sl/schedule/index">Task</a>
+            <a href="/sl/message/abnormal">Message</a>
+            <a href="/sl/report/crontab-data/product">Report</a>
         </div>
         <div class="btn-keys">
             <div class="triangle-down">

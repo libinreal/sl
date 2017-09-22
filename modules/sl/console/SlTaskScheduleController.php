@@ -526,7 +526,7 @@ class SlTaskScheduleController extends Controller
 			->where(['in', 'cron_id', array_keys( $crontabIdArr )])
 			->indexBy('id')
 			->asArray()
-			->all();	
+			->all();
 
 		$time_stamp = time();
 		$cronItemActTimeArr = [];
@@ -856,12 +856,12 @@ class SlTaskScheduleController extends Controller
 		$updateAbnormalValues = '';
 		foreach ($crontabAbnormalTypeArr as $cronId => $abnormaType) 
 		{
-			$updateAbnormalValues .= '(' . $cronId . ', ' . $crontabIdArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\'),';
+			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabIdArr[$cronId]['name'] . '\', ' . $crontabIdArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\', ' . $time_stamp . '\'),';
 		}
 
 		$updateAbnormalSql = 'INSERT INTO ' . SlTaskScheduleCrontabAbnormalConsole::tableName()
-							. ' (cron_id, sche_id, abnormal_type, msg) values '	;
-		$updateAbnormalSql1 = ' ON DUPLICATE KEY UPDATE cron_id = values(cron_id), sche_id = values(sche_id), abnormal_type = values(abnormal_type), msg = values(msg);';
+							. ' (cron_id, name, sche_id, abnormal_type, msg, add_time) values '	;
+		$updateAbnormalSql1 = ' ON DUPLICATE KEY UPDATE cron_id = values(cron_id), name = values(name), sche_id = values(sche_id);';
 
 		if(!empty($updateAbnormalValues))
 		{
@@ -884,7 +884,7 @@ class SlTaskScheduleController extends Controller
 		$crontabArr = SlTaskScheduleCrontabConsole::find()
 			->alias('cron')
 			->joinWith('schedule')
-			->select('sche.alert_params, cron.id, cron.sche_id, cron.act_time')
+			->select('cron.name, sche.alert_params, cron.id, cron.sche_id, cron.act_time')
 			->where('task_status='.SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING )
 			->asArray()
 			->indexBy('id')
@@ -934,12 +934,12 @@ class SlTaskScheduleController extends Controller
 		$updateAbnormalValues = '';
 		foreach ($crontabAbnormalTypeArr as $cronId => $abnormaType) 
 		{
-			$updateAbnormalValues .= '(' . $cronId . ', ' . $crontabArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\'),';
+			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabArr[$cronId]['name'] . '\', ' . $crontabArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\',' . $time_stamp . '),';
 		}
 
 		$updateAbnormalSql = 'INSERT INTO ' . SlTaskScheduleCrontabAbnormalConsole::tableName()
-							. ' (cron_id, sche_id, abnormal_type, msg) values '	;
-		$updateAbnormalSql1 = ' ON DUPLICATE KEY UPDATE cron_id = values(cron_id), sche_id = values(sche_id), abnormal_type = values(abnormal_type), msg = values(msg);';
+							. ' (cron_id, name, sche_id, abnormal_type, msg, add_time) values '	;
+		$updateAbnormalSql1 = ' ON DUPLICATE KEY UPDATE cron_id = values(cron_id), name = values(name), sche_id = values(sche_id);';
 
 		if(!empty($updateAbnormalValues))
 		{

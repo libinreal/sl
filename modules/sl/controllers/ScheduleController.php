@@ -40,8 +40,8 @@ class ScheduleController extends \yii\web\Controller
             Yii::$app->response->format = Response::FORMAT_JSON;
             $post = Yii::$app->request->post();
 
-            $pageNo = @$post['pageNo'];
-            $pageSize = @$post['pageSize'];
+            $pageNo = isset($post['pageNo']) ? $post['pageNo'] : 1;
+            $pageSize = isset($post['pageSize']) ? $post['pageSize'] : 10;
 
             $scheModel = new SlTaskSchedule();
             $scheQuery = $scheModel->getSearchQuery();
@@ -953,8 +953,8 @@ class ScheduleController extends \yii\web\Controller
             Yii::$app->response->format = Response::FORMAT_JSON;
             $post = Yii::$app->request->post();
 
-            $pageNo = @$post['pageNo'];
-            $pageSize = @$post['pageSize'];
+            $pageNo = isset($post['pageNo']) ? $post['pageNo'] : 1;
+            $pageSize = isset($post['pageSize']) ? $post['pageSize'] : 10;
 
             $taskModel = new SlTaskItem();
             $taskQuery = $taskModel->getSearchQuery();
@@ -1508,17 +1508,5 @@ class ScheduleController extends \yii\web\Controller
     public function actionTest()
     {
         return $this->render('test');
-    }
-
-    public function actionTaskScheCrontabAbnormalMessage()
-    {
-        if(Yii::$app->request->isGet())
-        {
-            return $this->render('task-sche-crontab-abnormal-message');
-        }
-        else if(Yii::$app->request->isPost())
-        {
-            
-        }
     }
 }

@@ -21,8 +21,8 @@ class SlTaskScheduleCrontabAbnormal extends \yii\db\ActiveRecord
     const ABNORMAL_TYPE_NUM_MORE = 4;
 
     const RESOLVE_TYPE_UNRESOLVED = 0;
-    const RESOLVE_TYPE_RESOLVED = 0;
-    const RESOLVE_TYPE_IGNORED = 0;
+    const RESOLVE_TYPE_RESOLVED = 1;
+    const RESOLVE_TYPE_IGNORED = 2;
 
     /**
      * @inheritdoc
@@ -38,9 +38,8 @@ class SlTaskScheduleCrontabAbnormal extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['cron_id', 'sche_id', 'msg'], 'required'],
             [['cron_id', 'sche_id', 'abnormal_type', 'resolve_stat', 'add_time'], 'integer'],
-            [['msg'], 'string'],
+            [['msg', 'name'], 'string'],
         ];
     }
 
@@ -53,6 +52,7 @@ class SlTaskScheduleCrontabAbnormal extends \yii\db\ActiveRecord
             'id' => '异常日志id',
             'cron_id' => '实际任务id',
             'sche_id' => '计划id',
+            'name' => '计划名',
             'abnormal_type' => '异常类型(0:正常1:爬取时间异常2:爬取数量过小4:爬取数量过大)',
             'msg' => '异常信息',
             'resolve_stat' => '解决状态(0:未解决1:已解决2:忽略)',
@@ -63,6 +63,38 @@ class SlTaskScheduleCrontabAbnormal extends \yii\db\ActiveRecord
     public static function getDb()
     {
         return Yii::$app->getModule('sl')->db;
+    }
+
+    public function getSearchQuery()
+    {
+        $query = static::find();
+
+        $this->load( Yii::$app->request->post(), '' );
+        if (!$this->validate())
+        {
+            return false;
+        }
+
+        $post = Yii::$app->request->post();
+        if( isset( $post['add_time_s'] ) && !empty( $post['add_time_s'] ) )
+        {
+            $query->andFilterWhere(['>=', 'add_time', strtotime($post['add_time_s'])]);
+        }
+        if( isset( $post['add_time_e'] ) && !empty( $post['add_time_e'] ) )
+        {
+            $query->andFilterWhere(['<=', 'add_time', strtotime($post['add_time_e'])]);
+        }
+
+        $query->andFilterWhere(['cron_id' => $this->cron_id])
+            ->andFilterWhere(['sche_id' => $this->sche_id])
+            ->andFilterWhere(['like', 'name', $this->name])
+            ->andFilterWhere(['abnormal_type' => $this->abnormal_type])
+            ->andFilterWhere(['resolve_stat' => $this->resolve_stat])
+            ->andFilterWhere(['like', 'msg', $this->msg]);
+            /*$t = clone $query;
+        echo $t->createCommand()->getRawSql();exit;*/
+
+        return $query;
     }
 
     public static function getDurationMsg($act_duration , $alert_duration)
