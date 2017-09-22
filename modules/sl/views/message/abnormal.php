@@ -213,6 +213,11 @@ EOT;
         				+ '<a href="javascript:updateAbnormalStat(\''+<?php echo SlTaskScheduleCrontabAbnormal::RESOLVE_TYPE_IGNORED;?>+'\', \''+_rows[_i]['id']+'\');" class="a--edit">忽略</a>'
                         + '</span></td>'
                     }
+                    else
+                    {
+                        + '<td><span class="cell"></span></td>'   
+                    }
+            _trStr += '</tr>'
     				
     	}
     	_container.find('tr:gt(0)').remove();
@@ -282,9 +287,7 @@ $this->registerJs($this->blocks['abnormalJs'], \yii\web\View::POS_END);
 
 <div class="block clearfix">
 				<div class="section clearfix">
-					<span class="title-prefix-md">计划任务列表</span>
-					<div class="sl-add-text fr" onclick="javascript:location.href='/sl/schedule/add-schedule/product'">新增电商计划</div>
-                    <div class="sl-add-text fr" onclick="javascript:location.href='/sl/schedule/add-schedule/article'">新增微信计划</div>
+					<span class="title-prefix-md">任务报警消息</span>
 				</div>
 				<div class="sl-query-wrapper sui-form clearfix">
 					<form id="filterFrm" method="POST">

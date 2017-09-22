@@ -8,12 +8,7 @@ use yii\helpers\Json;
     $this->params['breadcrumbs'][] = '计划任务列表';
     $this->params['breadcrumbs'][] = $this->title;*/
     $curPageUrl = Url::current();
-
-    $scheDataJs = <<<EOT
-    goToPage(1);
-EOT;
-	$this->registerJs($scheDataJs);
-    $this->beginBlock('scheJs');
+    $this->beginBlock('reportJs');
 ?>
     var pageNo = 1, pageSize = 10, pageCount = 0,
     	paginationLen = 5, refreshUrl = "<?= $curPageUrl ?>";
@@ -28,6 +23,11 @@ EOT;
         pageNo = _pageNo
 
     	var filterData = $("#filterFrm").find("input").serializeObject();
+        if(!filterData.name || !filterData.start_time_s)
+        {
+            $.alert('任务名称和日期不能为空')
+            return;
+        }
 
     	filterData['pageNo'] = _pageNo
     	filterData['pageSize'] = pageSize
@@ -46,7 +46,7 @@ EOT;
             	pageCount = Math.ceil(_total / pageSize)
             	makePagination(_pageNo, pageCount)//分页
 
-            	showAbnormal(json_data.data.rows)//刷新数据
+            	showReport(json_data.data.rows)//刷新数据
 
                 if(json_data.data.rows.length > 0)
                 {
@@ -170,136 +170,40 @@ EOT;
             _pageContainer.html(_paginationStr);
     }
 
-    var abnormalResolveStat =<?php echo Json::encode([
-    	SlTaskScheduleCrontabAbnormal::RESOLVE_TYPE_UNRESOLVED => '未解决',
-    	SlTaskScheduleCrontabAbnormal::RESOLVE_TYPE_RESOLVED => '已解决',
-    	SlTaskScheduleCrontabAbnormal::RESOLVE_TYPE_IGNORED => '忽略',
-    ]) ?>,
-        RESOLVE_STAT = {
-            'RESOLVE_TYPE_UNRESOLVED':<?php echo '\'' . SlTaskScheduleCrontabAbnormal::RESOLVE_TYPE_UNRESOLVED .'\'';?>,
-            'RESOLVE_TYPE_RESOLVED':<?php echo '\'' . SlTaskScheduleCrontabAbnormal::RESOLVE_TYPE_RESOLVED .'\'';?>,
-            'RESOLVE_TYPE_IGNORED':<?php echo '\'' . SlTaskScheduleCrontabAbnormal::RESOLVE_TYPE_IGNORED .'\'';?>
-        };
-
-
-
     /**
-     * 显示计划任务数据
+     * 显示每日任务数据报表
      * @param  array _rows 任务数组
      * @return
      */
-    function showAbnormal( _rows )
+    function showReport( _rows )
     {
-    	var _container = $('.abnormal_tables'),
+    	var _container = $('.report_tables'),
     		_trStr = '',
     		_trLen = _rows.length
 
     	for(var _i = 0;_i < _trLen;_i++)
     	{
     		_trStr += '<tr msg-id="'+_rows[_i]['id']+'">'
-                    + '<td><span class="cell">'+ _rows[_i]['sche_id'] +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ _rows[_i]['cron_id'] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['name'] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['add_time'] +'</span>'+ '</td>'
-
-    				+ '<td><span class="cell">'+ _rows[_i]['msg'].substr(0, 62) +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ abnormalResolveStat[_rows[_i]['resolve_stat']] +'</span>'+ '</td>'
-
-
-                    if(_rows[_i]['resolve_stat'] == RESOLVE_STAT['RESOLVE_TYPE_UNRESOLVED'])
-                    {
-                        + '<td><span class="cell">'
-        				+ '<a href="javascript:updateAbnormalStat(\''+<?php echo SlTaskScheduleCrontabAbnormal::RESOLVE_TYPE_RESOLVED;?>+'\', \''+_rows[_i]['id']+'\');" class="a--edit">解决</a>'
-        				+ '<a href="javascript:updateAbnormalStat(\''+<?php echo SlTaskScheduleCrontabAbnormal::RESOLVE_TYPE_IGNORED;?>+'\', \''+_rows[_i]['id']+'\');" class="a--edit">忽略</a>'
-                        + '</span></td>'
-                    }
-    				
+                    + '<td><span class="cell">'+ _rows[_i]['pf_name'] +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ _rows[_i]['brand_name'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ _rows[_i]['number'] +'</span>'+ '</td>'
+                    + '</tr>'    				
     	}
     	_container.find('tr:gt(0)').remove();
     	_container.find('tr:eq(0)').after(_trStr);
     }
 
-    /**
-     * 更改计划任务状态
-     * @param  string _newStat 要更改的任务计划状态
-     * @param  string _id 要更改的任务计划id
-     * @return boolean
-     */
-    function updateAbnormalStat( _newStat, _id)
-    {
-        var _actStr,
-            _updateAbnormal = '/sl/message/update-abnormal',
-            _container = $('.abnormal_tables');
-
-        var _updateAbnormalData = {};
-        _updateAbnormalData['_csrf'] = csrfToken;
-
-        _updateAbnormalData['id'] = _id;
-        _updateAbnormalData['resolve_stat'] = _newStat;
-
-        if( RESOLVE_STAT['RESOLVE_TYPE_IGNORED'] == _newStat)
-        {
-            _actStr = '忽略';
-        }
-        else if( RESOLVE_STAT['RESOLVE_TYPE_RESOLVED'] == _newStat)
-        {
-            _actStr = '已解决';
-        }
-
-        $.confirm({
-            title: '弹框',
-            body: '是否设置消息'+ _id +'状态为'+_actStr+'?',
-            okHide: function(){
-                $.ajax({
-                    crossDomain: true,
-                    url: _updateAbnormal,
-                    type: 'post',
-                    data: _updateAbnormalData,
-                    dataType: 'json',
-                    success: function (json_data) {
-                        
-                        if(json_data.code == '0')
-                        {
-                            _container.find("tr[msg-id='"+_id+"']").find("td:eq(5)").find("span").html(_actStr);
-                            $.alert('消息'+_id+'设置成功');
-                        }
-                        else
-                        {
-                            $.alert('消息'+_id+'设置失败');
-                        }
-
-                    }
-                });
-            }
-        })
-        
-    }
-
 <?php
 $this->endBlock();
-$this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);
+$this->registerJs($this->blocks['reportJs'], \yii\web\View::POS_END);
 ?>
 
 <div class="block clearfix">
 				<div class="section clearfix">
-					<span class="title-prefix-md">计划任务列表</span>
-					<div class="sl-add-text fr" onclick="javascript:location.href='/sl/schedule/add-schedule/product'">新增电商计划</div>
-                    <div class="sl-add-text fr" onclick="javascript:location.href='/sl/schedule/add-schedule/article'">新增微信计划</div>
+					<span class="title-prefix-md">产品每日任务数据报表</span>
 				</div>
 				<div class="sl-query-wrapper sui-form clearfix">
 					<form id="filterFrm" method="POST">
-                    <div class="sl-query">
-                        <div class="sl-query__label">计划任务ID</div>
-                        <div class="sl-query__control">
-                            <input type="text" name="sche_id" class="input-medium">
-                        </div>
-                    </div>
-                    <div class="sl-query">
-                        <div class="sl-query__label">每日任务ID</div>
-                        <div class="sl-query__control">
-                            <input type="text" name="cron_id" class="input-medium">
-                        </div>
-                    </div>
                     <div class="sl-query">
                         <div class="sl-query__label">任务名称</div>
                         <div class="sl-query__control">
@@ -307,42 +211,17 @@ $this->registerJs($this->blocks['scheJs'], \yii\web\View::POS_END);
                         </div>
                     </div>
 					<div class="sl-query input-daterange" data-toggle="datepicker">
-						<div class="sl-query__label">报警时间</div>
+						<div class="sl-query__label">任务日期</div>
 						<div class="sl-query__control">
-							<input type="text" name="add_time_s" class="input-medium input-date"><span>-</span>
-      						<input type="text" name="add_time_e" class="input-medium input-date">
+							<input type="text" name="start_time_s" class="input-medium input-date">
 						</div>
 					</div>
-                    <div class="sl-query">
-                        <div class="sl-query__label">报警内容</div>
-                        <div class="sl-query__control">
-                            <input type="text" name="msg" class="input-medium">
-                        </div>
-                    </div>
-                    <div class="sl-query">
-                        <div class="sl-query__label">处理状态</div>
-                        <div class="sl-query__control">
-                            <span class="sui-dropdown dropdown-bordered select">
-                                    <span class="dropdown-inner">
-                                        <a role="button" data-toggle="dropdown" href="#" style="width: 79px;" class="dropdown-toggle">
-                                            <input value="" name="resolve_stat" type="hidden">
-                                            <i class="caret"></i><span>全部</span>
-                                        </a>
-                                        <ul role="menu" class="sui-dropdown-menu">
-                                            <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="">全部</a> </li>
-                                            <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="0">未解决</a> </li>
-                                            <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="1">已解决</a> </li>
-                                            <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="2">忽略</a> </li>
-                                        </ul>
-                                    </span>
-                            </span>
-                        </div>
-                    </div>
+                    
 					<button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:goToPage(1);">搜索</button>
 				</form>
 				</div>
 				<div class="sl-table-wrapper">
-					<table class="sl-table abnormal_tables">
+					<table class="sl-table report_tables">
 						<tbody><tr class="sl-table__header">
                             <th><span class="cell">渠道名称</span></th>
 							<th><span class="cell">品牌名称</span></th>

@@ -93,7 +93,7 @@ class ApiController extends \yii\web\Controller
 				$start_date_ret = preg_replace('/-/', '', substr($crontabData['start_time'], 0, 10));
 				$crontabData['table'] = 'ws_' . $crontabData['sche_id']. '_'.$start_date_ret.'_'.$crontabData['id'];
 
-				$tableCheck = Yii::$app->db->createCommand("SHOW TABLES LIKE '". $crontabData['table'] . "'" )->queryOne();//检查数据存放表是否存在
+				$tableCheck = Yii::$app->getModule('sl')->db->createCommand("SHOW TABLES LIKE '". $crontabData['table'] . "'" )->queryOne();//检查数据存放表是否存在
 
 				if(!$tableCheck)
 					return $emptyRet;

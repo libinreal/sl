@@ -239,6 +239,8 @@ EOT;
                     {
                         _trStr += '<td><span class="cell"><a href="javascript:updateTaskStat(  '+ TASK_STAT['CONTROL_RESTARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">重启</a></span></td>'   
                     }
+
+                    _trStr += '</tr>'
     	}
     	_container.find('tr:gt(0)').remove();
     	_container.find('tr:eq(0)').after(_trStr);

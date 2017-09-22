@@ -1,6 +1,7 @@
 <?php
 
 namespace app\modules\sl\controllers;
+use app\modules\sl\models\SlTaskScheduleCrontab;
 
 use yii\web\Response;
 use yii\helpers\Json;
@@ -32,24 +33,79 @@ class ReportController extends \yii\web\Controller
             $pageNo = isset($post['pageNo']) ? $post['pageNo'] : 1;
             $pageSize = isset($post['pageSize']) ? $post['pageSize'] : 10;
 
-            $abnormalModel = new SlTaskScheduleCrontabAbnormal();
-            $abnormalQuery = $abnormalModel->getSearchQuery();
+            //name && start_time_s are both necessary
+            $name = isset($post['name']) ? trim($post['name']) : '';
+            $taskDate = isset($post['start_time_s']) ? trim($post['start_time_s']) : '';
+            $taskDate = preg_replace('/-/', '', $taskDate);
 
-            if(!$abnormalQuery)
+            $defaultResult = [
+                                'code' => '-1',
+                                'msg' => 'Request Data error'
+                            ];
+
+            if(empty($name) || empty($taskDate))
             {
-                return ['code'=>'-1', 'msg'=>'Input data invalid'];
+                return $defaultResult;
             }
 
-            $totals = $abnormalQuery->count();
+            //get crontab infomation
+            $scheCronModel = new SlTaskScheduleCrontab();
+            $scheCronQuery = $scheCronModel->getSearchQuery();
 
-            $data = $abnormalQuery->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->orderBy('[[id]] DESC')->all();
+            if(!$scheCronQuery)
+            {
+                return $defaultResult;
+            }
 
-            /*$commandQuery = clone $abnormalQuery;
-            echo $commandQuery->createCommand()->getRawSql();exit;*/
+            $cronInfo = $scheCronQuery
+                        ->select('cron.id, cron.sche_id')
+                        ->asArray()
+                        ->one();
+
+            if(empty($cronInfo))
+            {
+                $defaultResult['msg'] = 'Data not found';
+                return $defaultResult;
+            }
+
+            //table exist
+            $crontabDataTable = 'ws_' . $cronInfo['sche_id']. '_'.$taskDate.'_'.$cronInfo['id'];
+            $tableCheck = Yii::$app->getModule('sl')->db->createCommand("SHOW TABLES LIKE '". $crontabDataTable . "'" )->queryOne();//检查数据存放表是否存在
+
+            if(!$tableCheck)
+            {
+                return $defaultResult;
+            }
+
+            /*$offset = ($pageNo - 1) * $pageSize;
+            $limitStr = $offset . ',' .$pageSize;
+            $totals = Yii::$app->getModule('sl')->db
+                        ->createCommand('SELECT COUNT(*) FROM '. $crontabDataTable .' GROUP BY [[product_channel]], [[product_brand1]]')
+                        ->queryScalar();*/
+
+            $offset = ($pageNo - 1) * $pageSize;
+            $lastkey = $offset + $pageSize - 1;
+
+            $dataArr = Yii::$app->getModule('sl')->db
+                        ->createCommand('SELECT [[product_channel]] `pf_name`, [[product_brand1]] `brand_name`, COUNT([[product_channel]]) `number` FROM '. $crontabDataTable .' GROUP BY [[product_channel]], [[product_brand1]]')
+                        ->queryAll();
+            $totals = count($dataArr);
+
+            $data = array();
+            if($totals > 0)
+            {
+                foreach($dataArr as $k=>$d)
+                {
+                    if($k >= $offset && $k <= $lastkey )
+                    {
+                        $data[] = $d;
+                    }
+                }
+            }
 
              return  [
                     'code'=>'0',
-                    'msg'=>'ok',
+                    'msg'=>$debug,
                     'data'=>[ 'total' => $totals, 'rows' => $data]
                     ];
         }

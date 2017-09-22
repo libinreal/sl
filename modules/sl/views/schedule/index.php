@@ -201,6 +201,7 @@ EOT;
     				+ '<a href="/sl/schedule/edit-schedule/'+ _rows[_i]['data_type'] + '/' + _rows[_i]['id']+ '" class="a--edit">编辑</a>'
     				+ '<a href="javascript:deleteSche(\''+_rows[_i]['id']+'\');" class="a--danger">删除</a>'
     				+ '<a href="/sl/schedule/task-sche-crontab/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td>'
+                    + '</tr>'
     	}
     	_container.find('tr:gt(0)').remove();
     	_container.find('tr:eq(0)').after(_trStr);

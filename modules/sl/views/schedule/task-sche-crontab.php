@@ -271,7 +271,7 @@ EOT;
                     _trStr += '<a href="javascript:updateCrontabStat(  '+ TASK_STAT['CONTROL_RESTARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">重启</a>'
             }
 
-    	   _trStr += '<a href="/sl/schedule/task-item/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td>'
+    	   _trStr += '<a href="/sl/schedule/task-item/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td></tr>'
     	}
     	_container.find('tr:gt(0)').remove();
     	_container.find('tr:eq(0)').after(_trStr);
