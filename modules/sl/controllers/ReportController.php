@@ -32,6 +32,7 @@ class ReportController extends \yii\web\Controller
 
             $pageNo = isset($post['pageNo']) ? $post['pageNo'] : 1;
             $pageSize = isset($post['pageSize']) ? $post['pageSize'] : 10;
+            $dataType = isset($post['data_type']) ? $post['data_type'] : '';
 
             //name && start_time_s are both necessary
             $name = isset($post['name']) ? trim($post['name']) : '';
@@ -43,7 +44,7 @@ class ReportController extends \yii\web\Controller
                                 'msg' => 'Request Data error'
                             ];
 
-            if(empty($name) || empty($taskDate))
+            if(empty($name) || empty($taskDate) || empty($dataType))
             {
                 return $defaultResult;
             }
@@ -86,9 +87,19 @@ class ReportController extends \yii\web\Controller
             $offset = ($pageNo - 1) * $pageSize;
             $lastkey = $offset + $pageSize - 1;
 
-            $dataArr = Yii::$app->getModule('sl')->db
-                        ->createCommand('SELECT [[product_channel]] `pf_name`, [[product_brand1]] `brand_name`, COUNT([[product_channel]]) `number` FROM '. $crontabDataTable .' GROUP BY [[product_channel]], [[product_brand1]]')
-                        ->queryAll();
+            if($dataType == 'product')
+            {
+                $dataArr = Yii::$app->getModule('sl')->db
+                            ->createCommand('SELECT [[product_channel]] `pf_name`, [[product_brand1]] `brand_name`, COUNT([[product_channel]]) `number` FROM '. $crontabDataTable .' GROUP BY [[product_channel]], [[product_brand1]]')
+                            ->queryAll();
+            }
+            else if($dataType == 'article')
+            {
+                $dataArr = Yii::$app->getModule('sl')->db
+                            ->createCommand('SELECT [[article_channel]] `pf_name`, [[keyword]], COUNT([[article_channel]]) `number` FROM '. $crontabDataTable .' GROUP BY [[article_channel]], [[keyword]]')
+                            ->queryAll();
+            }
+
             $totals = count($dataArr);
 
             $data = array();
@@ -105,7 +116,7 @@ class ReportController extends \yii\web\Controller
 
              return  [
                     'code'=>'0',
-                    'msg'=>$debug,
+                    'msg'=>'',
                     'data'=>[ 'total' => $totals, 'rows' => $data]
                     ];
         }

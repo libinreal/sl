@@ -124,7 +124,8 @@ class SlTaskScheduleCrontab extends \yii\db\ActiveRecord
                 ->andFilterWhere(['like', 'sche.pf_name', $request->post('pf_name', '')])
                 ->andFilterWhere(['like', 'sche.class_name', $request->post('class_name', '')])
 
-                ->andFilterWhere(['like', 'cron.name', $this->name]);
+                ->andFilterWhere(['like', 'cron.name', $this->name])
+                ->andFilterWhere(['sche.data_type' => $request->post('data_type', '')]);
 
 
        /*$commandQuery = clone $query;

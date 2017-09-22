@@ -31,7 +31,10 @@ use yii\helpers\Json;
 
     	filterData['pageNo'] = _pageNo
     	filterData['pageSize'] = pageSize
-    	filterData['_csrf'] = csrfToken
+        filterData['_csrf'] = csrfToken
+
+    	filterData['data_type'] = 'product'
+
         //makePagination(7, 37);return;
     	$.ajax({
             crossDomain: true,
