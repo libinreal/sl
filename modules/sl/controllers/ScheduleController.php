@@ -1018,25 +1018,23 @@ class ScheduleController extends \yii\web\Controller
 
             $totals = $scheCronQuery->count();
 
-            $data = $scheCronQuery
-                        ->joinWith('items')
-                        ->select('cron.id, cron.name, cron.start_time, cron.complete_time, cron.act_time, cron.task_status, cron.control_status, cron.task_progress, cron.sche_id, sche.key_words, sche.dt_category, sche.pf_name, sche.brand_name, item.id item_id')
+            $cronArr = $scheCronQuery
+                        ->select('cron.id, cron.name, cron.start_time, cron.complete_time, cron.act_time, cron.task_status, cron.control_status, cron.task_progress, cron.sche_id, sche.key_words, sche.dt_category, sche.pf_name, sche.brand_name')
                         ->limit( $pageSize )
                         ->offset( ($pageNo - 1) * $pageSize )
                         ->asArray()
+                        ->indexBy('id')
                         ->orderBy('cron.id DESC')
                         ->all();
 
-            $funcSaveStat = function(&$_ele, $_ele_key){
-                $newEle = array();
-                foreach($_ele as $_ele_k=>$_ele_v)
-                {
-                    if($_ele_k != 'control_status' && $_ele_k != 'task_status')
-                        unset($_ele[$_ele_k]);
-                }
-            };
+            $itemArr = SlTaskItem::find()->select('cron_id, control_status, task_status')
+                                ->where(['in', 'cron_id', array_keys($cronArr)])
+                                ->asArray()
+                                ->all();
 
-            foreach ($data as &$d)
+            $data = array();
+
+            foreach ($cronArr as $d)
             {
                 unset($d['schedule']);
 
@@ -1050,12 +1048,23 @@ class ScheduleController extends \yii\web\Controller
                 else
                     $d['act_time'] = '';
 
-                //get crontab operate status array
-                array_walk($d['items'], $funcSaveStat);
-            }
-            unset($d);
+                $d['items'] = array();
 
-             return  [
+                //get crontab operate status array
+                foreach($itemArr as $_ik=>$_iv)
+                {
+                    if( $d['id'] == $_iv['cron_id'])
+                    {
+                        $d['items'][] = [
+                            'control_status' => $_iv['control_status'],
+                            'task_status' => $_iv['task_status']
+                            ];
+                    }
+                }
+                $data[] = $d;
+            }
+
+            return  [
                     'code'=>'0',
                     'msg'=>'ok',
                     'data'=>[ 'total' => $totals, 'rows' => $data]
