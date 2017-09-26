@@ -208,14 +208,14 @@ EOT;
 
                     if(_rows[_i]['resolve_stat'] == RESOLVE_STAT['RESOLVE_TYPE_UNRESOLVED'])
                     {
-                        + '<td><span class="cell">'
-        				+ '<a href="javascript:updateAbnormalStat(\''+<?php echo SlTaskScheduleCrontabAbnormal::RESOLVE_TYPE_RESOLVED;?>+'\', \''+_rows[_i]['id']+'\');" class="a--edit">解决</a>'
+                        _trStr += '<td><span class="cell">'
+        				+ '<a href="javascript:updateAbnormalStat(\''+<?php echo SlTaskScheduleCrontabAbnormal::RESOLVE_TYPE_RESOLVED;?>+'\', \''+_rows[_i]['id']+'\');" class="a--success">解决</a>'
         				+ '<a href="javascript:updateAbnormalStat(\''+<?php echo SlTaskScheduleCrontabAbnormal::RESOLVE_TYPE_IGNORED;?>+'\', \''+_rows[_i]['id']+'\');" class="a--edit">忽略</a>'
                         + '</span></td>'
                     }
                     else
                     {
-                        + '<td><span class="cell"></span></td>'   
+                        _trStr += '<td><span class="cell"></span></td>'   
                     }
             _trStr += '</tr>'
     				
@@ -266,6 +266,7 @@ EOT;
                         if(json_data.code == '0')
                         {
                             _container.find("tr[msg-id='"+_id+"']").find("td:eq(5)").find("span").html(_actStr);
+                            _container.find("tr[msg-id='"+_id+"']").find("td:eq(6)").find("span").html('');
                             $.alert('消息'+_id+'设置成功');
                         }
                         else

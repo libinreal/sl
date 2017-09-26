@@ -235,6 +235,13 @@ var curClsMapId,
 									return;
 								$('#cbc').after('<input type="text" onblur="addCategory(this.value);" class="input-medium" placeholder="新分类" style="margin-left: 9px;width: 180px;box-sizing: border-box;height: 34px;">');
 							})
+
+							//默认选中第一分类
+							for(var _i in curCategory)
+							{
+								getClassMap(_i);
+								break;
+							}
 						},
 						okHide: function(){
 							$.ajax({
@@ -488,6 +495,13 @@ var curClsMapId,
 									return;
 								$('#bcb').after('<input type="text" onblur="addBrand(this.value);" class="input-medium" placeholder="新品牌" style="margin-left: 9px;width: 180px;box-sizing: border-box;height: 34px;">');
 							})
+
+							//默认选中第一品牌
+							for(var _i in curBrand)
+							{
+								getBrandMap(_i);
+								break;
+							}
 						},
 						okHide: function(){
 							$.ajax({
@@ -700,7 +714,7 @@ function savePf( pk ){
         success: function (json_data) {
         	if(json_data.code == '0')
         	{
-        		alert('保存成功');
+        		$.alert('保存成功');
         	}
 
         }
@@ -1067,11 +1081,11 @@ function submitAddFrm(_confirmUpdate){
         success: function (json_data) {
         	if(json_data.code == '0')
         	{
-        		alert(json_data.msg);
+        		$.alert('保存成功');
         	}
         	else
         	{
-        		alert(json_data.msg);
+        		$.alert(json_data.msg);
         	}
 
         }
@@ -1480,7 +1494,7 @@ $this->registerJs($readyJs);
 				<div class="sl-btns-wrapper">
 					<div class="sl-btns clearfix">
 						<button type="submit" class="sui-btn btn-primary btn-borderadius fl sl-btn--md">提交</button>
-						<button type="button" class="sui-btn btn-borderadius fr sl-btn--md">返回</button>
+						<button type="button" class="sui-btn btn-borderadius fr sl-btn--md" onclick="javascript:history.back(-1);">返回</button>
 					</div>
 				</div>
 				</form>

@@ -39,6 +39,12 @@ class MessageController extends \yii\web\Controller
 
             $data = $abnormalQuery->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->orderBy('[[id]] DESC')->all();
 
+            foreach ($data as &$d) 
+            {
+            	$d['add_time'] = date('Y-m-d H:i:s', $d['add_time']);
+            }
+            unset($d);
+
             /*$commandQuery = clone $abnormalQuery;
             echo $commandQuery->createCommand()->getRawSql();exit;*/
 
@@ -47,6 +53,44 @@ class MessageController extends \yii\web\Controller
                     'msg'=>'ok',
                     'data'=>[ 'total' => $totals, 'rows' => $data]
                     ];
+        }
+    }
+
+    public function actionUpdateAbnormal()
+    {
+    	if(Yii::$app->request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            $post = Yii::$app->request->post();
+
+            $defaultRet = [
+                    'code' => '-1',
+                    'msg' => 'Request data error'
+                ];
+
+            if(!empty($post) && !empty($post['id']))
+            {
+                $abnormalModel = SlTaskScheduleCrontabAbnormal::findOne($post['id']);
+            }
+            else
+            {
+            	return $defaultRet;
+            }
+
+            //数据验证失败
+            if ( !$abnormalModel->load( $post, '' ) || !$abnormalModel->validate() )
+            {
+                // var_dump( $abnormalModel->getErrors());exit;
+                return $defaultRet;
+            }
+
+            $abnormalModel->save();
+
+            return  [
+                'code'=>'0',
+                'msg'=>'ok'
+            ];
+
         }
     }
 }

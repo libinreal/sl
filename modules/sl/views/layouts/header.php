@@ -1,16 +1,99 @@
 <?php
 use yii\helpers\Html;
+use app\components\helpers\HtmlHelper;
 
 /* @var $this \yii\web\View */
 /* @var $content string */
+
+//navigation config
+$navArr = [
+            'items' => 
+            [
+                       [
+                        'name' => 'task',
+                        'label' => 'Task',
+                        'url' => '/sl/schedule/index'
+                      ],
+                      [
+                        'name' => 'message',
+                        'label' => 'Message',
+                        'url' => '/sl/message/abnormal',
+                      ],
+                      [
+                        'name' => 'report',
+                        'label' => 'Report',
+                        'url' => '/sl/report/crontab-data/product',
+                        'items' => 
+                        [
+                            [
+                                'name' => 'report-crontab-product',
+                                'label' => 'Product Report',
+                                'url' => '/sl/report/crontab-data/product'
+                            ],
+                            [
+                                'name' => 'report-crontab-wechat',
+                                'label' => 'WeChat Report',
+                                'url' => '/sl/report/crontab-data/article'
+                            ],
+                        ]
+                      ],
+            ]
+        ];
+
+//$this->beginBlock("headJs");
+
+$headJs = <<<EOT
+    
+
+//导航顶部菜单 START 
+var NavTop = function() {
+    this.navLi = $('#nav-top1 li').children('ul').hide().end();
+    this.init();
+};
+
+NavTop.prototype = {
+    
+    init : function() {
+        this.setMenu();
+    },
+    
+    // Enables the slidedown menu, and adds support for IE6
+    
+    setMenu : function() {
+    
+    $.each(this.navLi, function() {
+        if ( $(this).children('ul')[0] ) {
+            $(this).append('<span class="hasChildren" />');
+        }
+    });
+    
+        this.navLi.hover(function() {
+            // mouseover
+            $(this).find('> ul').stop(true, true).slideDown();
+        }, function() {
+            // mouseout
+            $(this).find('> ul').stop(true, true).hide();       
+        });
+        
+    }
+ 
+}
+
+new NavTop();
+//导航顶部菜单  END
+
+EOT;
+    $this->registerJs($headJs);
 ?>
 
+<?php
+//$this->endBlock();
+//$this->registerJs($this->blocks['headJs'], \yii\web\View::POS_END);
+?>
 <header style="left: 0px;">
     <nav class="top-nav clearfix">
-        <div class="nav-left">
-            <a href="/sl/schedule/index">Task</a>
-            <a href="/sl/message/abnormal">Message</a>
-            <a href="/sl/report/crontab-data/product">Report</a>
+        <div id="nav-top1" class="nav-left">
+            <?php echo HtmlHelper::renderNav1($navArr);?>
         </div>
         <div class="btn-keys">
             <div class="triangle-down">

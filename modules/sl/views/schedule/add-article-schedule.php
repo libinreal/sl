@@ -840,7 +840,7 @@ function savePf( pk ){
         success: function (json_data) {
         	if(json_data.code == '0')
         	{
-        		alert('保存成功');
+        		$.alert('保存成功');
         	}
 
         }
@@ -986,11 +986,11 @@ function submitAddFrm(_confirmUpdate){
         success: function (json_data) {
         	if(json_data.code == '0')
         	{
-        		alert(json_data.msg);
+        		$.alert('保存成功');
         	}
         	else
         	{
-        		alert(json_data.msg);
+        		$.alert(json_data.msg);
         	}
 
         }
@@ -1372,7 +1372,7 @@ $this->registerJs($readyJs);
 				<div class="sl-btns-wrapper">
 					<div class="sl-btns clearfix">
 						<button type="submit" class="sui-btn btn-primary btn-borderadius fl sl-btn--md">提交</button>
-						<button type="button" class="sui-btn btn-borderadius fr sl-btn--md">返回</button>
+						<button type="button" class="sui-btn btn-borderadius fr sl-btn--md" onclick="javascript:history.back(-1);">返回</button>
 					</div>
 				</div>
 				</form>

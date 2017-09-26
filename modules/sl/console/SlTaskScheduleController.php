@@ -674,19 +674,19 @@ class SlTaskScheduleController extends Controller
 
 				if( isset($alert_params['total_num_min']) && $crontab_data_num < $alert_params['total_num_min'])
 				{
-					$abnormal_type = $abnormal | SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_NUM_LESS;
+					$abnormal_type = $abnormal_type | SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_NUM_LESS;
 					$abnormal_msg[] = SlTaskScheduleCrontabAbnormalConsole::getNumMinMsg($crontab_data_num, $alert_params['total_num_min']);
 				}
 
 				if( isset($alert_params['total_num_max']) && $crontab_data_num > $alert_params['total_num_max'])
 				{
-					$abnormal_type = $abnormal | SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_NUM_MORE;
+					$abnormal_type = $abnormal_type | SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_NUM_MORE;
 					$abnormal_msg[] = SlTaskScheduleCrontabAbnormalConsole::getNumMaxMsg($crontab_data_num, $alert_params['total_num_max']);
 				}
 
 				if( isset($alert_params['duration']) && $accomplished_duration > $alert_params['duration'] )
 				{
-					$abnormal_type = $abnormal | SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_DURATION;
+					$abnormal_type = $abnormal_type | SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_DURATION;
 					$abnormal_msg[] = SlTaskScheduleCrontabAbnormalConsole::getDurationMsg($accomplished_duration, $alert_params['duration']);
 				}
 
@@ -856,7 +856,7 @@ class SlTaskScheduleController extends Controller
 		$updateAbnormalValues = '';
 		foreach ($crontabAbnormalTypeArr as $cronId => $abnormaType) 
 		{
-			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabIdArr[$cronId]['name'] . '\', ' . $crontabIdArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\', ' . $time_stamp . '\'),';
+			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabIdArr[$cronId]['name'] . '\', ' . $crontabIdArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\', ' . $time_stamp . '),';
 		}
 
 		$updateAbnormalSql = 'INSERT INTO ' . SlTaskScheduleCrontabAbnormalConsole::tableName()
@@ -909,7 +909,7 @@ class SlTaskScheduleController extends Controller
 				if( isset( $alert_params['duration'] ) && $act_duration - $alert_params['duration'] > 24 )
 				{
 					$crontabAbnormalTypeArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_DURATION;
-					$crontabAbnormalMsgArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::getDurationMsg("超过预警时间24小时未完成");
+					$crontabAbnormalMsgArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::getDurationMsg($act_duration, $alert_params['duration']);
 					$cronAbnormalIds[] = $cronId;
 				}
 
