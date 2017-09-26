@@ -8,7 +8,7 @@ class HtmlHelper
 	 * @param  array $navArr 导航配置
 	 * @return string 导航内容
 	 */
-	public static function renderNav1( $navArr )
+	public static function renderResponsiveMenu( $navArr )
 	{
 		if( !isset($navArr['items']) )
 			return '';
@@ -19,7 +19,7 @@ class HtmlHelper
 			$str .= '<li><a href="' . $_nv1['url'] . '">' . $_nv1['label'];
 			$str .= '</a>';
 
-			$str .= self::renderNav1($_nv1);
+			$str .= self::renderResponsiveMenu($_nv1);
 			$str .= '</li>';
 
 		}

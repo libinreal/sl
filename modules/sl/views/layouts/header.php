@@ -5,6 +5,23 @@ use app\components\helpers\HtmlHelper;
 /* @var $this \yii\web\View */
 /* @var $content string */
 
+app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/responsive-menu/responsive-menu.js');
+app\assets\SLAdminAsset::addCss($this, '@web/sl/lib/responsive-menu/responsive-menu.css');
+
+$menuFontCss = <<<EOT
+    .rm-nav li a, .rm-menu-item a{
+        font-size:14px;
+        font-weight:bold;
+    }
+
+    .rm-nav ul, .rm-menu{
+        background-color: inherit;
+    }
+
+    
+EOT;
+$this->registerCss($menuFontCss);
+
 //navigation config
 $navArr = [
             'items' => 
@@ -43,43 +60,12 @@ $navArr = [
 //$this->beginBlock("headJs");
 
 $headJs = <<<EOT
-    
-
 //导航顶部菜单 START 
-var NavTop = function() {
-    this.navLi = $('#nav-top1 li').children('ul').hide().end();
-    this.init();
-};
 
-NavTop.prototype = {
-    
-    init : function() {
-        this.setMenu();
-    },
-    
-    // Enables the slidedown menu, and adds support for IE6
-    
-    setMenu : function() {
-    
-    $.each(this.navLi, function() {
-        if ( $(this).children('ul')[0] ) {
-            $(this).append('<span class="hasChildren" />');
-        }
-    });
-    
-        this.navLi.hover(function() {
-            // mouseover
-            $(this).find('> ul').stop(true, true).slideDown();
-        }, function() {
-            // mouseout
-            $(this).find('> ul').stop(true, true).hide();       
-        });
-        
-    }
- 
-}
+var menu = $('.rm-nav').rMenu({
+        minWidth: '769px',
+});
 
-new NavTop();
 //导航顶部菜单  END
 
 EOT;
@@ -92,8 +78,10 @@ EOT;
 ?>
 <header style="left: 0px;">
     <nav class="top-nav clearfix">
-        <div id="nav-top1" class="nav-left">
-            <?php echo HtmlHelper::renderNav1($navArr);?>
+        <div class="rm-container">
+            <div class="nav-left rm-nav rm-nojs rm-lighten">
+                <?php echo HtmlHelper::renderResponsiveMenu($navArr);?>
+            </div>
         </div>
         <div class="btn-keys">
             <div class="triangle-down">
