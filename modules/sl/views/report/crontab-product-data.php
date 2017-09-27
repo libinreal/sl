@@ -8,10 +8,45 @@ use yii\helpers\Json;
     $this->params['breadcrumbs'][] = '计划任务列表';
     $this->params['breadcrumbs'][] = $this->title;*/
     $curPageUrl = Url::current();
-    $this->beginBlock('reportJs');
+
+$menuFontCss = <<<EOT
+    .sui-btn-group .sui-btn{
+        min-width:43px;
+    }
+
+    .switch-format{
+        float:right;
+    }
+    
+    .switch-format button{
+        background-color:#fff;
+        margin-top:33px;
+    }
+
+    .sl-diagram-wrapper{
+        height:460px;
+        display:none;
+    }
+
+    #barTotal{
+        float:left;
+        height:460px;
+    }
+
+    #pies{
+        float:right;
+        height:460px;
+    }
+EOT;
+$this->registerCss($menuFontCss);
+
+$this->beginBlock('reportJs');
 ?>
     var pageNo = 1, pageSize = 10, pageCount = 0,
-    	paginationLen = 5, refreshUrl = "<?= $curPageUrl ?>";
+    	paginationLen = 5, refreshUrl = "<?= $curPageUrl ?>",
+        dataFormat = 'list',
+        pieTotalArr = [];
+    var barTotal;
 
     function changePageSize(_pageSize){
         pageSize = _pageSize
@@ -196,9 +231,287 @@ use yii\helpers\Json;
     	_container.find('tr:eq(0)').after(_trStr);
     }
 
+    /**
+     * 显示图表数据
+     * @return 
+     */
+    function goToDiagram()
+    {
+        var filterData = $("#filterFrm").find("input").serializeObject();
+        if(!filterData.name || !filterData.start_time_s)
+        {
+            $.alert('任务名称和日期不能为空')
+            return;
+        }
+
+        filterData['pageNo'] = 0
+        filterData['pageSize'] = 0
+        filterData['_csrf'] = csrfToken
+
+        filterData['data_type'] = 'product'
+
+        $.ajax({
+            crossDomain: true,
+            url: refreshUrl,
+            type: 'post',
+            data: filterData,
+            dataType: 'json',
+            success: function (json_data) {
+                var _pbk, _pfObj = {}, _pfNameArr = [],
+                    _pfk = '',
+                    _brand = '',
+                    _pfNumberObj = {}, _pfValueArr = [],
+                    _pfBrandArr = [];
+
+                var _width = $('.sl-diagram-wrapper').width(),
+                    _height = $('.sl-diagram-wrapper').height();
+
+                $('#barTotal').css({
+                    'width': (_width * 0.31) + 'px'
+                })
+                $('#pies').css({
+                    'width': (_width * 0.69) + 'px'
+                })
+                
+                //init bar
+                if(!barTotal)
+                    barTotal = echarts.init(document.getElementById('barTotal'));
+
+                for(var _rk in json_data.data.rows)
+                {
+                    _pfk = json_data.data.rows[_rk].pf_name;
+                    _brand = json_data.data.rows[_rk].brand_name;
+
+                    if( !_pfObj[_pfk] )
+                    {
+                        //pf number
+                        _pfNumberObj[_pfk] = 0
+
+                        //pf - brand
+                        _pfObj[_pfk] = {};
+                    }
+
+                    //pf - brand - number
+                    if(!_pfObj[_pfk][_brand])
+                    {
+                        _pfObj[_pfk][_brand] = 0;
+                    }
+
+                    //pf number
+                    _pfNumberObj[_pfk] += parseFloat(json_data.data.rows[_rk].number);
+
+                    //pf - brand
+                    _pfObj[_pfk][_brand] += parseFloat(json_data.data.rows[_rk].number);
+                }
+
+                //get pf total number
+                _pbk = 0;
+                _pbColorArr = ['#F18276','#FF808A'];
+
+                for(var _fK in _pfObj)
+                {
+                    //pf total
+                    _pfNameArr.push(_fK);
+                    _pfValueArr.push({
+                        'value':_pfNumberObj[_fK],
+                        'itemStyle':{'normal':{'color':_pbColorArr[_pbk]}}
+                    });
+
+                    _pfBrandArr.push([]);
+
+                    //pf - brand total
+                    for(var _b in _pfObj[_fK])
+                    {
+                        _pfBrandArr[_pbk].push({
+                                'name':_b,
+                                'value':_pfObj[_fK][_b]
+                        });
+                    }
+
+                    _pbk++;
+                }
+
+                //remove and dispose old pie charts and dom
+                for(var _ek in pieTotalArr)
+                {
+                    pieTotalArr[_ek].dispose();
+                }
+                $('#pies').html('');
+                pieTotalArr = [];
+
+                //bar picture render
+                barTotal.setOption({
+                    /* title: {
+                        text: '渠道采集量',
+                    },
+                    tooltip : {
+                        trigger: 'axis',
+                        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+                            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                        },
+                        formatter: function (params) {
+                            var tar = params[1];
+                            return tar.name + '<br/>' + tar.seriesName + ' : ' + tar.value;
+                        }
+                    }, */
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type : 'category',
+                        splitLine: {show:false},
+                        data : _pfNameArr
+                    },
+                    yAxis: {
+                        type : 'value'
+                    },
+                    series: [
+                        {
+                            name: '采集量',
+                            type: 'bar',
+                            label: {
+                                normal: {
+                                    show: true,
+                                    position: 'top'
+                                }
+                            },
+                            data:_pfValueArr
+                        }
+                    ]
+                });
+
+                //pie picture render
+                var _pie, _pieDom, _pieId
+                for(var _bk in _pfBrandArr)
+                {
+                    _pieDom = document.createElement("div");
+                    _pieId = "pie-"+_bk
+                    _pieDom.setAttribute("id", _pieId);
+
+                    _pieDom.style.width = (_width * 0.68 / _pfBrandArr.length) + "px"
+                    _pieDom.style.height = _height + "px"
+
+                    _pieDom.style.float = "left"
+
+                    //init pie
+                    document.getElementById("pies").appendChild(_pieDom);
+                    _pie = echarts.init(_pieDom);
+                    pieTotalArr.push(_pie);
+
+                    _pie.setOption({
+                        //name: '品牌采集量',
+                        tooltip : {
+                            trigger: 'item',
+                            formatter: "{b} : {c} ({d}%)"
+                        },
+                        series : [
+                            {
+                                type: 'pie',
+                                radius : '66%',
+                                center: ['50%', '50%'],
+                                data: _pfBrandArr[_bk],
+                                label: {
+                                    normal: {
+                                        show: true,
+                                        //position: 'inner',
+                                        formatter: function(params){
+                                
+                                            return params.name + '\r\n' + params.value;
+                                        }
+                                    }
+                                },
+                                itemStyle: {
+                                    emphasis: {
+                                        shadowBlur: 10,
+                                        shadowOffsetX: 0,
+                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                    }
+                                }
+                            }
+                        ]
+                    });
+                }
+            }
+        });
+    }
+
+    /**
+     *刷新数据
+     */
+    function reportSearch()
+    {
+        if(dataFormat == 'list')
+        {
+            goToPage(1);
+        }
+        else
+        {
+            goToDiagram();
+        }
+    }
+
+    /**
+     * 切换数据展示形式
+     * @param button 所点击的按钮
+     * @return
+     */
+     function toggleDataFormat(btn)
+     {
+        _btn = $(btn)
+        _format = _btn.attr('data-id');
+
+        if(dataFormat == _format)
+        {
+            return;
+        }
+
+        //button refresh
+        var _tempBtn
+        _btn.parent().children().each(function(){
+
+            _tempBtn = $(this)
+            //当前点击按钮 高亮显示
+            if(_tempBtn.attr('data-id') == _format)
+            {
+                _tempBtn.css({
+                    'background-color':'#672A7A',
+                    'color':'#fff'
+                });
+            }
+            else
+            {
+                _tempBtn.css({
+                    'background-color':'#fff',
+                    'color':'#672A7A'
+                });
+            }
+        })
+
+        //hide other container
+        $('.sl-data-container').hide();
+
+        if (_format == 'list')
+        {
+            $('.sl-table-wrapper').show();
+            goToPage(1);
+        }
+        else if(_format == 'diagram')
+        {
+            $('.sl-diagram-wrapper').show();
+            goToDiagram();
+        }
+
+        dataFormat = _format;
+        return;
+     }
+
 <?php
 $this->endBlock();
 $this->registerJs($this->blocks['reportJs'], \yii\web\View::POS_END);
+app\assets\SLAdminAsset::addScript($this, '@web/admin/js/echarts.common.min.js');
 ?>
 
 <div class="block clearfix">
@@ -207,23 +520,29 @@ $this->registerJs($this->blocks['reportJs'], \yii\web\View::POS_END);
 				</div>
 				<div class="sl-query-wrapper sui-form clearfix">
 					<form id="filterFrm" method="POST">
-                    <div class="sl-query">
-                        <div class="sl-query__label">任务名称</div>
-                        <div class="sl-query__control">
-                            <input type="text" name="name" class="input-medium">
+                        <div class="sl-query">
+                            <div class="sl-query__label">任务名称</div>
+                            <div class="sl-query__control">
+                                <input type="text" name="name" class="input-medium">
+                            </div>
                         </div>
+    					<div class="sl-query input-daterange" data-toggle="datepicker">
+    						<div class="sl-query__label">任务日期</div>
+    						<div class="sl-query__control">
+    							<input type="text" name="start_time_s" class="input-medium input-date">
+    						</div>
+    					</div>
+                        
+    					<button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:reportSearch();">搜索</button>
+				    </form>
+                    <div class="sui-btn-group switch-format">
+                    <button type="button" class="sui-btn btn-primary" data-id="list" style="margin-top: 33px;background-color:#672A7A;color:#fff;" onclick="javascript:toggleDataFormat(this);">列表</button>
+                    <button type="button" class="sui-btn btn-primary" data-id="diagram" style="margin-top: 33px;background-color:#fff;color:#672A7A;" onclick="javascript:toggleDataFormat(this);">图表</button>
                     </div>
-					<div class="sl-query input-daterange" data-toggle="datepicker">
-						<div class="sl-query__label">任务日期</div>
-						<div class="sl-query__control">
-							<input type="text" name="start_time_s" class="input-medium input-date">
-						</div>
-					</div>
-                    
-					<button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:goToPage(1);">搜索</button>
-				</form>
 				</div>
-				<div class="sl-table-wrapper">
+
+                <!-- list start -->
+				<div class="sl-table-wrapper sl-data-container">
 					<table class="sl-table report_tables">
 						<tbody><tr class="sl-table__header">
                             <th><span class="cell">渠道名称</span></th>
@@ -263,4 +582,15 @@ $this->registerJs($this->blocks['reportJs'], \yii\web\View::POS_END);
 						<div class="sl-pagination__text"></div><!-- item1-10 in 213 items -->
 					</div>
 				</div>
+                <!-- list start -->
+
+                <!-- diagram start -->
+                <div class="sl-diagram-wrapper sl-data-container">
+                    <div class="bar-total" id="barTotal">
+                    </div>
+
+                    <div id="pies">
+                    </div>
+                </div>
+                <!-- diagram end -->
 			</div>

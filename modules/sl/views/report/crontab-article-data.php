@@ -220,7 +220,7 @@ $this->registerJs($this->blocks['reportJs'], \yii\web\View::POS_END);
 						</div>
 					</div>
                     
-					<button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:goToPage(1);">搜索</button>
+					<button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:reportSearch();">搜索</button>
 				</form>
 				</div>
 				<div class="sl-table-wrapper">

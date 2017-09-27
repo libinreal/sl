@@ -103,14 +103,21 @@ class ReportController extends \yii\web\Controller
             $totals = count($dataArr);
 
             $data = array();
-            if($totals > 0)
+            if($totals > 0 )
             {
-                foreach($dataArr as $k=>$d)
+                if($pageSize != 0)
                 {
-                    if($k >= $offset && $k <= $lastkey )
+                    foreach($dataArr as $k=>$d)
                     {
-                        $data[] = $d;
+                        if($k >= $offset && $k <= $lastkey )
+                        {
+                            $data[] = $d;
+                        }
                     }
+                }
+                else
+                {
+                    $data = $dataArr;
                 }
             }
 
