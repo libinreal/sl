@@ -32,18 +32,21 @@ $menuFontCss = <<<EOT
     #barTotal{
         float:left;
         height:460px;
+        margin-bottom:26px;
     }
 
     #pies{
         float:right;
         height:460px;
+        margin-bottom:26px;
+        margin-right:36px;
     }
 
     .diagram-title{
         width: 100%; 
         height: 30px;
         margin-top: 30px;
-        margin-bottom:-7px;
+        margin-bottom:-10px;
     }
     .diagram-title span{
         font-size:16px;        
@@ -377,6 +380,7 @@ $this->beginBlock('reportJs');
                         left: '3%',
                         right: '4%',
                         bottom: '3%',
+                        top: '3%',
                         containLabel: true
                     },
                     xAxis: {

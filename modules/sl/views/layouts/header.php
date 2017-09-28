@@ -40,7 +40,7 @@ $navArr = [
                         'name' => 'report',
                         'label' => 'Report',
                         'url' => '/sl/report/crontab-data/product',
-                        /*'items' => 
+                        'items' => 
                         [
                             [
                                 'name' => 'report-crontab-product',
@@ -52,7 +52,7 @@ $navArr = [
                                 'label' => 'WeChat Report',
                                 'url' => '/sl/report/crontab-data/article'
                             ],
-                        ]*/
+                        ]
                       ],
             ]
         ];
