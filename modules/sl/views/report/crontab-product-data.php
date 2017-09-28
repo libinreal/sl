@@ -257,7 +257,7 @@ $this->beginBlock('reportJs');
             data: filterData,
             dataType: 'json',
             success: function (json_data) {
-                var _pbk, _pfObj = {}, _pfNameArr = [],
+                var _pbk, _pbbk, _pfObj = {}, _pfNameArr = [],
                     _pfk = '',
                     _brand = '',
                     _pfNumberObj = {}, _pfValueArr = [],
@@ -267,10 +267,10 @@ $this->beginBlock('reportJs');
                     _height = $('.sl-diagram-wrapper').height();
 
                 $('#barTotal').css({
-                    'width': (_width * 0.31) + 'px'
+                    'width': (_width * 0.3) + 'px'
                 })
                 $('#pies').css({
-                    'width': (_width * 0.69) + 'px'
+                    'width': (_width * 0.6) + 'px'
                 })
                 
                 //init bar
@@ -307,11 +307,14 @@ $this->beginBlock('reportJs');
                 //get pf total number
                 _pbk = 0;
                 _pbColorArr = ['#F18276','#FF808A'];
+                _pbbColorArr = ['#CB9F50','#F1951C', '#D96007', '#EC9E7E', '#AC5FCA', '#EC468C', '#DC3C52', '#C94742',
+                                '#D86756', '#CB8194', '#866733', '#85530F', '#893C04', '#8A5440', '#855595', '#8A2852', '#892632',
+                                '#862F2C', '#833F34', '#8C5866'];
 
                 for(var _fK in _pfObj)
                 {
                     //pf total
-                    _pfNameArr.push(_fK);
+                    _pfNameArr.push({'value':_fK, 'textStyle':{'color':'#672A7A'}});
                     _pfValueArr.push({
                         'value':_pfNumberObj[_fK],
                         'itemStyle':{'normal':{'color':_pbColorArr[_pbk]}}
@@ -319,13 +322,16 @@ $this->beginBlock('reportJs');
 
                     _pfBrandArr.push([]);
 
+                    _pbbk = 0;
                     //pf - brand total
                     for(var _b in _pfObj[_fK])
                     {
                         _pfBrandArr[_pbk].push({
                                 'name':_b,
-                                'value':_pfObj[_fK][_b]
+                                'value':_pfObj[_fK][_b],
+                                'itemStyle':{'normal':{'color':_pbbColorArr[_pbbk]}}
                         });
+                        _pbbk++;
                     }
 
                     _pbk++;
@@ -391,7 +397,7 @@ $this->beginBlock('reportJs');
                     _pieId = "pie-"+_bk
                     _pieDom.setAttribute("id", _pieId);
 
-                    _pieDom.style.width = (_width * 0.68 / _pfBrandArr.length) + "px"
+                    _pieDom.style.width = (_width * 0.6 / _pfBrandArr.length) + "px"
                     _pieDom.style.height = _height + "px"
 
                     _pieDom.style.float = "left"
