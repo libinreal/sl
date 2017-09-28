@@ -16,6 +16,7 @@ $menuFontCss = <<<EOT
 
     .switch-format{
         float:right;
+        margin-right:26px;
     }
     
     .switch-format button{
@@ -36,6 +37,18 @@ $menuFontCss = <<<EOT
     #pies{
         float:right;
         height:460px;
+    }
+
+    .diagram-title{
+        width: 100%; 
+        height: 30px;
+        margin-top: 30px;
+        margin-bottom:-7px;
+    }
+    .diagram-title span{
+        font-size:16px;        
+        text-align:center;
+        color:#672A7A;
     }
 EOT;
 $this->registerCss($menuFontCss);
@@ -314,7 +327,7 @@ $this->beginBlock('reportJs');
                 for(var _fK in _pfObj)
                 {
                     //pf total
-                    _pfNameArr.push({'value':_fK, 'textStyle':{'color':'#672A7A'}});
+                    _pfNameArr.push({'value':_fK, 'textStyle':{'color':'#672A7A', 'fontSize':16}});
                     _pfValueArr.push({
                         'value':_pfNumberObj[_fK],
                         'itemStyle':{'normal':{'color':_pbColorArr[_pbk]}}
@@ -384,6 +397,7 @@ $this->beginBlock('reportJs');
                                     position: 'top'
                                 }
                             },
+                            barWidth:82,
                             data:_pfValueArr
                         }
                     ]
@@ -408,7 +422,11 @@ $this->beginBlock('reportJs');
                     pieTotalArr.push(_pie);
 
                     _pie.setOption({
-                        //name: '品牌采集量',
+                        title: {'text':_pfNameArr[_bk]['value'],
+                                'bottom':'1%',
+                                'left':'47%',
+                                'textStyle':{'color':'#672A7A','fontSize':16,'fontWeight':'normal', 'align':'center'}
+                                },
                         tooltip : {
                             trigger: 'item',
                             formatter: "{b} : {c} ({d}%)"
@@ -592,9 +610,16 @@ app\assets\SLAdminAsset::addScript($this, '@web/admin/js/echarts.common.min.js')
 
                 <!-- diagram start -->
                 <div class="sl-diagram-wrapper sl-data-container">
-                    <div class="bar-total" id="barTotal">
+                    <div class="diagram-title" style="width: 100%; height: 30px;">
+                        <span style="width:544px;float: left; font-size:16px">渠道采集量</span>
+                        <span style="width:1090px;float: right; font-size:16px">品牌采集量</span>
                     </div>
 
+                    <div class="clearfix">
+                    </div>
+
+                    <div class="bar-total" id="barTotal">
+                    </div>
                     <div id="pies">
                     </div>
                 </div>
