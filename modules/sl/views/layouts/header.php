@@ -18,7 +18,9 @@ $menuFontCss = <<<EOT
         background-color: inherit;
     }
 
-    
+    .rm-container{
+        float:left;
+    }
 EOT;
 $this->registerCss($menuFontCss);
 
