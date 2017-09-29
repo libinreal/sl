@@ -93,7 +93,7 @@ header{
 	height: 60px;
 	line-height: 60px;
 	color: #fff;
-	overflow: hidden;
+	/*overflow: hidden;*/ /* fix navbar is covered */
 	position: relative;
 }
 .nav-left{

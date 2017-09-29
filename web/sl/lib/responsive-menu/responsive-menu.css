@@ -152,10 +152,10 @@ to work with the chosen theme.
 
 /* Theme styles ============================================================= */
 
-.rm-nav a {
+/*.rm-nav a {
     -webkit-transition: background-color 0.3s;
     transition: background-color 0.3s;
-}
+}*/
 
 .rm-toggle:hover {
     background-color: rgb(156, 156, 156); /* fallback */
@@ -163,13 +163,17 @@ to work with the chosen theme.
 }
 
 .rm-lighten li li a,
+.rm-lighten .rm-menu-item .rm-menu-item a{
+    background-color: rgb(103,42,122);
+}
+
+
 .rm-lighten li a:focus,
 .rm-lighten li.rm-hover > a,
-.rm-lighten .rm-menu-item .rm-menu-item a,
 .rm-lighten .rm-menu-item a:focus,
 .rm-lighten .rm-menu-item.rm-hover > a {
-    background-color: rgb(32, 32, 32); /* fallback */
-    background-color: rgba(255, 255, 255, .1);
+    background-color: rgb(102, 23, 104); /* fallback */
+    /*background-color: rgba(255, 255, 255, .1);*/ /* remove transparent property*/
 }
 
 .rm-lighten li li li a,
@@ -178,8 +182,8 @@ to work with the chosen theme.
 .rm-lighten .rm-menu-item .rm-menu-item .rm-menu-item a,
 .rm-lighten .rm-menu-item .rm-menu-item a:focus,
 .rm-lighten .rm-menu-item .rm-menu-item.rm-hover > a {
-    background-color: rgb(96, 96, 96); /* fallback */
-    background-color: rgba(255, 255, 255, .2);
+    background-color: rgb(102, 23, 104); /* fallback */
+    /*background-color: rgba(255, 255, 255, .2);*/ /* remove transparent property*/
 }
 
 .rm-lighten li li li a:focus,
@@ -187,7 +191,7 @@ to work with the chosen theme.
 .rm-lighten .rm-menu-item .rm-menu-item .rm-menu-item a:focus,
 .rm-lighten .rm-menu-item .rm-menu-item .rm-menu-item.rm-hover > a {
     background-color: rgb(128, 128, 128); /* fallback */
-    background-color: rgba(255, 255, 255, .3);
+    /*background-color: rgba(255, 255, 255, .3);*//* remove transparent property*/
 }
 
 .rm-darken li li a,
@@ -197,7 +201,7 @@ to work with the chosen theme.
 .rm-darken .rm-menu-item a:focus,
 .rm-darken .rm-menu-item.rm-hover > a {
     background-color: rgb(192, 192, 192); /* fallback */
-    background-color: rgba(0, 0, 0, .1);
+    /*background-color: rgba(0, 0, 0, .1);*//* remove transparent property*/
 }
 
 .rm-darken li li li a,
@@ -207,7 +211,7 @@ to work with the chosen theme.
 .rm-darken .rm-menu-item .rm-menu-item a:focus,
 .rm-darken .rm-menu-item .rm-menu-item.rm-hover > a {
     background-color: rgb(160, 160, 160); /* fallback */
-    background-color: rgba(0, 0, 0, .2);
+    /*background-color: rgba(0, 0, 0, .2);*//* remove transparent property*/
 }
 
 .rm-darken li li li a:focus,
@@ -215,7 +219,7 @@ to work with the chosen theme.
 .rm-darken .rm-menu-item .rm-menu-item .rm-menu-item a:focus,
 .rm-darken .rm-menu-item .rm-menu-item .rm-menu-item.rm-hover > a{
     background-color: rgb(128, 128, 128); /* fallback */
-    background-color: rgba(0, 0, 0, .3);
+    /*background-color: rgba(0, 0, 0, .3);*//* remove transparent property*/
 }
 
 /* Expanded Layout styles - .rm-layout-expanded class is applied by plugin ========= */
@@ -235,8 +239,10 @@ to work with the chosen theme.
 }
 .rm-layout-expanded .rm-nav > ul > li > a,
 .rm-layout-expanded .rm-top-menu > .rm-menu-item > a {
-    height: 3em;
-    line-height: 3em; /* match with height to center vertically */
+    /*height: 3em;*/
+    /*line-height: 3em;*/ /* match with height to center vertically */
+    height: 60px;
+    line-height: 60px;
     padding-top: 0;
     padding-bottom: 0;
 }
