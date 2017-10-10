@@ -3,10 +3,39 @@ use app\modules\sl\models\SlTaskScheduleCrontabAbnormal;
 use yii\helpers\Url;
 use yii\helpers\Json;
 
-    $this->title = 'Message';
-    /*$this->params['breadcrumbs'][] = 'SL System';
-    $this->params['breadcrumbs'][] = '计划任务列表';
-    $this->params['breadcrumbs'][] = $this->title;*/
+$this->title = 'Task Alert Message';
+
+$this->params['breadcrumbs'] = [ 
+                                    'items' => [
+                                                    [
+                                                    'label' => 'Home',
+                                                    'url' => '',
+                                                    'items' => [
+                                                                [
+                                                                    'label' => 'Task',
+                                                                    'url' => '/sl/schedule/index'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Message',
+                                                                    'url' => '/sl/message/abnormal'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Report',
+                                                                    'url' => '/sl/report/crontab-data/product'
+                                                                ]
+                                                            ]
+                                                    ],
+                                                    [
+                                                    'label' => 'Message',
+                                                    'url' => '/sl/message/abnormal' ,
+                                                    ],
+                                                    [
+                                                    'label' => 'Task Alert Message',
+                                                    'li_class' => 'current'
+                                                    ]
+                                                ]
+                                ];
+
     $curPageUrl = Url::current();
 
     $scheDataJs = <<<EOT

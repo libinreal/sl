@@ -3,10 +3,40 @@ use app\modules\sl\models\SlTaskScheduleCrontabAbnormal;
 use yii\helpers\Url;
 use yii\helpers\Json;
 
-    $this->title = 'Wechat Report';
-    /*$this->params['breadcrumbs'][] = 'SL System';
-    $this->params['breadcrumbs'][] = '计划任务列表';
-    $this->params['breadcrumbs'][] = $this->title;*/
+
+$this->title = 'WeChat Daily Task Report';
+
+$this->params['breadcrumbs'] = [ 
+                                    'items' => [
+                                                    [
+                                                    'label' => 'Home',
+                                                    'url' => '',
+                                                    'items' => [
+                                                                [
+                                                                    'label' => 'Task',
+                                                                    'url' => '/sl/schedule/index'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Message',
+                                                                    'url' => '/sl/message/abnormal'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Report',
+                                                                    'url' => '/sl/report/crontab-data/product'
+                                                                ]
+                                                            ]
+                                                    ],
+                                                    [
+                                                    'label' => 'Report',
+                                                    'url' => '/sl/report/crontab-data/article' ,
+                                                    ],
+                                                    [
+                                                    'label' => 'WeChat Daily Task Report',
+                                                    'li_class' => 'current'
+                                                    ]
+                                                ]
+                                ];
+
     $curPageUrl = Url::current();
     $this->beginBlock('reportJs');
 ?>

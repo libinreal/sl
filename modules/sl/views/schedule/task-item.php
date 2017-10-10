@@ -3,10 +3,53 @@ use app\modules\sl\models\SlTaskItem;
 use yii\helpers\Url;
 use yii\helpers\Json;
 
-    $this->title = '任务项运行状态';
-    /*$this->params['breadcrumbs'][] = 'SL System';
-    $this->params['breadcrumbs'][] = '计划任务列表';
-    $this->params['breadcrumbs'][] = $this->title;*/
+    $this->title = 'Task Item';
+
+    $this->params['breadcrumbs'] = [ 
+                                        'items' => [
+                                                        [
+                                                        'label' => 'Home',
+                                                        'url' => '',
+                                                        'items' => [
+                                                                    [
+                                                                        'label' => 'Task',
+                                                                        'url' => '/sl/schedule/index'
+                                                                    ],
+                                                                    [
+                                                                        'label' => 'Message',
+                                                                        'url' => '/sl/message/abnormal'
+                                                                    ],
+                                                                    [
+                                                                        'label' => 'Report',
+                                                                        'url' => '/sl/report/crontab-data/product'
+                                                                    ]
+                                                                ]
+                                                        ],
+                                                        [
+                                                        'label' => 'Task',
+                                                        'url' => '/sl/schedule/index' ,
+                                                        'items' => [
+                                                                    [
+                                                                        'label' => 'Task Schedule',
+                                                                        'url' => '/sl/schedule/index'
+                                                                    ],
+                                                                    [
+                                                                        'label' => 'Add WeChat Task Schedule',
+                                                                        'url' => '/sl/schedule/add-schedule/article'
+                                                                    ],
+                                                                    [
+                                                                        'label' => 'Add Product Task Schedule',
+                                                                        'url' => '/sl/schedule/add-schedule/product'
+                                                                    ]
+                                                                ]
+                                                        ],
+                                                        [
+                                                        'label' => 'Task Item',
+                                                        'li_class' => 'current'
+                                                        ]
+                                                    ]
+                                    ];
+
     $curPageUrl = Url::current();
 
         $taskItemDataJs = <<<EOT
@@ -227,17 +270,20 @@ EOT;
     				+ '<td><span class="cell">'+ _rows[_i]['act_time'] +'</span></td>'
     				+ '<td><span class="cell">'+ _rows[_i]['complete_time'] +'</span></td>';
 
-    				if( _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_OPEN'] && _rows[_i]['control_status'] == TASK_STAT['CONTROL_STOPPED'] )//启动
+                    if(tempLoginCookie == 1)
                     {
-                        _trStr += '<td><span class="cell"><a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_STARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">启动</a></span></td>'
-                    }
-                    else if( _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_CLOSE'] && (_rows[_i]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_STARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] ) )//停止
-                    {
-    				    _trStr += '<td><span class="cell"><a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_STOPPED'] +', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a></span></td>'
-                    }
-                    else if( (_rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_OPEN'] || _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_COMPLETE'] ) && (_rows[_i]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_STARTED']) )//重启
-                    {
-                        _trStr += '<td><span class="cell"><a href="javascript:updateTaskStat(  '+ TASK_STAT['CONTROL_RESTARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">重启</a></span></td>'   
+        				if( _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_OPEN'] && _rows[_i]['control_status'] == TASK_STAT['CONTROL_STOPPED'] )//启动
+                        {
+                            _trStr += '<td><span class="cell"><a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_STARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">启动</a></span></td>'
+                        }
+                        else if( _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_CLOSE'] && (_rows[_i]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_STARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] ) )//停止
+                        {
+        				    _trStr += '<td><span class="cell"><a href="javascript:updateTaskStat( '+ TASK_STAT['CONTROL_STOPPED'] +', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a></span></td>'
+                        }
+                        else if( (_rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_OPEN'] || _rows[_i]['task_status'] == TASK_STAT['TASK_STATUS_COMPLETE'] ) && (_rows[_i]['control_status'] == TASK_STAT['CONTROL_DEFAULT'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_RESTARTED'] || _rows[_i]['control_status'] == TASK_STAT['CONTROL_STARTED']) )//重启
+                        {
+                            _trStr += '<td><span class="cell"><a href="javascript:updateTaskStat(  '+ TASK_STAT['CONTROL_RESTARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">重启</a></span></td>'   
+                        }
                     }
 
                     _trStr += '</tr>'

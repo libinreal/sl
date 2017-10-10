@@ -3,10 +3,38 @@ use app\modules\sl\models\SlTaskScheduleCrontabAbnormal;
 use yii\helpers\Url;
 use yii\helpers\Json;
 
-    $this->title = 'Product Report';
-    /*$this->params['breadcrumbs'][] = 'SL System';
-    $this->params['breadcrumbs'][] = '计划任务列表';
-    $this->params['breadcrumbs'][] = $this->title;*/
+$this->title = 'Product Daily Task Report';
+
+$this->params['breadcrumbs'] = [ 
+                                    'items' => [
+                                                    [
+                                                    'label' => 'Home',
+                                                    'url' => '',
+                                                    'items' => [
+                                                                [
+                                                                    'label' => 'Task',
+                                                                    'url' => '/sl/schedule/index'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Message',
+                                                                    'url' => '/sl/message/abnormal'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Report',
+                                                                    'url' => '/sl/report/crontab-data/product'
+                                                                ]
+                                                            ]
+                                                    ],
+                                                    [
+                                                    'label' => 'Report',
+                                                    'url' => '/sl/report/crontab-data/product' ,
+                                                    ],
+                                                    [
+                                                    'label' => 'Product Daily Task Report',
+                                                    'li_class' => 'current'
+                                                    ]
+                                                ]
+                                ];
     $curPageUrl = Url::current();
 
 $menuFontCss = <<<EOT
@@ -362,8 +390,7 @@ $this->beginBlock('reportJs');
                 pieTotalArr = [];
 
                 //bar picture render
-                barTotal.setOption({
-                    /* title: {
+                /* title: {
                         text: '渠道采集量',
                     },
                     tooltip : {
@@ -375,7 +402,9 @@ $this->beginBlock('reportJs');
                             var tar = params[1];
                             return tar.name + '<br/>' + tar.seriesName + ' : ' + tar.value;
                         }
-                    }, */
+                }, */
+                barTotal.setOption({
+                    
                     grid: {
                         left: '3%',
                         right: '4%',

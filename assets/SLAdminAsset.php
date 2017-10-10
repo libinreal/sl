@@ -16,8 +16,15 @@ class SLAdminAsset extends AssetBundle
         'sl/css/public.css',
         'sl/lib/selectify/silver.default.css',
         'sl/css/sl.css',
+        'sl/lib/xbreadcrumbs/xbreadcrumbs.css',
+        'sl/lib/responsive-menu/responsive-menu.css'
     ];
-    public $js = [];
+    public $js = [
+        'admin/js/jquery-migrate-1.2.1.js',//fix $.browser undefined problem
+        'sl/lib/sui/sui.js',
+        'sl/lib/xbreadcrumbs/xbreadcrumbs.js',//breadcrumbs
+        'sl/lib/responsive-menu/responsive-menu.js'//menus
+    ];
 
     public $depends = [
     'yii\web\JqueryAsset'

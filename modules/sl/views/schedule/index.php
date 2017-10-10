@@ -3,10 +3,53 @@ use app\modules\sl\models\SlTaskSchedule;
 use yii\helpers\Url;
 use yii\helpers\Json;
 
-    $this->title = '计划任务列表';
-    /*$this->params['breadcrumbs'][] = 'SL System';
-    $this->params['breadcrumbs'][] = '计划任务列表';
-    $this->params['breadcrumbs'][] = $this->title;*/
+    $this->title = 'Task Schedule';
+
+    $this->params['breadcrumbs'] = [ 
+                                        'items' => [
+                                                        [
+                                                        'label' => 'Home',
+                                                        'url' => '',
+                                                        'items' => [
+                                                                    [
+                                                                        'label' => 'Task',
+                                                                        'url' => '/sl/schedule/index'
+                                                                    ],
+                                                                    [
+                                                                        'label' => 'Message',
+                                                                        'url' => '/sl/message/abnormal'
+                                                                    ],
+                                                                    [
+                                                                        'label' => 'Report',
+                                                                        'url' => '/sl/report/crontab-data/product'
+                                                                    ]
+                                                                ]
+                                                        ],
+                                                        [
+                                                        'label' => 'Task',
+                                                        'url' => '/sl/schedule/index' ,
+                                                        'items' => [
+                                                                    [
+                                                                        'label' => 'Task Schedule',
+                                                                        'url' => '/sl/schedule/index'
+                                                                    ],
+                                                                    [
+                                                                        'label' => 'Add WeChat Task Schedule',
+                                                                        'url' => '/sl/schedule/add-schedule/article'
+                                                                    ],
+                                                                    [
+                                                                        'label' => 'Add Product Task Schedule',
+                                                                        'url' => '/sl/schedule/add-schedule/product'
+                                                                    ]
+                                                                ]
+                                                        ],
+                                                        [
+                                                        'label' => 'Task Schedule',
+                                                        'li_class' => 'current'
+                                                        ]
+                                                    ]
+                                    ];                                
+
     $curPageUrl = Url::current();
 
     $scheDataJs = <<<EOT
@@ -196,11 +239,17 @@ EOT;
     				+ '<td><span class="cell">'+ _rows[_i]['brand_name'].substr(0, 62) +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ _rows[_i]['key_words'] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ scheStatArr[_rows[_i]['sche_status']] +'</span>'+ '</td>'
-    				+ '<td><span class="cell"><a href="javascript:updateScheStat( \''+ _rows[_i]['sche_status'] +'\', \''+<?php echo SlTaskSchedule::SCHE_STATUS_OPEN;?>+'\', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
-    				+ '<a href="javascript:updateScheStat(\''+ _rows[_i]['sche_status'] +'\', \''+<?php echo SlTaskSchedule::SCHE_STATUS_CLOSE;?>+'\', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
-    				+ '<a href="/sl/schedule/edit-schedule/'+ _rows[_i]['data_type'] + '/' + _rows[_i]['id']+ '" class="a--edit">编辑</a>'
-    				+ '<a href="javascript:deleteSche(\''+_rows[_i]['id']+'\');" class="a--danger">删除</a>'
-    				+ '<a href="/sl/schedule/task-sche-crontab/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td>'
+    				+ '<td><span class="cell">';
+
+                    if(tempLoginCookie == 1)
+                    {
+                        _trStr += '<a href="javascript:updateScheStat( \''+ _rows[_i]['sche_status'] +'\', \''+<?php echo SlTaskSchedule::SCHE_STATUS_OPEN;?>+'\', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
+        				+ '<a href="javascript:updateScheStat(\''+ _rows[_i]['sche_status'] +'\', \''+<?php echo SlTaskSchedule::SCHE_STATUS_CLOSE;?>+'\', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
+        				+ '<a href="/sl/schedule/edit-schedule/'+ _rows[_i]['data_type'] + '/' + _rows[_i]['id']+ '" class="a--edit">编辑</a>'
+        				+ '<a href="javascript:deleteSche(\''+_rows[_i]['id']+'\');" class="a--danger">删除</a>';
+                    }
+
+    				_trStr += '<a href="/sl/schedule/task-sche-crontab/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td>'
                     + '</tr>'
     	}
     	_container.find('tr:gt(0)').remove();

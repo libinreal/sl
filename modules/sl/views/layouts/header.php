@@ -5,9 +5,6 @@ use app\components\helpers\HtmlHelper;
 /* @var $this \yii\web\View */
 /* @var $content string */
 
-app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/responsive-menu/responsive-menu.js');
-app\assets\SLAdminAsset::addCss($this, '@web/sl/lib/responsive-menu/responsive-menu.css');
-
 $menuFontCss = <<<EOT
     .rm-nav li a, .rm-menu-item a{
         font-size:14px;

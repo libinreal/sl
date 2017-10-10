@@ -5,10 +5,53 @@ use app\modules\sl\models\SlTaskScheduleCrontab;
 use yii\helpers\Url;
 use yii\helpers\Json;
 
-    $this->title = '实际任务运行状态';
-    /*$this->params['breadcrumbs'][] = 'SL System';
-    $this->params['breadcrumbs'][] = '计划任务列表';
-    $this->params['breadcrumbs'][] = $this->title;*/
+    $this->title = 'Task Schedule Crontab';
+
+    $this->params['breadcrumbs'] = [ 
+                                        'items' => [
+                                                        [
+                                                        'label' => 'Home',
+                                                        'url' => '',
+                                                        'items' => [
+                                                                    [
+                                                                        'label' => 'Task',
+                                                                        'url' => '/sl/schedule/index'
+                                                                    ],
+                                                                    [
+                                                                        'label' => 'Message',
+                                                                        'url' => '/sl/message/abnormal'
+                                                                    ],
+                                                                    [
+                                                                        'label' => 'Report',
+                                                                        'url' => '/sl/report/crontab-data/product'
+                                                                    ]
+                                                                ]
+                                                        ],
+                                                        [
+                                                        'label' => 'Task',
+                                                        'url' => '/sl/schedule/index' ,
+                                                        'items' => [
+                                                                    [
+                                                                        'label' => 'Task Schedule',
+                                                                        'url' => '/sl/schedule/index'
+                                                                    ],
+                                                                    [
+                                                                        'label' => 'Add WeChat Task Schedule',
+                                                                        'url' => '/sl/schedule/add-schedule/article'
+                                                                    ],
+                                                                    [
+                                                                        'label' => 'Add Product Task Schedule',
+                                                                        'url' => '/sl/schedule/add-schedule/product'
+                                                                    ]
+                                                                ]
+                                                        ],
+                                                        [
+                                                        'label' => 'Task Schedule Crontab',
+                                                        'li_class' => 'current'
+                                                        ]
+                                                    ]
+                                    ];
+
     $curPageUrl = Url::current();
 
         $taskItemDataJs = <<<EOT
@@ -261,14 +304,17 @@ EOT;
                 //console.log(' ' +  _testBool + '  ' + _rows[_i]['items'][_s]['task_status'] + '  ' + TASK_STAT['TASK_ITEM_OPEN'] + '  ' + _rows[_i]['items'][_s]['control_status'] + '  ' +TASK_STAT['CONTROL_DEFAULT']);
             }
 
-            for(var _o in _curItemStat)
+            if(tempLoginCookie == 1)
             {
-                if(_o == 'start' )
-                    _trStr += '<a href="javascript:updateCrontabStat( '+ TASK_STAT['CONTROL_STARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
-                else if(_o == 'stop' )
-                    _trStr += '<a href="javascript:updateCrontabStat( '+ TASK_STAT['CONTROL_STOPPED'] +', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
-                else if(_o == 'restart' )
-                    _trStr += '<a href="javascript:updateCrontabStat(  '+ TASK_STAT['CONTROL_RESTARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">重启</a>'
+                for(var _o in _curItemStat)
+                {
+                    if(_o == 'start' )
+                        _trStr += '<a href="javascript:updateCrontabStat( '+ TASK_STAT['CONTROL_STARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">启动</a>'
+                    else if(_o == 'stop' )
+                        _trStr += '<a href="javascript:updateCrontabStat( '+ TASK_STAT['CONTROL_STOPPED'] +', \''+_rows[_i]['id']+'\');" class="a--danger">停止</a>'
+                    else if(_o == 'restart' )
+                        _trStr += '<a href="javascript:updateCrontabStat(  '+ TASK_STAT['CONTROL_RESTARTED'] +', \''+_rows[_i]['id']+'\');" class="a--success">重启</a>'
+                }
             }
 
     	   _trStr += '<a href="/sl/schedule/task-item/'+_rows[_i]['id']+'" class="a--check">查看</a></span></td></tr>'

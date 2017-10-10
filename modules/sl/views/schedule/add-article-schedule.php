@@ -3,7 +3,53 @@ use app\modules\sl\models\SlTaskSchedule;
 use yii\helpers\Url;
 use yii\helpers\Json;
 
-$this->title = '新增微信计划任务';
+$this->title = 'Add WeChat Task Schedule';
+
+$this->params['breadcrumbs'] = [ 
+                                    'items' => [
+                                                    [
+                                                    'label' => 'Home',
+                                                    'url' => '',
+                                                    'items' => [
+                                                                [
+                                                                    'label' => 'Task',
+                                                                    'url' => '/sl/schedule/index'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Message',
+                                                                    'url' => '/sl/message/abnormal'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Report',
+                                                                    'url' => '/sl/report/crontab-data/product'
+                                                                ]
+                                                            ]
+                                                    ],
+                                                    [
+                                                    'label' => 'Task',
+                                                    'url' => '/sl/schedule/index' ,
+                                                    'items' => [
+                                                                [
+                                                                    'label' => 'Task Schedule',
+                                                                    'url' => '/sl/schedule/index'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Add WeChat Task Schedule',
+                                                                    'url' => '/sl/schedule/add-schedule/article'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Add Product Task Schedule',
+                                                                    'url' => '/sl/schedule/add-schedule/product'
+                                                                ]
+                                                            ]
+                                                    ],
+                                                    [
+                                                    'label' => 'Add WeChat Task Schedule',
+                                                    'li_class' => 'current'
+                                                    ]
+                                                ]
+                                ];
+
 $this->beginBlock("addScheJs");
 ?>
 
@@ -931,6 +977,11 @@ $("#sche_month_tags").on("click", "li", function(_e){
 })
 
 function submitAddFrm(_confirmUpdate){
+	if(tempLoginCookie == 0)
+	{
+		return;
+	}
+
 	var sche_time,
 		sche_id = <?php if(!empty($scheEditData)): echo $scheEditData["id"];else: echo "''";endif;?>,
 		data_type = <?php echo  "'". Yii::$app->request->get('data_type','') . "'"; ?>,
