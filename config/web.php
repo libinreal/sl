@@ -1,7 +1,7 @@
 <?php
 
 $params = require(__DIR__ . '/params.php');
-$urlRules = require(__DIR__ . '/url.php');
+$urlRules = require(__DIR__ . '/url.sl.php');
 $i18n = require(__DIR__ . '/i18n.php');
 
 $config = [
