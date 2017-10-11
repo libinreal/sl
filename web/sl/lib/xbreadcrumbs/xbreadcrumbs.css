@@ -7,7 +7,7 @@
 
 .xbreadcrumbs {
 	position: relative;
-	/*z-index: 1000;*/
+	z-index: 1000;
 }
 .xbreadcrumbs, .xbreadcrumbs LI, .xbreadcrumbs UL, .xbreadcrumbs UL LI {
 	list-style: none;
@@ -16,8 +16,8 @@
 }
 .xbreadcrumbs LI {
     border-right: none;
-    /*background: url(images/separato.gif) no-repeat right center;*/
-    padding-right: 15px;
+    background: url(images/separato.png) no-repeat right center;
+    padding-right: 30px;
     padding-left: 17px;
     padding-top: 5px;
     padding-bottom: 5px;
@@ -45,7 +45,7 @@
 	height: 100%;
 }
 .xbreadcrumbs LI {
-	border-right: 1px solid #CECECE;
+	/*border-right: 1px solid #CECECE;*/
 	height: 16px;
 	line-height: 16px;
 	margin:7px auto;
@@ -92,4 +92,8 @@
 }
 .xbreadcrumbs LI UL LI A:HOVER {
     background: #444444;
+}
+
+.xbreadcrumbs LI.current {
+    background: none;
 }
