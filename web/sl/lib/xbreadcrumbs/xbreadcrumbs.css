@@ -7,7 +7,7 @@
 
 .xbreadcrumbs {
 	position: relative;
-	z-index: 1000;
+	z-index: 9;
 }
 .xbreadcrumbs, .xbreadcrumbs LI, .xbreadcrumbs UL, .xbreadcrumbs UL LI {
 	list-style: none;
