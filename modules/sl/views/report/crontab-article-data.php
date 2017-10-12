@@ -28,7 +28,17 @@ $this->params['breadcrumbs'] = [
                                                     ],
                                                     [
                                                     'label' => 'Report',
-                                                    'url' => '/sl/report/crontab-data/article' ,
+                                                    'url' => '/sl/report/crontab-data/product' ,
+                                                    'items' => [
+                                                            [
+                                                                'label' => 'Product Report',
+                                                                'url' => '/sl/report/crontab-data/product' ,
+                                                            ],
+                                                            [
+                                                                'label' => 'WeChat Report',
+                                                                'url' => '/sl/report/crontab-data/article' ,
+                                                            ]
+                                                        ]
                                                     ],
                                                     [
                                                     'label' => 'WeChat Daily Task Report',
