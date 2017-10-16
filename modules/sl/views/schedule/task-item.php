@@ -418,7 +418,7 @@ $this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
 
 <div class="block clearfix">
 				<div class="section clearfix">
-					<span class="title-prefix-md"><?php echo $this->title; ?></span>
+					<span class="title-prefix-md">任务项运行状态</span>
 					<div class="sl-add-text fr" style="display: none;" onclick="javascript:location.href='/sl/schedule/add-schedule'">新增</div>
 				</div>
 				<div class="sl-query-wrapper sui-form clearfix">

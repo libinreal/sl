@@ -1019,7 +1019,7 @@ class ScheduleController extends \yii\web\Controller
             $totals = $scheCronQuery->count();
 
             $cronArr = $scheCronQuery
-                        ->select('cron.id, cron.name, cron.start_time, cron.complete_time, cron.act_time, cron.task_status, cron.control_status, cron.task_progress, cron.sche_id, sche.key_words, sche.dt_category, sche.pf_name, sche.brand_name')
+                        ->select('cron.id, cron.name, cron.start_time, cron.complete_time, cron.act_time, cron.task_status, cron.control_status, cron.task_progress, cron.sche_id, sche.key_words, sche.dt_category, sche.pf_name, sche.brand_name, sche.data_type')
                         ->limit( $pageSize )
                         ->offset( ($pageNo - 1) * $pageSize )
                         ->asArray()

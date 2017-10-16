@@ -13,7 +13,7 @@ EOT;
 ?>
 <div class="content">
 	<div class="nav-path">
-		<div class="np-prs"><a href="">SL</a></div>
+		<div class="np-prs"><a href="/">SL</a></div>
 		<div class="prs-left">
 			<!--
 			<span class="prs-text fl">SL System</span>

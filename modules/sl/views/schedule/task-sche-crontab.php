@@ -265,7 +265,7 @@ EOT;
 
     		_trStr += '<tr task-id="'+_rows[_i]['id']+'"><td><span class="cell">'+ _rows[_i]['id'] +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ _rows[_i]['sche_id'] +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['name'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell"><a href="/sl/report/crontab-data/'+ _rows[_i]['data_type']+'/'+ _rows[_i]['name'] +'/'+ String(_rows[_i]['start_time']).substr(0,10) +'">'+ _rows[_i]['name'] +'</span>'+ '</a></td>'
 
     				+ '<td><span class="cell">'+ _rows[_i]['brand_name'].substr(0, 5) +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ _rows[_i]['key_words'].substr(0, 5) +'</span>'+ '</td>'
@@ -443,7 +443,7 @@ $this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
 
 <div class="block clearfix">
 				<div class="section clearfix">
-					<span class="title-prefix-md"><?php echo $this->title; ?></span>
+					<span class="title-prefix-md">实际任务运行状态</span>
 					<div class="sl-add-text fr" style="display: none;" onclick="javascript:location.href='/sl/schedule/add-schedule'">新增</div>
 				</div>
 				<div class="sl-query-wrapper sui-form clearfix">

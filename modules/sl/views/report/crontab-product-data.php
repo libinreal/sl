@@ -94,11 +94,24 @@ $menuFontCss = <<<EOT
 EOT;
 $this->registerCss($menuFontCss);
 
+$scheduleName = Yii::$app->request->get('name', '');
+$start_time_s = Yii::$app->request->get('start_time_s', '');
+
+$dataReportJs = <<<EOT
+    if(scheduleName && startTime)
+    {
+        $('#filterFrm').find('input[name="name"]').val(scheduleName);
+        $('#filterFrm').find('input[name="start_time_s"]').val(startTime);
+        goToPage(1);
+    }
+EOT;
+    $this->registerJs($dataReportJs);
+
 $this->beginBlock('reportJs');
 ?>
     var pageNo = 1, pageSize = 10, pageCount = 0,
     	paginationLen = 5, refreshUrl = "<?= $curPageUrl ?>",
-        dataFormat = 'list',
+        dataFormat = 'list', scheduleName = "<?= $scheduleName ?>", startTime = "<?= $start_time_s ?>",
         pieTotalArr = [];
     var barTotal;
 
@@ -133,7 +146,11 @@ $this->beginBlock('reportJs');
             dataType: 'json',
             success: function (json_data) {
             	// console.log(JSON.stringify(json_data));
-
+                if(json_data.code != '0')
+                {
+                    return $.alert(json_data.msg);
+                }
+                
             	var _total = json_data.data.total
             	pageCount = Math.ceil(_total / pageSize)
             	makePagination(_pageNo, pageCount)//分页
@@ -649,7 +666,7 @@ app\assets\SLAdminAsset::addScript($this, '@web/admin/js/echarts.common.min.js')
 						<div class="sl-pagination__text"></div><!-- item1-10 in 213 items -->
 					</div>
 				</div>
-                <!-- list start -->
+                <!-- list end -->
 
                 <!-- diagram start -->
                 <div class="sl-diagram-wrapper sl-data-container">

@@ -48,10 +48,74 @@ $this->params['breadcrumbs'] = [
                                 ];
 
     $curPageUrl = Url::current();
+
+    $menuFontCss = <<<EOT
+    .sui-btn-group .sui-btn{
+        min-width:43px;
+    }
+
+    .switch-format{
+        float:right;
+        margin-right:26px;
+    }
+    
+    .switch-format button{
+        background-color:#fff;
+        margin-top:33px;
+    }
+
+    .sl-diagram-wrapper{
+        height:460px;
+        display:none;
+    }
+
+    #barTotal{
+        float:left;
+        height:460px;
+        margin-bottom:26px;
+    }
+
+    #pies{
+        float:right;
+        height:460px;
+        margin-bottom:26px;
+        margin-right:36px;
+    }
+
+    .diagram-title{
+        width: 100%; 
+        height: 30px;
+        margin-top: 30px;
+        margin-bottom:-10px;
+    }
+    .diagram-title span{
+        font-size:16px;        
+        text-align:center;
+        color:#672A7A;
+    }
+EOT;
+$this->registerCss($menuFontCss);
+
+$scheduleName = Yii::$app->request->get('name', '');
+$start_time_s = Yii::$app->request->get('start_time_s', '');
+
+$dataReportJs = <<<EOT
+    if(scheduleName && startTime)
+    {
+        $('#filterFrm').find('input[name="name"]').val(scheduleName);
+        $('#filterFrm').find('input[name="start_time_s"]').val(startTime);
+        goToPage(1);
+    }
+EOT;
+    $this->registerJs($dataReportJs);
+
     $this->beginBlock('reportJs');
 ?>
     var pageNo = 1, pageSize = 10, pageCount = 0,
-    	paginationLen = 5, refreshUrl = "<?= $curPageUrl ?>";
+    	paginationLen = 5, refreshUrl = "<?= $curPageUrl ?>",
+        dataFormat = 'list', scheduleName = "<?= $scheduleName ?>", startTime = "<?= $start_time_s ?>",
+        pieTotalArr = [];
+    var barTotal;
 
     function changePageSize(_pageSize){
         pageSize = _pageSize
@@ -62,34 +126,38 @@ $this->params['breadcrumbs'] = [
     function goToPage(_pageNo){
         pageNo = _pageNo
 
-    	var filterData = $("#filterFrm").find("input").serializeObject();
+        var filterData = $("#filterFrm").find("input").serializeObject();
         if(!filterData.name || !filterData.start_time_s)
         {
             $.alert('任务名称和日期不能为空')
             return;
         }
 
-    	filterData['pageNo'] = _pageNo
-    	filterData['pageSize'] = pageSize
+        filterData['pageNo'] = _pageNo
+        filterData['pageSize'] = pageSize
         filterData['_csrf'] = csrfToken
 
-    	filterData['data_type'] = 'article'
+        filterData['data_type'] = 'article'
 
         //makePagination(7, 37);return;
-    	$.ajax({
+        $.ajax({
             crossDomain: true,
             url: refreshUrl,
             type: 'post',
             data: filterData,
             dataType: 'json',
             success: function (json_data) {
-            	// console.log(JSON.stringify(json_data));
+                // console.log(JSON.stringify(json_data));
+                if(json_data.code != '0')
+                {
+                    return $.alert(json_data.msg);
+                }
 
-            	var _total = json_data.data.total
-            	pageCount = Math.ceil(_total / pageSize)
-            	makePagination(_pageNo, pageCount)//分页
+                var _total = json_data.data.total
+                pageCount = Math.ceil(_total / pageSize)
+                makePagination(_pageNo, pageCount)//分页
 
-            	showReport(json_data.data.rows)//刷新数据
+                showReport(json_data.data.rows)//刷新数据
 
                 if(json_data.data.rows.length > 0)
                 {
@@ -236,9 +304,300 @@ $this->params['breadcrumbs'] = [
     	_container.find('tr:eq(0)').after(_trStr);
     }
 
+    /**
+     * 显示图表数据
+     * @return 
+     */
+    function goToDiagram()
+    {
+        var filterData = $("#filterFrm").find("input").serializeObject();
+        if(!filterData.name || !filterData.start_time_s)
+        {
+            $.alert('任务名称和日期不能为空')
+            return;
+        }
+
+        filterData['pageNo'] = 0
+        filterData['pageSize'] = 0
+        filterData['_csrf'] = csrfToken
+
+        filterData['data_type'] = 'article'
+
+        $.ajax({
+            crossDomain: true,
+            url: refreshUrl,
+            type: 'post',
+            data: filterData,
+            dataType: 'json',
+            success: function (json_data) {
+                var _pwk, _pbbk, _pfObj = {}, _pfNameArr = [],
+                    _pfk = '',
+                    _keyword = '',
+                    _pfNumberObj = {}, _pfValueArr = [],
+                    _pfBrandArr = [];
+
+                var _width = $('.sl-diagram-wrapper').width(),
+                    _height = $('.sl-diagram-wrapper').height();
+
+                $('#barTotal').css({
+                    'width': (_width * 0.3) + 'px'
+                })
+                $('#pies').css({
+                    'width': (_width * 0.6) + 'px'
+                })
+                
+                //init bar
+                if(!barTotal)
+                    barTotal = echarts.init(document.getElementById('barTotal'));
+
+                for(var _rk in json_data.data.rows)
+                {
+                    _pfk = json_data.data.rows[_rk].pf_name;
+                    _keyword = json_data.data.rows[_rk].keyword;
+
+                    if( !_pfObj[_pfk] )
+                    {
+                        //pf number
+                        _pfNumberObj[_pfk] = 0
+
+                        //pf - brand
+                        _pfObj[_pfk] = {};
+                    }
+
+                    //pf - brand - number
+                    if(!_pfObj[_pfk][_keyword])
+                    {
+                        _pfObj[_pfk][_keyword] = 0;
+                    }
+
+                    //pf number
+                    _pfNumberObj[_pfk] += parseFloat(json_data.data.rows[_rk].number);
+
+                    //pf - brand
+                    _pfObj[_pfk][_keyword] += parseFloat(json_data.data.rows[_rk].number);
+                }
+
+                //get pf total number
+                _pwk = 0;
+                _pbColorArr = ['#F18276','#FF808A'];
+                _pbbColorArr = ['#CB9F50','#F1951C', '#D96007', '#EC9E7E', '#AC5FCA', '#EC468C', '#DC3C52', '#C94742',
+                                '#D86756', '#CB8194', '#866733', '#85530F', '#893C04', '#8A5440', '#855595', '#8A2852', '#892632',
+                                '#862F2C', '#833F34', '#8C5866'];
+
+                for(var _fK in _pfObj)
+                {
+                    //pf total
+                    _pfNameArr.push({'value':_fK, 'textStyle':{'color':'#672A7A', 'fontSize':16}});
+                    _pfValueArr.push({
+                        'value':_pfNumberObj[_fK],
+                        'itemStyle':{'normal':{'color':_pbColorArr[_pwk]}}
+                    });
+
+                    _pfBrandArr.push([]);
+
+                    _pbbk = 0;
+                    //pf - brand total
+                    for(var _b in _pfObj[_fK])
+                    {
+                        _pfBrandArr[_pwk].push({
+                                'name':_b,
+                                'value':_pfObj[_fK][_b],
+                                'itemStyle':{'normal':{'color':_pbbColorArr[_pbbk]}}
+                        });
+                        _pbbk++;
+                    }
+
+                    _pwk++;
+                }
+
+                //remove and dispose old pie charts and dom
+                for(var _ek in pieTotalArr)
+                {
+                    pieTotalArr[_ek].dispose();
+                }
+                $('#pies').html('');
+                pieTotalArr = [];
+
+                //bar picture render
+                /* title: {
+                        text: '渠道采集量',
+                    },
+                    tooltip : {
+                        trigger: 'axis',
+                        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+                            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                        },
+                        formatter: function (params) {
+                            var tar = params[1];
+                            return tar.name + '<br/>' + tar.seriesName + ' : ' + tar.value;
+                        }
+                }, */
+                barTotal.setOption({
+                    
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        top: '3%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type : 'category',
+                        splitLine: {show:false},
+                        data : _pfNameArr
+                    },
+                    yAxis: {
+                        type : 'value'
+                    },
+                    series: [
+                        {
+                            name: '采集量',
+                            type: 'bar',
+                            label: {
+                                normal: {
+                                    show: true,
+                                    position: 'top'
+                                }
+                            },
+                            barWidth:82,
+                            data:_pfValueArr
+                        }
+                    ]
+                });
+
+                //pie picture render
+                var _pie, _pieDom, _pieId
+                for(var _wk in _pfBrandArr)
+                {
+                    _pieDom = document.createElement("div");
+                    _pieId = "pie-"+_wk
+                    _pieDom.setAttribute("id", _pieId);
+
+                    _pieDom.style.width = (_width * 0.6 / _pfBrandArr.length) + "px"
+                    _pieDom.style.height = _height + "px"
+
+                    _pieDom.style.float = "left"
+
+                    //init pie
+                    document.getElementById("pies").appendChild(_pieDom);
+                    _pie = echarts.init(_pieDom);
+                    pieTotalArr.push(_pie);
+
+                    _pie.setOption({
+                        title: {'text':_pfNameArr[_wk]['value'],
+                                'bottom':'1%',
+                                'left':'47%',
+                                'textStyle':{'color':'#672A7A','fontSize':16,'fontWeight':'normal', 'align':'center'}
+                                },
+                        tooltip : {
+                            trigger: 'item',
+                            formatter: "{b} : {c} ({d}%)"
+                        },
+                        series : [
+                            {
+                                type: 'pie',
+                                radius : '66%',
+                                center: ['50%', '50%'],
+                                data: _pfBrandArr[_wk],
+                                label: {
+                                    normal: {
+                                        show: true,
+                                        //position: 'inner',
+                                        formatter: function(params){
+                                
+                                            return params.name + '\r\n' + params.value;
+                                        }
+                                    }
+                                },
+                                itemStyle: {
+                                    emphasis: {
+                                        shadowBlur: 10,
+                                        shadowOffsetX: 0,
+                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                    }
+                                }
+                            }
+                        ]
+                    });
+                }
+            }
+        });
+    }
+
+    /**
+     *刷新数据
+     */
+    function reportSearch()
+    {
+        if(dataFormat == 'list')
+        {
+            goToPage(1);
+        }
+        else
+        {
+            goToDiagram();
+        }
+    }
+
+    /**
+     * 切换数据展示形式
+     * @param button 所点击的按钮
+     * @return
+     */
+     function toggleDataFormat(btn)
+     {
+        _btn = $(btn)
+        _format = _btn.attr('data-id');
+
+        if(dataFormat == _format)
+        {
+            return;
+        }
+
+        //button refresh
+        var _tempBtn
+        _btn.parent().children().each(function(){
+
+            _tempBtn = $(this)
+            //当前点击按钮 高亮显示
+            if(_tempBtn.attr('data-id') == _format)
+            {
+                _tempBtn.css({
+                    'background-color':'#672A7A',
+                    'color':'#fff'
+                });
+            }
+            else
+            {
+                _tempBtn.css({
+                    'background-color':'#fff',
+                    'color':'#672A7A'
+                });
+            }
+        })
+
+        //hide other container
+        $('.sl-data-container').hide();
+
+        if (_format == 'list')
+        {
+            $('.sl-table-wrapper').show();
+            goToPage(1);
+        }
+        else if(_format == 'diagram')
+        {
+            $('.sl-diagram-wrapper').show();
+            goToDiagram();
+        }
+
+        dataFormat = _format;
+        return;
+     }
+
 <?php
 $this->endBlock();
 $this->registerJs($this->blocks['reportJs'], \yii\web\View::POS_END);
+app\assets\SLAdminAsset::addScript($this, '@web/admin/js/echarts.common.min.js');
 ?>
 
 <div class="block clearfix">
@@ -247,23 +606,29 @@ $this->registerJs($this->blocks['reportJs'], \yii\web\View::POS_END);
 				</div>
 				<div class="sl-query-wrapper sui-form clearfix">
 					<form id="filterFrm" method="POST">
-                    <div class="sl-query">
-                        <div class="sl-query__label">任务名称</div>
-                        <div class="sl-query__control">
-                            <input type="text" name="name" class="input-medium">
+                        <div class="sl-query">
+                            <div class="sl-query__label">任务名称</div>
+                            <div class="sl-query__control">
+                                <input type="text" name="name" class="input-medium">
+                            </div>
                         </div>
+    					<div class="sl-query input-daterange" data-toggle="datepicker">
+    						<div class="sl-query__label">任务日期</div>
+    						<div class="sl-query__control">
+    							<input type="text" name="start_time_s" class="input-medium input-date">
+    						</div>
+    					</div>
+                        
+    					<button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:reportSearch();">搜索</button>
+				    </form>
+                    <div class="sui-btn-group switch-format">
+                    <button type="button" class="sui-btn btn-primary" data-id="list" style="margin-top: 33px;background-color:#672A7A;color:#fff;" onclick="javascript:toggleDataFormat(this);">列表</button>
+                    <button type="button" class="sui-btn btn-primary" data-id="diagram" style="margin-top: 33px;background-color:#fff;color:#672A7A;" onclick="javascript:toggleDataFormat(this);">图表</button>
                     </div>
-					<div class="sl-query input-daterange" data-toggle="datepicker">
-						<div class="sl-query__label">任务日期</div>
-						<div class="sl-query__control">
-							<input type="text" name="start_time_s" class="input-medium input-date">
-						</div>
-					</div>
-                    
-					<button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:reportSearch();">搜索</button>
-				</form>
 				</div>
-				<div class="sl-table-wrapper">
+
+                <!-- list start -->
+				<div class="sl-table-wrapper sl-data-container">
 					<table class="sl-table report_tables">
 						<tbody><tr class="sl-table__header">
                             <th><span class="cell">渠道名称</span></th>
@@ -303,4 +668,22 @@ $this->registerJs($this->blocks['reportJs'], \yii\web\View::POS_END);
 						<div class="sl-pagination__text"></div><!-- item1-10 in 213 items -->
 					</div>
 				</div>
+                <!-- list end -->
+
+                <!-- diagram start -->
+                <div class="sl-diagram-wrapper sl-data-container">
+                    <div class="diagram-title" style="width: 100%; height: 30px;">
+                        <span style="width:544px;float: left; font-size:16px">渠道采集量</span>
+                        <span style="width:1090px;float: right; font-size:16px">关键字采集量</span>
+                    </div>
+
+                    <div class="clearfix">
+                    </div>
+
+                    <div class="bar-total" id="barTotal">
+                    </div>
+                    <div id="pies">
+                    </div>
+                </div>
+                <!-- diagram end -->
 			</div>

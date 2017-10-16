@@ -5,7 +5,14 @@ use app\components\helpers\HtmlHelper;
 /* @var $this \yii\web\View */
 /* @var $content string */
 
-$menuFontCss = <<<EOT
+$headerCss = <<<EOT
+    /** nav **/
+    .np-prs a{
+        text-decoration:none;
+        color:#666666;
+    }
+
+    /** menuFont **/
     .rm-nav li a, .rm-menu-item a{
         font-size:14px;
         font-weight:bold;
@@ -18,8 +25,14 @@ $menuFontCss = <<<EOT
     .rm-container{
         float:left;
     }
+
+    /** sl-table **/
+    .sl-table td a{
+        /*text-decoration:none;*/
+        color:#4A4A4A;
+    }
 EOT;
-$this->registerCss($menuFontCss);
+$this->registerCss($headerCss);
 
 //navigation config
 $navArr = [
