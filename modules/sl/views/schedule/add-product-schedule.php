@@ -1,5 +1,5 @@
 <?php
-use app\modules\sl\models\SlTaskSchedule;
+use app\models\sl\SlTaskSchedule;
 use yii\helpers\Url;
 use yii\helpers\Json;
 

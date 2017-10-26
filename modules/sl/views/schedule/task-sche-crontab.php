@@ -1,7 +1,7 @@
 <?php
-use app\modules\sl\models\SlTaskSchedule;
-use app\modules\sl\models\SlTaskItem;
-use app\modules\sl\models\SlTaskScheduleCrontab;
+use app\models\sl\SlTaskSchedule;
+use app\models\sl\SlTaskItem;
+use app\models\sl\SlTaskScheduleCrontab;
 use yii\helpers\Url;
 use yii\helpers\Json;
 

@@ -1,7 +1,7 @@
 <?php
 
 namespace app\modules\sl\controllers;
-use app\modules\sl\models\SlTaskScheduleCrontab;
+use app\models\sl\SlTaskScheduleCrontab;
 
 use yii\web\Response;
 use yii\helpers\Json;

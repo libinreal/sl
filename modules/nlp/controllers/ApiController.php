@@ -2,7 +2,7 @@
 
 namespace app\modules\nlp\controllers;
 
-use app\modules\sl\models\SlTaskScheduleCrontab;
+use app\models\sl\SlTaskScheduleCrontab;
 
 use Yii;
 use yii\db\Query;

@@ -1,5 +1,5 @@
 <?php
-use app\modules\sl\models\SlTaskItem;
+use app\models\sl\SlTaskItem;
 use yii\helpers\Url;
 use yii\helpers\Json;
 

@@ -2,7 +2,7 @@
 
 namespace app\modules\sl\controllers;
 
-use app\modules\sl\models\SlTaskScheduleCrontabAbnormal;
+use app\models\sl\SlTaskScheduleCrontabAbnormal;
 
 use yii\web\Response;
 use yii\helpers\Json;

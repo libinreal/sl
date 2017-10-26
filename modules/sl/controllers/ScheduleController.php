@@ -4,19 +4,19 @@ namespace app\modules\sl\controllers;
 
 use yii\data\ActiveDataProvider;
 use Yii;
-use app\modules\sl\models\SlTaskSchedule;
-use app\modules\sl\models\SlTaskItem;
-use app\modules\sl\models\SlGlobalSettings;
-use app\modules\sl\models\SlScheduleProductClass;
-use app\modules\sl\models\SlScheduleProductBrand;
-use app\modules\sl\models\SlScheduleProductClassBrand;
-use app\modules\sl\models\SlTaskScheduleCrontab;
-use app\modules\sl\models\SlScheduleArticleClass;
-use app\modules\sl\models\SlScheduleArticleTag;
-use app\modules\sl\models\SlScheduleArticleClassTag;
+use app\models\sl\SlTaskSchedule;
+use app\models\sl\SlTaskItem;
+use app\models\sl\SlGlobalSettings;
+use app\models\sl\SlScheduleProductClass;
+use app\models\sl\SlScheduleProductBrand;
+use app\models\sl\SlScheduleProductClassBrand;
+use app\models\sl\SlTaskScheduleCrontab;
+use app\models\sl\SlScheduleArticleClass;
+use app\models\sl\SlScheduleArticleTag;
+use app\models\sl\SlScheduleArticleClassTag;
 
 use yii\web\Response;
-use app\modules\sl\components\SettingHelper;
+use app\components\helpers\SettingHelper;
 use yii\helpers\Json;
 /**
  * Default controller for the `sl` module

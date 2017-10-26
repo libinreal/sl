@@ -1,5 +1,5 @@
 <?php
-use app\modules\sl\models\SlTaskScheduleCrontabAbnormal;
+use app\models\sl\SlTaskScheduleCrontabAbnormal;
 use yii\helpers\Url;
 use yii\helpers\Json;
 
