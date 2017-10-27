@@ -1082,6 +1082,7 @@ function submitAddFrm(_confirmUpdate){
 	
 	var sche_time,
 		sche_id = <?php if(!empty($scheEditData)): echo $scheEditData["id"];else: echo "''";endif;?>,
+		data_type = <?php echo  "'". Yii::$app->request->get('data_type','') . "'"; ?>,
 		sche_type_repeat = $("input[name='sche_type_repeat']:checked").val(),
 	 	sche_type = $("input[name='sche_type']").val();
 
@@ -1117,6 +1118,8 @@ function submitAddFrm(_confirmUpdate){
 	frmData['sche_time'] = sche_time
 	frmData['sche_type'] = sche_type
 
+	frmData['data_type'] = data_type
+	
 	if(sche_id)
 	{
 		frmData['id'] = sche_id;
