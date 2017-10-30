@@ -197,6 +197,8 @@ var curClsMapId,
 	curCategoryMap,//分类 关联品牌
 	curBrand,//品牌列表
 	curBrandMap,//品牌 关联分类
+	keyWords = <?php if( isset($scheEditData) ) echo Json::encode($scheEditData['key_words']); else echo '""'; ?>,//关键字
+	dataClassArr = <?php echo Json::encode($dataClassArr);?>,//全部分类和品牌 关联关系
 	modal1 = null,
 	modal2 = null,
 	clsBrandClsArr = [],
@@ -793,35 +795,6 @@ function onChangeRepeat(_e)
 }
 
 /**
- * 获取最新的产品分类列表
- * @return void
- */
-function getProductClass()
-{
-	$.ajax({
-        url: '/sl/schedule/get-product-class',
-        type: 'post',
-        data: {_csrf:csrfToken},
-        dataType: 'json',
-        success: function (json_data) {
-        	if(json_data.code == '0')
-        	{
-        		var items = json_data.data;
-        		var items_len = items.length;
-        		var html_str = '';
-
-        		for(var i = 0;i < items_len;i++)
-        		{
-        			html_str += '<label class="checkbox-pretty inline-block"><input data-index="'+ items[i]['id'] +'" onclick="onCheckProductClass(\''+ items[i]['id'] +'\', this);" value="'+ items[i]['name'] +'" name="class_name[]" type="checkbox"><span>'+ items[i]['name'] +'</span></label>';
-        		}
-        		$('#product_brand_tags').html(html_str);
-        	}
-
-        }
-    });
-}
-
-/**
  * 选择产品分类触发
  * @param  cid 分类id
  * @param  _input 分类选框
@@ -842,6 +815,9 @@ function onCheckProductClass(cid, _input)
 				_e.addClass('checked')
 				_e.find('input').attr('checked', true)
 
+				//切换关键字显示状态
+				toggleBrandKw(cid, _e.attr('data-index'));
+
 			});
 
 			class_select.push(cid);
@@ -850,6 +826,13 @@ function onCheckProductClass(cid, _input)
 		}
 		else
 		{
+			$('#product_brand_tags').children('#brand_cid_'+cid).find(".checkbox-pretty").each(function(){
+				//切换关键字显示状态
+				_e = $(this)
+				toggleBrandKw(cid, _e.attr('data-index'));
+
+			});
+
 			var _i = $.inArray(cid, class_select)
 			class_select.splice(_i, 1);
 			$('#brand_cid_'+cid).html('');
@@ -915,7 +898,7 @@ function getProductBrand(class_id, func )
 
     			for(var j = 0;j< items_len;j++)//品牌
     			{
-    				html_str += '<label class="checkbox-pretty inline-block"><input value="'+ items[j]['name'] +'" name="brand_name[]" type="checkbox"><span>'+ items[j]['name'] +'</span></label>';
+    				html_str += '<label class="checkbox-pretty inline-block" data-parent="'+ items[j]['class_id'] +'" data-index="'+ items[j]['brand_id'] +'" onchange="javascript:toggleBrandKw(\''+ items[j]['class_id'] +'\', \''+ items[j]['brand_id'] +'\');"><input value="'+ items[j]['name'] +'" name="brand_name[]" type="checkbox"><span>'+ items[j]['name'] +'</span></label>';
     			}
     			$('#product_brand_tags').children('#brand_cid_'+class_id).html(html_str);
 
@@ -925,6 +908,32 @@ function getProductBrand(class_id, func )
 
         }
     });
+}
+
+/**
+ * 显示或隐藏品牌下的关键字输入框
+ * @param cid 分类id
+ * @param bid 品牌id
+ * @param val 关键字，多个以","分割
+ */
+function toggleBrandKw(cid, bid, val)
+{
+	var div = $('#kw_c_'+cid);
+	if( div.children('label').length == 0 )//init
+	{
+		div.append('<label class="control-label" style="min-width: 68px;padding-right: 10px;text-align:left;">'+ curCategory[cid] +'</label>');
+	}
+
+	if( div.children('#kw_b_'+bid).length == 0 )//add
+	{
+		if(!val)
+			val = '';
+		div.append('<div id="kw_b_' + bid +'"> <lable class="label79" style="margin-bottom: 0;line-height: 34px;text-align:right;margin-right:10px;">&nbsp;&nbsp;'+ curBrand[bid] +'</lable><input class="input-medium" style="height: 24px;width:' + ' 274px;" name="key_words[' + cid + '][' + bid + ']" value="' + val + '" /></div>');
+	}
+	else//remove
+	{
+		div.children('#kw_b_'+bid).remove();
+	}
 }
 
 var class_stat = [true,true],
@@ -1007,6 +1016,8 @@ $('#brand_all_select').on('click', 'input', function(e){
 			_e.removeClass('checked');
 			_e.find('input').attr('checked', false);
 		}
+
+		toggleBrandKw(_e.attr('data-parent'), _e.attr('data-index'));
 	})
 	brand_stat[0] = !stat
 })
@@ -1025,6 +1036,8 @@ $('#brand_all_cancel').on('click', 'input', function(e){
 			_e.addClass('checked');
 			_e.find('input').attr('checked', true);
 		}
+
+		toggleBrandKw(_e.attr('data-parent'), _e.attr('data-index'));
 	})
 	brand_stat[1] = !stat
 })
@@ -1151,11 +1164,34 @@ $this->registerJs($this->blocks['addScheJs'], \yii\web\View::POS_END);
 app\assets\SLAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 
 $readyJs =<<<EOT
+	//初始化分类以及品牌数组
+	var _j, _c, _b, _dl = dataClassArr.length;
+	//console.log(JSON.stringify(dataClassArr))
+
+	curCategory = {};
+	curBrand = {};
+
+	for(var _i = 0; _i < _dl; _i++)
+	{
+		_c = dataClassArr[_i]
+		curCategory[_c['id']] = _c['class_name'];
+
+		if(_c['productBrand'])
+		{
+			_b = _c.productBrand;
+			for(_j = 0; _j < _b.length; _j++)
+			{
+				curBrand[_b[_j]['id']] = _b[_j]['name'];
+			}
+		}
+		
+	}
+
 	//编辑-品牌-初始化
 	$('#product_class_tags').find("input").each(function(){
 		var _e = $(this)
 		var cid = _e.attr('data-index')
-		var cbStr//类下的品牌
+		var cbStr, _bid//类下的品牌
 		if( $.inArray(cid, class_select) > -1)
 		{
 			_e.attr('checked', true)
@@ -1167,9 +1203,20 @@ $readyJs =<<<EOT
 				if( class_map[cb]['id'] == cid && $.inArray(class_map[cb]['brand_id'], brand_select) > -1 )
 				{
 					if( cbObj[cid] )
-						cbObj[cid] += '<label class="checkbox-pretty inline-block checked"><input value="'+ class_map[cb]['name'] +'" name="brand_name[]" type="checkbox" data-rules="required" checked="true"><span>'+ class_map[cb]['name'] +'</span></label>';
+						cbObj[cid] += '<label data-parent="'+ cid +'" data-index="'+ class_map[cb]['brand_id'] +'" onchange="javascript:toggleBrandKw(\''+ cid +'\', \''+ class_map[cb]['brand_id'] +'\');" class="checkbox-pretty inline-block checked"><input value="'+ class_map[cb]['name'] +'" name="brand_name[]" type="checkbox" data-rules="required" checked="true"><span>'+ class_map[cb]['name'] +'</span></label>';
 					else
-						cbObj[cid] = '<label class="checkbox-pretty inline-block checked"><input value="'+ class_map[cb]['name'] +'" name="brand_name[]" type="checkbox" data-rules="required" checked="true"><span>'+ class_map[cb]['name'] +'</span></label>';
+						cbObj[cid] = '<label data-parent="'+ cid +'" data-index="'+ class_map[cb]['brand_id'] +'" onchange="javascript:toggleBrandKw(\''+ cid +'\', \''+ class_map[cb]['brand_id'] +'\');" class="checkbox-pretty inline-block checked"><input value="'+ class_map[cb]['name'] +'" name="brand_name[]" type="checkbox" data-rules="required" checked="true"><span>'+ class_map[cb]['name'] +'</span></label>';
+
+					_bid = class_map[cb]['brand_id'];
+					if(keyWords && keyWords[cid] && keyWords[cid][_bid])
+					{
+						toggleBrandKw(cid, class_map[cb]['brand_id'], keyWords[cid][_bid]);
+					}
+					else
+					{
+						toggleBrandKw(cid, class_map[cb]['brand_id']);
+					}
+					
 				}
 			}
 
@@ -1319,14 +1366,6 @@ $this->registerJs($readyJs);
 										style="width: 100%; box-sizing: border-box;height: 34px;" data-rules="required">
 								</div>
 							</div>
-							<div class="control-group mb1">
-								<label class="control-label" style="min-width: 68px;">关键字</label>
-								<div class="controls" style="width: 100%;">
-									<input type="text" name="key_words" value="" class="input-xxlarge"
-										placeholder="在此输入关键字"
-										style="width: 100%; box-sizing: border-box;height: 34px;">
-								</div>
-							</div>
 							<div class="sl-row--normal clearfix">
 								<div class="fl row__left-label">分类</div>
 								<button type="button" class="sui-btn btn-primary fr top-radius" onclick="editCategory()">分类维护</button>
@@ -1374,6 +1413,24 @@ $this->registerJs($readyJs);
 									</div>
 								</div>
 							</div>
+
+							<!-- 关键字 BEGIN -->
+							<div class="sl-row--normal clearfix">
+								<div class="fl row__left-label">关键字</div>
+							</div>
+							<div class="control-group mb1">
+								<label class="control-label" style="min-width: 68px;"></label>
+								<div class="controls" style="width: 100%;">
+									<div class="sl-checkbox-group" id="cls_brd_kw" style="width: 100%; box-sizing: border-box;">
+										<?php
+											foreach ($dataClassArr as $k => $v) {
+												echo '<div id="kw_c_'. $v['id'] .'"></div>';
+											}
+										?>
+									</div>
+								</div>
+							</div>
+							<!-- 关键字 END -->
 
 						</div>
 

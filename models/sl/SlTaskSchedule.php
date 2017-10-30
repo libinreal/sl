@@ -226,7 +226,7 @@ class SlTaskSchedule extends \yii\db\ActiveRecord
                 'alert_params' => Json::encode( $alert_params ),
                 'update_time' => time()
             ]);
-
+            // var_dump($this);exit;
             return true;
         } else {
             return false;
