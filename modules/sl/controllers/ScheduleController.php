@@ -55,6 +55,33 @@ class ScheduleController extends \yii\web\Controller
 
             $data = $scheQuery->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->orderBy('[[id]] DESC')->all();
 
+            foreach ($data as &$v)
+            {
+                $kwArr = Json::decode($v['key_words']);
+                if(is_array($kwArr))
+                {
+                    $kwNewArr = [];
+                    
+                    foreach ($kwArr as $c)
+                    {
+                        if(is_array($c))
+                            foreach ($c as $b) 
+                            {
+                                if($b)
+                                    $kwNewArr[] = $b;
+                            }
+                        else if(is_string($c))
+                            $kwNewArr[] = $c;
+                    }
+
+                    if($kwNewArr)
+                        $v['key_words'] = $kwNewArr;
+                    else
+                        $v['key_words'] = '';
+                }
+            }
+            unset($v);
+
             /*$commandQuery = clone $scheQuery;
             echo $commandQuery->createCommand()->getRawSql();exit;*/
 
