@@ -237,7 +237,7 @@ EOT;
     				+ '<td><span class="cell">'+ _rows[_i]['pf_name'] +'</span>'+ '</td>'
 
     				+ '<td><span class="cell">'+ _rows[_i]['brand_name'].substr(0, 62) +'</span>'+ '</td>'
-    				+ '<td><span class="cell">'+ _rows[_i]['key_words'] +'</span>'+ '</td>'
+    				+ '<td><span class="cell">'+ String(_rows[_i]['key_words']).substr(0,14) +'</span>'+ '</td>'
     				+ '<td><span class="cell">'+ scheStatArr[_rows[_i]['sche_status']] +'</span>'+ '</td>'
     				+ '<td><span class="cell">';
 
