@@ -115,7 +115,7 @@ EOT;
     	paginationLen = 5, refreshUrl = "<?= $curPageUrl ?>",
         dataFormat = 'list', scheduleName = "<?= $scheduleName ?>", startTime = "<?= $start_time_s ?>",
         pieTotalArr = [];
-    var barTotal;
+    var barTotalChart;
 
     function changePageSize(_pageSize){
         pageSize = _pageSize
@@ -347,8 +347,8 @@ EOT;
                 })
                 
                 //init bar
-                if(!barTotal)
-                    barTotal = echarts.init(document.getElementById('barTotal'));
+                if(!barTotalChart)
+                    barTotalChart = echarts.init(document.getElementById('barTotal'));
 
                 for(var _rk in json_data.data.rows)
                 {
@@ -432,7 +432,7 @@ EOT;
                             return tar.name + '<br/>' + tar.seriesName + ' : ' + tar.value;
                         }
                 }, */
-                barTotal.setOption({
+                barTotalChart.setOption({
                     
                     grid: {
                         left: '3%',
