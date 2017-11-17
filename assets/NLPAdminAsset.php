@@ -10,12 +10,20 @@ class NLPAdminAsset extends AssetBundle
     public $baseUrl = '@web';
 
     public $css = [
+        'nlp/sui/sui.css',
+        'nlp/sui/sui-append.css',
         'admin/css/frame.css',
         'admin/css/public.css',
         'admin/css/content.css',
+        'nlp/css/nlp.css',
         'admin/lib/selectify/silver.default.css',
+        'nlp/xbreadcrumbs/xbreadcrumbs.css',
     ];
-    public $js = [];
+    public $js = [
+        'nlp/sui/sui.js',
+        'admin/js/jquery-migrate-1.2.1.js',//fix $.browser undefined problem
+        'nlp/xbreadcrumbs/xbreadcrumbs.js',//breadcrumbs
+    ];
 
     public $depends = [
     'yii\web\JqueryAsset'

@@ -3,6 +3,14 @@ use yii\helpers\Html;
 
 /* @var $this \yii\web\View */
 /* @var $content string */
+$headerCss = <<<EOT
+    /** nav **/
+    .np-prs a{
+        text-decoration:none;
+        color:#666666;
+    }
+EOT;
+$this->registerCss($headerCss);
 ?>
 
 <header>

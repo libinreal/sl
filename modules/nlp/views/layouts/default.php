@@ -18,8 +18,37 @@ use yii\helpers\Html;
 JS;
     $this->registerJs($nlpJs);
 
+    $this->beginBlock('defaultJs');
     ?>
-    <?php $this->beginPage() ?>
+
+    $.fn.serializeObject = function(){
+            var o = {};
+            var a = this.serializeArray();
+            $.each(a, function() {
+
+                if (o[this.name] !== undefined) {
+                    if (!o[this.name].push) {
+                        o[this.name] = [o[this.name]];
+                    }
+                    o[this.name].push(this.value || '');
+                } else {
+                    o[this.name] = this.value || '';
+                }
+            });
+            return o;
+        }
+
+        var csrfToken = $('meta[name="csrf-token"]').attr("content");
+
+ 
+
+
+
+    <?php 
+    $this->endBlock();
+    $this->registerJs($this->blocks['defaultJs'], \yii\web\View::POS_END);
+    $this->beginPage();
+    ?>
     <!DOCTYPE html>
     <html lang="<?= Yii::$app->language ?>">
     <head>
@@ -30,7 +59,13 @@ JS;
         <?php $this->head() ?>
     </head>
     <body>
-    <?php $this->beginBody() ?>
+    <?php 
+    $this->beginBody();
+    if($this->context->id == 'dict')
+        $viewFile = 'dict.php';
+    else
+        $viewFile = 'content.php';
+    ?>
 
 
         <?= $this->render(
@@ -43,7 +78,7 @@ JS;
         ?>
 
         <?= $this->render(
-            'content.php',
+            $viewFile,
             ['content' => $content]
         ) ?>
     <?php $this->endBody() ?>

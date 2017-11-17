@@ -80,8 +80,11 @@ class NlpTaskController extends Controller
 				// echo "第 ${i} 条 数据：</br>";
 				// $i++;
 				$segments = jieba($c['product_title']);
+				$segments = $this->_segBysort($segments, $c['product_title']);
+				$segments = $this->_segByAdd($segments, $c['product_title']);
+
 				$insertSql .= '(' . $c['id'] . ', \'' . implode(',', $segments) . '\'),';
-				// print_r($segments);
+				
 			}
 			
 			$insertRet = Yii::$app->db->createCommand(substr($insertSql,0, -1))->execute();
@@ -91,5 +94,78 @@ class NlpTaskController extends Controller
 		}
 		/***生成每日子任务 END***/
 		return 0;
+	}
+
+	/**
+	  * 对分词的按原句排序
+	  * @param $seg 分词结果
+	  * @param $stat 原句
+	  * @return array 排序后分词
+	  *
+	  */
+	private function _segBysort($seg, $stat)
+	{
+		$ksArr = [];
+		foreach ($seg as $i) 
+		{
+			$p = strpos($stat, $i);
+			$ksArr[$p]  = $i;
+		}
+		ksort($ksArr, SORT_NUMERIC);
+		// var_dump($ksArr);
+		return $ksArr;
+	}
+
+	/**
+	  *对分词进行补充
+	  * @param $seg 分词结果
+	  * @param $stat 原句
+	  * @return array 补充后的分词结果
+	  *
+	  */
+	private function _segByAdd($seg, $stat)
+	{
+		$iMap = array_fill(0, strlen($stat),'');#整个位置图
+		$cMap = [];#使用的位置图
+		foreach ($seg as $i => $s) 
+		{
+			$cm = array_fill( $i, strlen($s), '');
+			$cMap  = $cMap + $cm;
+		}
+		$oMap = array_diff_key($iMap, $cMap);
+
+		$oMaps = array_keys( $oMap );#遗漏词的位置数组，值为位置
+
+		$c = count($oMaps);
+		for($i = 0;$i < $c; $i++)
+		{
+			$start = $oMaps[$i];
+			if(isset($end) && $start <= $end)
+				continue;#start 为未补充的起始位置,end为已补充的结束位置, 每次循环起始位置一定要大于上次的结束位置
+			$end = false;
+			for($j = $i + 1;$j < $c; $j++)
+			{
+				if($j == $i + 1 && $oMaps[$j] - $oMaps[$i] > 1 )#不连续的位置
+				{
+					$end = $oMaps[$j - 1];
+					// echo "break $end ".$oMaps[$j] . "  ". $oMaps[$i] ."<br>";
+					break;
+				}
+				if( $oMaps[$j] - $oMaps[$j-1] > 1 )#不连续的位置
+				{
+					$end = $oMaps[$j - 1];
+					// echo "break $end ".$oMaps[$j] . "  ". $oMaps[$i] ."<br>";
+					break;
+				}
+			}
+			if($end === false)
+				$end = $oMaps[$j - 1];# $j - 1 == $c-1
+			$seg[$start] = substr($stat, $start, $end - $start + 1);
+			// echo "<br>add内部<br>";
+			// var_dump($oMaps, $start, $end - $start + 1, substr($stat, $start, $end - $start + 1));
+			
+		}
+		ksort($seg, SORT_NUMERIC);
+		return $seg;
 	}
 }
