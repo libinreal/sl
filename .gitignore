@@ -34,4 +34,6 @@ tests/_support/_generated
 sftp-config.json
 config/db.php
 yii
-nlp
+yii.bat
+sftp-config-3ti.json
+sftp-config-alt.json
