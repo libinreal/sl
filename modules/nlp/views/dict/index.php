@@ -37,7 +37,7 @@ use yii\helpers\Json;
     $curPageUrl = Url::current();
 
  $dataListJs = <<<EOT
-    goToPage(1);
+    //goToPage(1);
 EOT;
 $this->registerJs($dataListJs);
 
@@ -47,13 +47,11 @@ $this->registerJs($dataListJs);
         uploadUrl:'/nlp/dict/index',
         autoSubmit:false,
         uploadTest:'上传',
-        formData:{req:'upload', _csrf:csrfToken, dictName:dictName},
+        formData:{req:'upload', _csrf:csrfToken},
         allowExt: 'xlsx|xls',
         fileName:'dictFile',
         inputText:'选择词库文件'
     });
-
-    var dictName;
 
     var pageNo = 1, pageSize = 10, pageCount = 0,
         paginationLen = 5, refreshUrl = "<?= $curPageUrl ?>";
