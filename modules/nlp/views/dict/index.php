@@ -1,6 +1,7 @@
 <?php
 use yii\helpers\Url;
 use yii\helpers\Json;
+
     $this->title = '词库列表';
     $this->params['breadcrumbs'][] = 'NLP System';
     $this->params['breadcrumbs'][] = '词库列表';
@@ -44,12 +45,13 @@ $this->registerJs($dataListJs);
     $this->beginBlock('indexJs');
 ?>
     $('#dicFileUpload').JSAjaxFileUploader({
-        uploadUrl:'/nlp/dict/index',
+        uploadUrl:'/nlp/dict/save-dict',
         autoSubmit:false,
         uploadTest:'上传',
-        formData:{req:'upload', _csrf:csrfToken},
+        formData:{req:'upload', _csrf: '<?= Yii::$app->request->getCsrfToken() ?>'},
         allowExt: 'xlsx|xls',
-        fileName:'dictFile',
+        fileName:'excel',
+        beforesend:function(f){ console.log('  csrf ' + csrfToken )},
         inputText:'选择词库文件'
     });
 

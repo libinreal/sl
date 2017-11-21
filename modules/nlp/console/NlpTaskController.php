@@ -19,12 +19,12 @@ class NlpTaskController extends Controller
 	 * 每分钟扫描如`ws_36_20171020_261`格式的数据表，
 	 * 生成与之关联的 词性标记表 通过id关联
 	 */
-	public function actionTag()
+	public function actionTag($start_date, $name)
 	{
 		// NlpLogConsole::find();
 		// (new Query())->from('nlp_log')->where('ws_data')
-		$start_date = '2017-10-22';
-		$name = 'DMP_WINE_BRAND';
+		$start_date = '2017-11-11';
+		$name = 'DMP_CLEANER_BRAND';
 
 		//paramaters lost
 		if(!$name || !$start_date)
@@ -60,8 +60,9 @@ class NlpTaskController extends Controller
 			$tableTagCreate = Yii::$app->db->createCommand(
 				"CREATE TABLE `". $tableTag ."` (" . 
 				  "`id` int(10) unsigned NOT NULL DEFAULT '0'," .
-				  "`tag_ret` text NOT NULL COMMENT '词性标注'," .
-				  "PRIMARY KEY (`id`)" .
+				  "`code` text NOT NULL COMMENT '全局编码'," .
+				  "`word` text NOT NULL COMMENT '分词'," .
+				  "`tag` char(100) NOT NULL DEFAULT '' COMMENT '词性标注'" .
 				") ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='".$crontabData['table']."词性分析结果';"
 			)->execute();//创建标记数据表
 
@@ -70,21 +71,22 @@ class NlpTaskController extends Controller
 				return 4;
 			
 			//source records
-			$wsQuery = (new Query())->from( $crontabData['table'] )->select('id, product_title');
+			$wsQuery = (new Query())->from( $crontabData['table'] )->select('id, product_code, product_title ');
 
 			/*$st = microtime(true);
 			$i = 0;*/
-			$insertSql = "INSERT INTO ${tableTag} (`id`, `tag_ret`) VALUES ";
+			$insertSql = 'INSERT INTO ' . $tableTag . ' (id, code, word, tag) VALUES ';
 			foreach ($wsQuery->each() as $c) 
 			{
 				// echo "第 ${i} 条 数据：</br>";
 				// $i++;
-				$segments = jieba($c['product_title']);
-				$segments = $this->_segBysort($segments, $c['product_title']);
-				$segments = $this->_segByAdd($segments, $c['product_title']);
+				$segments = jieba($c['product_title'], 2);//['word' => 'tag']
 
-				$insertSql .= '(' . $c['id'] . ', \'' . implode(',', $segments) . '\'),';
-				
+				$wordArr = array_keys($segments);
+				$wordArr = $this->_segBysort($wordArr, $c['product_title']);
+				$wordArr = $this->_segByAdd($wordArr, $c['product_title']);
+
+				$insertSql .=  $this->_spellSegSql( $c['id'], $c['product_code'], $wordArr, $segments );
 			}
 			
 			$insertRet = Yii::$app->db->createCommand(substr($insertSql,0, -1))->execute();
@@ -167,5 +169,36 @@ class NlpTaskController extends Controller
 		}
 		ksort($seg, SORT_NUMERIC);
 		return $seg;
+	}
+
+	/**
+	 * 获取分词插入语句
+	 * @param $id 数据抓取表id: 426631
+	 * @param $code 数据抓取唯一编码 : jd_Spider_jd_Spider_4090788
+	 * @param $seg 分词词组 : ['word']
+	 * @param $tag 分词和词性关联数组 : ['word' => 'tag']
+	 * @param $sql 插入mysql的语句
+	 */
+	private function _spellSegSql($id, $code, $seg, $tag)
+	{
+		$preSql = '(' . $id . ', \'' . $code . '\',';
+		$sql = '';
+
+		foreach ($seg as $s)
+		{
+			if(trim($s))//过滤为空字符串的分词
+			{
+				if(isset($tag[$s]))//有标注的
+				{
+					$sql .= $preSql . '\'' . $s . '\', \'' . $tag[$s] . '\'),';
+				}
+				else//未标注的
+				{
+					$sql .= $preSql . '\'' . $s . '\', \'\'),';
+				}
+			}
+		}
+
+		return $sql;
 	}
 }

@@ -46,7 +46,7 @@ JS;
 
     <?php 
     $this->endBlock();
-    $this->registerJs($this->blocks['defaultJs'], \yii\web\View::POS_END);
+    $this->registerJs($this->blocks['defaultJs'], \yii\web\View::POS_BEGIN);
     $this->beginPage();
     ?>
     <!DOCTYPE html>
