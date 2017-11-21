@@ -48,10 +48,10 @@ $this->registerJs($dataListJs);
         uploadUrl:'/nlp/dict/save-dict',
         autoSubmit:false,
         uploadTest:'上传',
-        formData:{req:'upload', _csrf: '<?= Yii::$app->request->getCsrfToken() ?>'},
-        allowExt: 'xlsx|xls',
+        formData:{_csrf: '<?= Yii::$app->request->getCsrfToken() ?>'},
+        allowExt: 'xlsx',
         fileName:'excel',
-        beforesend:function(f){ console.log('  csrf ' + csrfToken )},
+        success:function(r){ $.alert(r.msg)},
         inputText:'选择词库文件'
     });
 

@@ -22,8 +22,22 @@ class DictController extends \yii\web\Controller
     {
     	if(Yii::$app->request->isGet)
     	{
-	    	$dictList = Yii::$app->db->createCommand("SHOW TABLES LIKE 'nlp_dict%'" )->queryOne();//检查数据存放表是否存在
+	    	$dictList = Yii::$app->db->createCommand("SHOW TABLES LIKE 'nlp_dict%'" )->queryAll();//检查数据存放表是否存在
 	    	$dictList = (array)$dictList;
+
+            $dictTemp = $dictList;
+            $dictList = [];
+            foreach ($dictTemp as $t) 
+            {
+                $tn = (array_values($t))[0];
+                if(strpos($tn, 'nlp_dict_tag_') !== false)//remove tag table from the query result
+                {
+                    continue;
+                }
+                $dictList[] = $tn;
+            }
+            
+
 	       	return $this->render('index', [ 'dictList' => $dictList,
 	       		]);
 	    }
@@ -55,7 +69,8 @@ class DictController extends \yii\web\Controller
             $pageNo = isset($post['pageNo']) ? $post['pageNo'] : 1;
             $pageSize = isset($post['pageSize']) ? $post['pageSize'] : 10;
             $offset = ($pageNo - 1) * $pageSize;
-            $data = Yii::$app->db->createCommand('SELECT * FROM '. $post['dic_name'] .' ORDER BY id LIMIT ' . $offset . ', '. $pageSize)->queryAll();
+            $data = Yii::$app->db->createCommand('SELECT l.id, l.word, l.weight, t.tag, t.tag_zh, l.synonym_ids FROM '. $post['dic_name'] .' l ' .
+                            ' LEFT JOIN '. preg_replace('/nlp_dict_/', 'nlp_dict_tag_', $post['dic_name']) . ' t ON l.tag_id = t.id' . ' ORDER BY id LIMIT ' . $offset . ', '. $pageSize)->queryAll();
 
 	    	return  [
                 'code'=>'0',
@@ -123,7 +138,7 @@ class DictController extends \yii\web\Controller
 
                 //default table name is `nlp_dict_xxx`, otherwise is `nlp_dict_tag_xxx`
                 $isTag = false;
-                $isDict = true;
+                $isDict = false;
                 
                 $sheetFields = [];
                 $fieldColumnMap = [];
@@ -138,7 +153,7 @@ class DictController extends \yii\web\Controller
                         if( $ri == 1 )//get field name in first row ( $ri == '1')
                         {
                             $sheetFields[] = $worksheet->getCell($ci.'1')->getValue();
-                            var_dump($ci.'1', $worksheet->getCell($ci.'1')->getValue());
+                            // var_dump($ci.'1', $worksheet->getCell($ci.'1')->getValue());
                         }
                     }
 
@@ -167,12 +182,7 @@ class DictController extends \yii\web\Controller
                         }
                         else//error sheet fields
                         {
-                            // var_dump($dR, $tR, $sheetFields);
-                            return [
-                                'code'=>'-7',
-                                'msg'=>'sheet fields error,check row 1 please',
-                                'data'=>''
-                            ];
+                            break;   
                         }
                     }
                     else//spell insert sql statments
@@ -181,7 +191,7 @@ class DictController extends \yii\web\Controller
                         {
                             $wordV = (string)$worksheet->getCell($fieldColumnMap['word'].$ri)->getValue();
                             $weightV = (float)$worksheet->getCell($fieldColumnMap['weight'].$ri)->getValue();
-                            $synonymV = (float)$worksheet->getCell($fieldColumnMap['synonym'].$ri)->getValue();
+                            $synonymV = (string)$worksheet->getCell($fieldColumnMap['synonym'].$ri)->getValue();
 
                             //check empty
                             if(!$wordV)                            
@@ -192,6 +202,7 @@ class DictController extends \yii\web\Controller
                             $insertDictSql .= '(\'' . $wordV . '\', ' . $weightV . '),' ;
                             //insert synonym words
                             $synonymInfo = explode(',', $synonymV);
+
                             foreach ($synonymInfo as $wordV) 
                             {
                                 $insertDictSql .= '(\'' . $wordV . '\', ' . $weightV . '),' ;
@@ -244,7 +255,7 @@ class DictController extends \yii\web\Controller
                     }
 
                     $addResult = Yii::$app->db->createCommand(substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`);')->execute();
-
+                    // echo substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`)';exit;
                     if($addResult === false)
                     {
                         return [
@@ -254,7 +265,7 @@ class DictController extends \yii\web\Controller
                             ];
                     }
                 }
-                else
+                else if($isTag)
                 {
                     $e = Yii::$app->db->createCommand("SHOW TABLES LIKE '${tagTable}'" )->queryOne();   
                     if(!$e)
@@ -311,7 +322,7 @@ class DictController extends \yii\web\Controller
 
                 //default table name is `nlp_dict_xxx`, otherwise is `nlp_dict_tag_xxx`
                 $isTag = false;
-                $isDict = true;
+                $isDict = false;
                 
                 $sheetFields = [];
                 $fieldColumnMap = [];
@@ -381,7 +392,7 @@ class DictController extends \yii\web\Controller
                     }
                     $dictIdWord = $newDictIdWord;
 
-                    $synonymSql = 'INSERT INTO ' . $dictTable . ' (id, prime_id, sysnonym_ids) VALUES ';#update sysnonym_ids
+                    $synonymSql = 'INSERT INTO ' . $dictTable . ' (id, prime_id, synonym_ids) VALUES ';#update synonym_ids
                     for ($ri = 2;$ri <= $rowCt;$ri++)
                     {
                         for ($ci = 'A';$ci <= $columnCt;$ci++)
@@ -401,7 +412,7 @@ class DictController extends \yii\web\Controller
                             {
                                 $synonymInfo = explode(',', $synonymV);
 
-                                $synonymIds = [];
+                                $synonymIds = [ $primeId ];//prime_id self
                                 foreach ($synonymInfo as $s) 
                                 {
                                     $synonymIds[] = array_search($s, $dictIdWord);
@@ -417,13 +428,13 @@ class DictController extends \yii\web\Controller
                             }
                             else
                             {
-                                $synonymSql .= '(' . $primeId . ', ' . $primeId . ', \'\'),';#synonym_ids为空字符串
+                                $synonymSql .= '(' . $primeId . ', ' . $primeId . ', \'' . $primeId . '\'),';#synonym_ids为空字符串
                             }
 
                         }
                     }
 
-                    $synonymRet = Yii::$app->db->createCommand(substr($synonymSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `prime_id` = VALUES(`prime_id`), `sysnonym_ids` = VALUES(`sysnonym_ids`);')->execute();
+                    $synonymRet = Yii::$app->db->createCommand(substr($synonymSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `prime_id` = VALUES(`prime_id`), `synonym_ids` = VALUES(`synonym_ids`);')->execute();
                     if($synonymRet === false)
                     {
                         return [
@@ -434,7 +445,7 @@ class DictController extends \yii\web\Controller
                     }
 
                 }
-                else
+                else if($isTag)
                 {
                     $tagIdWord = Yii::$app->db->createCommand($idTagSql)->queryAll();   
                     if(!$tagIdWord)
@@ -515,7 +526,7 @@ class DictController extends \yii\web\Controller
 
                 //default table name is `nlp_dict_xxx`, otherwise is `nlp_dict_tag_xxx`
                 $isTag = false;
-                $isDict = true;
+                $isDict = false;
                 
                 $sheetFields = [];
                 $fieldColumnMap = [];
@@ -574,21 +585,38 @@ class DictController extends \yii\web\Controller
                         if( $isDict )
                         {
                             $wordV = (string)$worksheet->getCell($fieldColumnMap['word'].$ri)->getValue();
+                            $synonymV = (string)$worksheet->getCell($fieldColumnMap['synonym'].$ri)->getValue();
+
+                            //check empty
+                            if(!$wordV)                            
+                            {
+                                continue;
+                            }
+
                             $tagV = (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue();
                             $tagId = array_search($tagV, $tagIdWord);
 
                             $tagId = (int)$tagId;//false -> 0 not exists tag_id
 
                             $tagIdSql .= '(\'' . $wordV . '\', ' . $tagId . '),' ;
+
+                            //insert synonym tag_id
+                            $synonymInfo = explode(',', $synonymV);
+
+                            foreach ($synonymInfo as $wordV) 
+                            {
+                                $tagIdSql .= '(\'' . $wordV . '\', ' . $tagId . '),' ;
+                            }
                         }
                     }
                 }
 
-                if($isTag)
+                if(!$isDict)
                     continue;
 
                 //execute tag_id update sql statement
                 $updateTagIdRet = Yii::$app->db->createCommand(substr($tagIdSql, 0, -1) . ' ON DUPLICATE KEY UPDATE `tag_id` = VALUES(`tag_id`);' )->execute();
+                
                 if($updateTagIdRet === false)
                 {
                     return [
