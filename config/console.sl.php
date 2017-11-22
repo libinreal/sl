@@ -19,6 +19,13 @@ $config = [
                     'categories'=>['yii\db\*','app\models\*'],
                     'logFile'=>'@runtime/logs/sql/sql.console.sl.log'.date('Ymd'),
                 ],
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'levels' => ['error', 'info'],
+                    'logVars'=>[],
+                    'categories'=>['app\modules\sl\console\SlTaskScheduleController'],
+                    'logFile'=>'@runtime/logs/sql/app.console.sl.log'.date('Ymd'),
+                ],
             ],
         ],
         'mailer' => [

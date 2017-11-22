@@ -547,6 +547,7 @@ class ScheduleController extends \yii\web\Controller
             Yii::$app->response->format = Response::FORMAT_JSON;
             $post = Yii::$app->request->post();
 
+            Yii::warning('手动更改计划任务状态' . Json::encode($post), 'app');
             $defaultRet = [
                     'code' => '-1',
                     'msg' => 'Schedule data error',
@@ -1111,6 +1112,8 @@ class ScheduleController extends \yii\web\Controller
             Yii::$app->response->format = Response::FORMAT_JSON;
             $post = Yii::$app->request->post();
 
+            Yii::warning('手动更改每日任务' . Json::encode($post), 'app');
+
             $defaultRet = [
                     'code' => '-1',
                     'msg' => 'Request data error',
@@ -1199,6 +1202,7 @@ class ScheduleController extends \yii\web\Controller
             Yii::$app->response->format = Response::FORMAT_JSON;
             $post = Yii::$app->request->post();
 
+            Yii::warning('手动更改任务项状态' . Json::encode($post), 'app');
             $defaultRet = [
                     'code' => '-1',
                     'msg' => 'Invalid request data',
