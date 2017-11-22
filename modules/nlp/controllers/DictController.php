@@ -58,7 +58,7 @@ class DictController extends \yii\web\Controller
             $whereStr = ' where 1=1 ';
             if(!empty($post['word']))
             {
-                $whereStr .= ' AND l.word = \'' . trim($post['word']) . '\'';
+                $whereStr .= ' AND l.word = \'%' . trim($post['word']) . '%\'';
             }
 
             if(!empty($post['tag']))
@@ -401,7 +401,7 @@ class DictController extends \yii\web\Controller
                 $fieldColumnMap = [];
 
                 $idDictSql = 'SELECT id,word FROM ' . $dictTable;
-                $idTagSql = 'SELECT id,tag FROM ' . $tagTable;
+                $idTagSql = 'SELECT id,tag_zh FROM ' . $tagTable;
 
                 for ($ri = 1;$ri <= $rowCt;$ri++)
                 {
@@ -538,7 +538,7 @@ class DictController extends \yii\web\Controller
                     $newTagIdWord = [];
                     foreach ($tagIdWord as $t) 
                     {
-                        $newTagIdWord[$t['id']] = $t['tag'];
+                        $newTagIdWord[$t['id']] = $t['tag_zh'];
                     }
                     $tagIdWord = $newTagIdWord;
 
@@ -550,9 +550,9 @@ class DictController extends \yii\web\Controller
                         for ($ci = 'A';$ci <= $columnCt;$ci++)
                         {
 
-                            $tagV = (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue();
+                            $tagV = (string)$worksheet->getCell($fieldColumnMap['tag_zh'].$ri)->getValue();
                             $parentV = (string)$worksheet->getCell($fieldColumnMap['parent'].$ri)->getValue();
-
+                            
                             //check empty
                             if(!$tagV)
                             {
@@ -563,6 +563,7 @@ class DictController extends \yii\web\Controller
                             {
                                 $tagId = array_search($tagV, $tagIdWord);
                                 $parentId = array_search($parentV, $tagIdWord);
+                                
                                 if($parentId)
                                 {
                                     $needUpdate = true;
@@ -721,8 +722,73 @@ class DictController extends \yii\web\Controller
     public function actionTag()
     {
 
+        if(Yii::$app->request->isGet)
+        {
+            $dictList = Yii::$app->db->createCommand("SHOW TABLES LIKE 'nlp_dict%'" )->queryAll();//检查数据存放表是否存在
+            $dictList = (array)$dictList;
 
-       	return $this->render('tag');
+            $dictTemp = $dictList;
+            $dictList = [];
+            foreach ($dictTemp as $t) 
+            {
+                $tn = (array_values($t))[0];
+                if(strpos($tn, 'nlp_dict_tag_') === false)//remove tag table from the query result
+                {
+                    continue;
+                }
+                $dictList[] = $tn;
+            }
+            
+
+            return $this->render('tag', [ 'dictList' => $dictList
+                ]);
+        }
+        else if(Yii::$app->request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            $post = Yii::$app->request->post();
+
+            if(empty($post['dic_name']))
+            {
+                return  [
+                    'code'=> '-1',
+                    'msg'=> '请选择词性名',
+                    'data'=> []
+                ];
+            }
+
+            $whereStr = ' where 1=1 ';
+
+            if(!empty($post['tag']))
+            {
+                $whereStr .= ' AND l.tag like \'%' . trim($post['tag']) . '%\'';
+            }
+
+            $totals = Yii::$app->db->createCommand(
+                        'SELECT COUNT(\'l.*\') FROM '. $post['dic_name'] .' l ' . $whereStr
+                        )->queryScalar();
+
+            if($totals === false)
+            {
+                return  [
+                    'code'=> '-3',
+                    'msg'=> 'table not exists',
+                    'data'=> []
+                ];
+            }
+
+            $pageNo = isset($post['pageNo']) ? $post['pageNo'] : 1;
+            $pageSize = isset($post['pageSize']) ? $post['pageSize'] : 10;
+            $offset = ($pageNo - 1) * $pageSize;
+            $data = Yii::$app->db->createCommand('SELECT l.id, l.tag, l.tag_zh, r.tag_zh parent FROM '. $post['dic_name'] .' l ' .
+                            ' LEFT JOIN '. $post['dic_name'] . ' r ON l.pid = r.id ' . $whereStr . ' ORDER BY id LIMIT ' . $offset . ', '. $pageSize)->queryAll();
+
+            return  [
+                'code'=>'0',
+                'msg'=>'ok',
+                'data'=>[ 'total' => $totals, 'rows' => $data]
+            ];
+        }
     }
 
     /**

@@ -111,10 +111,18 @@ class NlpTaskController extends Controller
 		foreach ($seg as $i) 
 		{
 			$p = strpos($stat, $i);
-			$ksArr[$p]  = $i;
+			if(!isset($ksArr[$p]))
+			{
+				$ksArr[$p]  = $i;
+			}
+			else//from new offset find position to avoid replace the lastest position
+			{
+				$p = strpos($stat, $i, $p+1);
+				$ksArr[$p] = $i;
+			}
+
 		}
 		ksort($ksArr, SORT_NUMERIC);
-		// var_dump($ksArr);
 		return $ksArr;
 	}
 
