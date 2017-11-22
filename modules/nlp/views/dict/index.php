@@ -227,16 +227,16 @@ $this->registerJs($dataListJs);
 
         for(var _i = 0;_i < _trLen;_i++)
         {
-            _trStr += '<tr sche-id="'+_rows[_i]['id']+'"><td><span class="cell">'+ _rows[_i]['id'] +'</span>'+ '</td>'
+            _trStr += '<tr data-id="'+_rows[_i]['id']+'"><td><span class="cell">'+ _rows[_i]['id'] +'</span>'+ '</td>'
                     + '<td><span class="cell">'+ _rows[_i]['word'] +'</span>'+ '</td>'
                     + '<td><span class="cell">'+ _rows[_i]['weight'] +'</span>'+ '</td>'
 
-                    + '<td><span class="cell">'+ _rows[_i]['tag'].substr(0, 62) +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ String(_rows[_i]['tag_name']).substr(0,14) +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ scheStatArr[_rows[_i]['synonym']] +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ _rows[_i]['tag'] +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ _rows[_i]['tag_zh'] +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ String(_rows[_i]['synonyms']).substr(0,14) +'</span>'+ '</td>'
                     + '</tr>';
         }
-        _container.find('tr:gt(0)').remove();
+        _container.find('tr:gt(0)').remove();//remove greater than 0 row
         _container.find('tr:eq(0)').after(_trStr);
     }
 
@@ -323,7 +323,14 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
     <div class="nlp-table-wrapper">
         <table class="nlp-table dict_tables">
             <tbody>
-                
+                <tr class="sl-table__header">
+                    <th><span class="cell">ID</span></th>
+                    <th><span class="cell">词语</span></th>
+                    <th><span class="cell">权重</span></th>
+                    <th><span class="cell">标签</span></th>
+                    <th><span class="cell">标签备注</span></th>
+                    <th><span class="cell">近义词</span></th>
+                </tr>
             </tbody>
         </table>
         <div class="nlp-pagination">

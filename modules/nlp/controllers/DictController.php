@@ -38,7 +38,7 @@ class DictController extends \yii\web\Controller
             }
             
 
-	       	return $this->render('index', [ 'dictList' => $dictList,
+	       	return $this->render('index', [ 'dictList' => $dictList
 	       		]);
 	    }
 	    else if(Yii::$app->request->isPost)
@@ -55,7 +55,31 @@ class DictController extends \yii\web\Controller
                 ];
             }
 
-            $totals = Yii::$app->db->createCommand('SELECT COUNT(*) FROM '. $post['dic_name'])->queryScalar();
+            $whereStr = ' where 1=1 ';
+            if(!empty($post['word']))
+            {
+                $whereStr .= ' AND l.word = \'' . trim($post['word']) . '\'';
+            }
+
+            if(!empty($post['tag']))
+            {
+                $whereStr .= ' AND t.tag like \'%' . trim($post['tag']) . '%\'';
+            }
+
+            if(!empty($post['weight_s']))
+            {
+                $whereStr .= ' AND l.weight >= ' . (float)$post['weight_s'];
+            }
+
+            if(!empty($post['weight_e']))
+            {
+                $whereStr .= ' AND l.weight <= ' . (float)$post['weight_e'];
+            }
+
+            $totals = Yii::$app->db->createCommand(
+                        'SELECT COUNT(\'l.*\') FROM '. $post['dic_name'] . ' l ' .
+                        ' LEFT JOIN '. preg_replace('/nlp_dict_/', 'nlp_dict_tag_', $post['dic_name']) . ' t ON l.tag_id = t.id ' . $whereStr
+                        )->queryScalar();
 
             if($totals === false)
             {
@@ -70,7 +94,56 @@ class DictController extends \yii\web\Controller
             $pageSize = isset($post['pageSize']) ? $post['pageSize'] : 10;
             $offset = ($pageNo - 1) * $pageSize;
             $data = Yii::$app->db->createCommand('SELECT l.id, l.word, l.weight, t.tag, t.tag_zh, l.synonym_ids FROM '. $post['dic_name'] .' l ' .
-                            ' LEFT JOIN '. preg_replace('/nlp_dict_/', 'nlp_dict_tag_', $post['dic_name']) . ' t ON l.tag_id = t.id' . ' ORDER BY id LIMIT ' . $offset . ', '. $pageSize)->queryAll();
+                            ' LEFT JOIN '. preg_replace('/nlp_dict_/', 'nlp_dict_tag_', $post['dic_name']) . ' t ON l.tag_id = t.id ' . $whereStr . ' ORDER BY id LIMIT ' . $offset . ', '. $pageSize)->queryAll();
+            //query synonyms with synonym_ids in dict table
+            $needQuery = false;
+            $synonymSql = 'SELECT id, word FROM ' . $post['dic_name'] . ' WHERE id IN (';
+
+            foreach ($data as $d) 
+            {
+                if(!trim($d['synonym_ids']) )
+                {
+                    continue;
+                }
+
+                $synonymSql .= '' . $d['synonym_ids'] . ',';
+                $needQuery = true;
+            }
+
+            $synonymRet = [];
+            if($needQuery)
+            {
+                $synonymSql = substr($synonymSql, 0, -1) . ')';
+                $synonymRet = Yii::$app->db->createCommand($synonymSql)->queryAll();
+            }
+
+            $synonymIdWord = [];
+            foreach ($synonymRet as $s)
+            {
+                $synonymIdWord[$s['id']] = $s['word'];
+            }
+
+            foreach ($data as &$d) 
+            {
+                $d['synonyms'] = '';
+                if(!trim($d['synonym_ids']) )
+                {
+                    continue;
+                }
+
+                $idArr = explode(',', $d['synonym_ids']);
+                foreach ($idArr as $id)
+                {
+                    if(isset($synonymIdWord))
+                    {
+                        $d['synonyms'] .= $synonymIdWord[$id] . ',';
+                    }
+                }
+
+                if($d['synonyms'])
+                    $d['synonyms'] = substr($d['synonyms'], 0, -1);
+            }
+            unset($d);
 
 	    	return  [
                 'code'=>'0',
@@ -241,7 +314,7 @@ class DictController extends \yii\web\Controller
                               "`synonym_ids` text NOT NULL COMMENT '近义词id集合'," .
                               "PRIMARY KEY (`id`)," .
                               "UNIQUE KEY `nlp_dict_" . $sheetTitleInfo[0] ."_word` (`word`)" .
-                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='".$sheetTitleInfo[1]."分词词库';"
+                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 DEFAULT COLLATE=utf8_bin COMMENT='".$sheetTitleInfo[1]."分词词库';"
                         )->execute();//创建词库表
 
                         if($dictTableCreate === false)
@@ -253,7 +326,7 @@ class DictController extends \yii\web\Controller
                             ];
                         }
                     }
-
+                    
                     $addResult = Yii::$app->db->createCommand(substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`);')->execute();
                     // echo substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`)';exit;
                     if($addResult === false)
@@ -416,6 +489,11 @@ class DictController extends \yii\web\Controller
                                 foreach ($synonymInfo as $s) 
                                 {
                                     $synonymIds[] = array_search($s, $dictIdWord);
+                                    /*if(!array_search($s, $dictIdWord))
+                                        {
+                                            var_dump($s);
+                                            exit;
+                                        }*/
                                 }
 
                                 $synonymIdsVal = implode(',', $synonymIds);
