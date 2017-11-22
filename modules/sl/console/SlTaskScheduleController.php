@@ -1141,7 +1141,7 @@ class SlTaskScheduleController extends Controller
 			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabIdArr[$cronId]['name'] . '\', ' . $crontabIdArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\', ' . $time_stamp . '),';
 
 			//发送email
-			$emailTo = 'libin@3ti.us';//'wened.wan@3ti.us';
+			$emailTo = 'wened.wan@3ti.us';//'wened.wan@3ti.us';
 			$emailSub = '计划任务#'.$crontabIdArr[$cronId]['sche_id'].'出现异常';
 			$emailBody = '计划任务ID：'. $crontabIdArr[$cronId]['sche_id']. "<br>任务名：". $crontabIdArr[$cronId]['name']."<br>每日任务ID：".$cronId."<br>异常内容：".$crontabAbnormalMsgArr[$cronId] . "<br>时间：".date('Y-m-d H:i:s', $time_stamp);
 			$this->sendEmail($emailTo, $emailSub, $emailBody);
@@ -1225,7 +1225,7 @@ class SlTaskScheduleController extends Controller
 			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabArr[$cronId]['name'] . '\', ' . $crontabArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\',' . $time_stamp . '),';
 
 			//发送email
-			$emailTo = 'libin@3ti.us';//'wened.wan@3ti.us';
+			$emailTo = 'wened.wan@3ti.us';//'wened.wan@3ti.us';
 			$emailSub = '计划任务#'.$crontabArr[$cronId]['sche_id'].'出现异常';
 			$emailBody = '计划任务ID：'. $crontabArr[$cronId]['sche_id']. "<br>任务名：". $crontabArr[$cronId]['name'] ."<br>每日任务ID：".$cronId."<br>异常内容：".$crontabAbnormalMsgArr[$cronId] . "<br>时间：".date('Y-m-d H:i:s', $time_stamp);
 			$this->sendEmail($emailTo, $emailSub, $emailBody);

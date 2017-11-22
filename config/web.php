@@ -9,6 +9,7 @@ $config = [
     'name' => 'Media Monitoring Service',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
+    'timeZone' => 'Asia/Shanghai',
     'modules' => [
         'res' => [
             'class' => 'app\modules\res\Module',
