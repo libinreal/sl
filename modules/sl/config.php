@@ -11,6 +11,22 @@ return [
             'tablePrefix' => '',
             'charset' => 'UTF8',
         ],
+        'mailer' => [
+            'class' => 'yii\swiftmailer\Mailer',
+            'useFileTransport' => false,
+            'transport' => [
+                'class' => 'Swift_SmtpTransport',
+                'host' => 'mail.3ti.us',
+                'username' => 'sladmin@3ti.us',
+                'password' => '3ti@SL2017',
+                'port' => '25',
+                'encryption' => 'ssl',
+            ],
+            'messageConfig'=>[ 
+                'charset'=>'UTF-8', 
+                'from'=>['sladmin@3ti.us'=>'sladmin'] 
+            ], 
+        ],
         //analysis database
         'mongodb' => [
             'class' => '\yii\mongodb\Connection',

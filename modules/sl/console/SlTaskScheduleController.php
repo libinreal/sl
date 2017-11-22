@@ -1139,6 +1139,12 @@ class SlTaskScheduleController extends Controller
 		foreach ($crontabAbnormalTypeArr as $cronId => $abnormaType) 
 		{
 			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabIdArr[$cronId]['name'] . '\', ' . $crontabIdArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\', ' . $time_stamp . '),';
+
+			//发送email
+			$emailTo = 'libin@3ti.us';//'wened.wan@3ti.us';
+			$emailSub = '计划任务#'.$crontabIdArr[$cronId]['sche_id'].'出现异常';
+			$emailBody = '计划任务ID：'. $crontabIdArr[$cronId]['sche_id']. "<br>任务名：". $crontabIdArr[$cronId]['name']."<br>每日任务ID：".$cronId."<br>异常内容：".$crontabAbnormalMsgArr[$cronId] . "<br>时间：".date('Y-m-d H:i:s', $time_stamp);
+			$this->sendEmail($emailTo, $emailSub, $emailBody);
 		}
 
 		$updateAbnormalSql = 'INSERT INTO ' . SlTaskScheduleCrontabAbnormalConsole::tableName()
@@ -1217,6 +1223,12 @@ class SlTaskScheduleController extends Controller
 		foreach ($crontabAbnormalTypeArr as $cronId => $abnormaType) 
 		{
 			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabArr[$cronId]['name'] . '\', ' . $crontabArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\',' . $time_stamp . '),';
+
+			//发送email
+			$emailTo = 'libin@3ti.us';//'wened.wan@3ti.us';
+			$emailSub = '计划任务#'.$crontabArr[$cronId]['sche_id'].'出现异常';
+			$emailBody = '计划任务ID：'. $crontabArr[$cronId]['sche_id']. "<br>任务名：". $crontabArr[$cronId]['name'] ."<br>每日任务ID：".$cronId."<br>异常内容：".$crontabAbnormalMsgArr[$cronId] . "<br>时间：".date('Y-m-d H:i:s', $time_stamp);
+			$this->sendEmail($emailTo, $emailSub, $emailBody);
 		}
 
 		$updateAbnormalSql = 'INSERT INTO ' . SlTaskScheduleCrontabAbnormalConsole::tableName()
@@ -1373,5 +1385,19 @@ class SlTaskScheduleController extends Controller
 		}
 
 		return 0;
+	}
+
+	/**
+	 * 发送邮件
+	 * @param $to 收件人邮箱
+	 * @param $sub 邮件主题
+	 * @param $body 邮件内容
+	 */
+	private function sendEmail($to, $sub, $body)
+	{
+		Yii::$app->mailer->compose()
+			->setTo($to)
+			->setSubject($sub)
+			->setHtmlBody($body)->send();
 	}
 }

@@ -20,6 +20,28 @@ $config = [
                 ],
             ],
         ],
+        'mailer' => [
+            'class' => 'yii\swiftmailer\Mailer',
+            'useFileTransport' => false,
+            'transport' => [
+                'class' => 'Swift_SmtpTransport',
+                'host' => 'mail.3ti.us',
+                'username' => 'sladmin@3ti.us',
+                'password' => '3ti@SL2017',
+                'port' => '25',
+                'streamOptions' => [
+                    'ssl' => [
+                        'allow_self_signed' => true,
+                        'verify_peer' => false
+                    ],
+                ],
+                'encryption' => 'tls',
+            ],
+            'messageConfig'=>[ 
+                'charset'=>'UTF-8', 
+                'from'=>['sladmin@3ti.us'=>'sladmin'] 
+            ], 
+        ],
         'db' => [
             'class' => '\yii\db\Connection',
             'dsn' => 'mysql:host=192.168.10.207;port=3306;dbname=webspider',
