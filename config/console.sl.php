@@ -65,6 +65,10 @@ $config = [
             'pf_tmall' => '天猫',
             'pf_weixin' => '微信',
         ],
+        'DEV_EMAIL' =>[
+            'wened.wan@3ti.us',
+            'libin@3ti.us'
+        ]
     ],
     /*
     'controllerMap' => [        'fixture' => [ // Fixture generation command line.

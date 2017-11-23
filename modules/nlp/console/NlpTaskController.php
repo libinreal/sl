@@ -23,8 +23,8 @@ class NlpTaskController extends Controller
 	{
 		// NlpLogConsole::find();
 		// (new Query())->from('nlp_log')->where('ws_data')
-		$start_date = '2017-11-11';
-		$name = 'DMP_CLEANER_BRAND';
+		// $start_date = '2017-11-11';
+		// $name = 'DMP_CLEANER_BRAND';
 
 		//paramaters lost
 		if(!$name || !$start_date)
@@ -40,6 +40,7 @@ class NlpTaskController extends Controller
 			->andWhere('name = :name', [':name' => $name]);
 
 		$crontabData = $q->asArray()->one();
+		$q = null;
 
 		if( $crontabData )
 		{
@@ -72,27 +73,42 @@ class NlpTaskController extends Controller
 			
 			//source records
 			$wsQuery = (new Query())->from( $crontabData['table'] )->select('id, product_code, product_title ');
+			$wsCount = $wsQuery->count();
 
-			/*$st = microtime(true);
-			$i = 0;*/
-			$insertSql = 'INSERT INTO ' . $tableTag . ' (id, code, word, tag) VALUES ';
-			foreach ($wsQuery->each() as $c) 
+			$loopSize = 10000;
+			$loopCount = ceil($wsCount / $loopSize);
+
+			//分批插入（每次最多1w条），防止内存占用过大
+			for($i = 0; $i < $loopCount;$i++)
 			{
-				// echo "第 ${i} 条 数据：</br>";
-				// $i++;
-				$segments = jieba($c['product_title'], 2);//['word' => 'tag']
+				if(!$wsQuery)
+					$wsQuery = (new Query())->from( $crontabData['table'] )->select('id, product_code, product_title ');
 
-				$wordArr = array_keys($segments);
-				$wordArr = $this->_segBysort($wordArr, $c['product_title']);
-				$wordArr = $this->_segByAdd($wordArr, $c['product_title']);
+				$offset = $i * $loopSize;
+				$wsQuery->limit($loopSize)->offset($offset);
+			
+				$insertSql = 'INSERT INTO ' . $tableTag . ' (id, code, word, tag) VALUES ';
+				foreach ($wsQuery->each() as $c)
+				{
+					$segments = jieba($c['product_title'], 2);//['word' => 'tag']
 
-				$insertSql .=  $this->_spellSegSql( $c['id'], $c['product_code'], $wordArr, $segments );
+					$wordArr = array_keys($segments);
+					$wordArr = $this->_segBysort($wordArr, $c['product_title']);
+					$wordArr = $this->_segByAdd($wordArr, $c['product_title']);
+
+					$insertSql .=  $this->_spellSegSql( $c['id'], $c['product_code'], $wordArr, $segments );
+				}
+				
+				$wsQuery = null;
+				$c = null;
+				
+				$insertRet = Yii::$app->db->createCommand(substr($insertSql,0, -1))->execute();
+				
+				$insertSql = null;
+
+				if($insertRet === false)
+					return 1;
 			}
-			
-			$insertRet = Yii::$app->db->createCommand(substr($insertSql,0, -1))->execute();
-			
-			if($insertRet === false)
-				return 1;
 		}
 		/***生成每日子任务 END***/
 		return 0;
@@ -208,5 +224,25 @@ class NlpTaskController extends Controller
 		}
 
 		return $sql;
+	}
+
+	/**
+	 * 输出词库文本
+	 * @param $dict 词库名(不带'nlp_dict_'前缀)
+	 *
+	 */
+	public function actionExportDict($dict)
+	{
+		if(!$output)
+		{
+			$output = '';
+		}
+
+		
+
+		foreach ($variable as $key => $value) 
+		{
+			# code...
+		}
 	}
 }

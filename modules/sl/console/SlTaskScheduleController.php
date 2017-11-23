@@ -1136,22 +1136,27 @@ class SlTaskScheduleController extends Controller
 
 		/*** 更新sl_task_schedule_crontab_abnormal START ***/
 		$updateAbnormalValues = '';
+		$emailSubArr = [];
+		$emailBodyArr = [];
 		foreach ($crontabAbnormalTypeArr as $cronId => $abnormaType) 
 		{
 			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabIdArr[$cronId]['name'] . '\', ' . $crontabIdArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\', ' . $time_stamp . '),';
 
-			//发送email
-			$emailTo = ['wened.wan@3ti.us', 'libin@3ti.us'];
-			$emailSub = '计划任务#'.$crontabIdArr[$cronId]['sche_id'].'出现异常';
-			$emailBody = '计划任务ID：'. $crontabIdArr[$cronId]['sche_id']. "<br>任务名：". $crontabIdArr[$cronId]['name']."<br>每日任务ID：".$cronId."<br>异常内容：".$crontabAbnormalMsgArr[$cronId] . "<br>时间：".date('Y-m-d H:i:s', $time_stamp);
-
-			if(!SlTaskScheduleCrontabAbnormalConsole::find()->limit(1)->select('id')->where('cron_id = ' . $cronId)->scalar())//是否已发送
+			if(!SlTaskScheduleCrontabAbnormalConsole::find()->limit(1)->select('id')->where('cron_id = ' . $cronId)->scalar())//是否已发送email
 			{
-				$sendEmail = $this->sendEmail($emailTo, $emailSub, $emailBody);
-				if(!$sendEmail)
-				{
-					Yii::error('邮件发送失败', 'app');
-				}
+				$emailSubArr[] = '计划任务#'.$crontabIdArr[$cronId]['sche_id'].'出现异常';
+				$emailBodyArr[] = '计划任务ID：'. $crontabIdArr[$cronId]['sche_id']. "<br>任务名：". $crontabIdArr[$cronId]['name']."<br>每日任务ID：".$cronId."<br>异常内容：".$crontabAbnormalMsgArr[$cronId] . "<br>计划开始时间：".$crontabIdArr[$cronId]['start_time']."<br>异常时间：".date('Y-m-d H:i:s', $time_stamp);
+			}
+		}
+
+		if(!empty($emailSubArr))
+		{
+			$emailMessages = $this->getEmailMessage(Yii::$app->params['DEV_EMAIL'], $emailSubArr, $emailBodyArr);
+			$sendEmail = Yii::$app->mailer->sendMultiple($emailMessages);
+
+			if(!$sendEmail)
+			{
+				Yii::error('邮件发送失败', 'app');
 			}
 		}
 
@@ -1180,7 +1185,7 @@ class SlTaskScheduleController extends Controller
 		$crontabArr = SlTaskScheduleCrontabConsole::find()
 			->alias('cron')
 			->joinWith('schedule')
-			->select('cron.name, sche.alert_params, cron.id, cron.sche_id, cron.act_time')
+			->select('cron.name, sche.alert_params, cron.id, cron.sche_id, cron.act_time, cron.start_time')
 			->where('task_status='.SlTaskScheduleCrontabConsole::TASK_STATUS_EXECUTING )
 			->asArray()
 			->indexBy('id')
@@ -1228,22 +1233,27 @@ class SlTaskScheduleController extends Controller
 
 		/*** 更新sl_task_schedule_crontab_abnormal START ***/
 		$updateAbnormalValues = '';
+		$emailSubArr = [];
+		$emailBodyArr = [];
 		foreach ($crontabAbnormalTypeArr as $cronId => $abnormaType) 
 		{
 			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabArr[$cronId]['name'] . '\', ' . $crontabArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\',' . $time_stamp . '),';
 
-			//发送email
-			$emailTo = ['wened.wan@3ti.us', 'libin@3ti.us'];
-			$emailSub = '计划任务#'.$crontabArr[$cronId]['sche_id'].'出现异常';
-			$emailBody = '计划任务ID：'. $crontabArr[$cronId]['sche_id']. "<br>任务名：". $crontabArr[$cronId]['name'] ."<br>每日任务ID：".$cronId."<br>异常内容：".$crontabAbnormalMsgArr[$cronId] . "<br>时间：".date('Y-m-d H:i:s', $time_stamp);
-
-			if(!SlTaskScheduleCrontabAbnormalConsole::find()->limit(1)->select('id')->where('cron_id = ' . $cronId)->scalar())//是否已发送
+			if(!SlTaskScheduleCrontabAbnormalConsole::find()->limit(1)->select('id')->where('cron_id = ' . $cronId)->scalar())//是否已发送email
 			{
-				$sendEmail = $this->sendEmail($emailTo, $emailSub, $emailBody);
-				if(!$sendEmail)
-				{
-					Yii::error('邮件发送失败', 'app');
-				}
+				$emailSubArr[] = '计划任务#'.$crontabArr[$cronId]['sche_id'].'出现异常';
+				$emailBodyArr[] = '计划任务ID：'. $crontabArr[$cronId]['sche_id']. "<br>任务名：". $crontabArr[$cronId]['name'] ."<br>每日任务ID：".$cronId."<br>异常内容：".$crontabAbnormalMsgArr[$cronId] . "<br>计划开始时间：".$crontabArr[$cronId]['start_time']."<br>异常时间：".date('Y-m-d H:i:s', $time_stamp);
+			}
+		}
+
+		if(!empty($emailSubArr))
+		{
+			$emailMessages = $this->getEmailMessage(Yii::$app->params['DEV_EMAIL'], $emailSubArr, $emailBodyArr);
+			$sendEmail = Yii::$app->mailer->sendMultiple($emailMessages);
+
+			if(!$sendEmail)
+			{
+				Yii::error('邮件发送失败', 'app');
 			}
 		}
 
@@ -1404,32 +1414,29 @@ class SlTaskScheduleController extends Controller
 	}
 
 	/**
-	 * 发送邮件
-	 * @param $to 收件人邮箱
-	 * @param $sub 邮件主题
-	 * @param $body 邮件内容
+	 * 返回配置好的邮件消息
+	 * @param $toArr 收件人邮箱
+	 * @param $subArr 邮件主题
+	 * @param $bodyArr 邮件正文
+	 * @return $messages 邮件消息
 	 */
-	private function sendEmail($to, $sub, $body)
+	private function getEmailMessage($toArr, $subArr, $bodyArr)
 	{
-		if(is_string($to))
+		$messages = [];
+		foreach ($bodyArr as $i=>$body) 
 		{
-			return Yii::$app->mailer->compose()
-				->setTo($to)
-				->setSubject($sub)
-				->setHtmlBody($body)->send();
-		}
-		else if(is_array($to))
-		{
-			$messages = [];
-			foreach ($to as $user) {
+			$sub = $subArr[$i];
+
+			foreach ($toArr as $user) 
+			{
 			    $messages[] = Yii::$app->mailer->compose() 
 			            ->setTo($user) 
 			            ->setSubject($sub) 
 			            ->setHtmlBody($body); 
-			} 
-			
-			return Yii::$app->mailer->sendMultiple($messages);
+			}
 		}
-		return false;
+
+		return $messages;
+			
 	}
 }
