@@ -24,7 +24,7 @@ $config = [
                     'levels' => ['error', 'info'],
                     'logVars'=>[],
                     'categories'=>['app\modules\sl\console\SlTaskScheduleController'],
-                    'logFile'=>'@runtime/logs/sql/app.console.sl.log'.date('Ymd'),
+                    'logFile'=>'@runtime/logs/console/sl.log'.date('Ymd'),
                 ],
             ],
         ],
