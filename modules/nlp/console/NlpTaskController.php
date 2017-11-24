@@ -35,11 +35,11 @@ class NlpTaskController extends Controller
 
 		$q = SlTaskScheduleCrontabConsole::find();
 
-		$q->select('id, name, sche_id,start_time, task_progress, task_status, control_status')
+		$q->select('id, sche_id,start_time, task_status')
 			->where('create_time >= :create_time_start and create_time <= :create_time_end', [':create_time_start' => $create_time_start, ':create_time_end' => $create_time_end])
 			->andWhere('name = :name', [':name' => $name]);
 
-		$crontabData = $q->asArray()->one();
+		$crontabData = $q->asArray()->limit(1)->one();
 		$q = null;
 
 		if( $crontabData )
@@ -102,7 +102,7 @@ class NlpTaskController extends Controller
 				$wsQuery = null;
 				$c = null;
 				
-				$insertRet = Yii::$app->db->createCommand(substr($insertSql,0, -1))->execute();
+				$insertRet = Yii::$app->db->createCommand(substr($insertSql,0, -1))->execute();#插入数据
 				
 				$insertSql = null;
 
@@ -232,17 +232,61 @@ class NlpTaskController extends Controller
 	 *
 	 */
 	public function actionExportDict($dict)
-	{
-		if(!$output)
-		{
-			$output = '';
-		}
+	{	
+		$dictList = Yii::$app->db->createCommand("SHOW TABLES LIKE 'nlp_dict%'" )->queryAll();//检查数据存放表是否存在
+	    $dictList = (array)$dictList;
 
+	    $dictTemp = $dictList;
+
+        $dictTable = '';
+        $tagTable = '';
+        foreach ($dictTemp as $t) 
+        {
+            $tn = (array_values($t))[0];
+            
+            if($tn == 'nlp_dict_'.$dict)
+            	$dictTable = $tn;
+            if($tn == 'nlp_dict_tag_'.$dict)
+            	$tagTable = $tn;
+        }
+	    
+	    //segment records
+		$segQuery = (new Query())->from( $crontabData['nlp_dict_'] )->select('id, product_code, product_title ');
+		$segCount = $segQuery->count();
+
+		$loopSize = 10000;
+		$loopCount = ceil($segCount / $loopSize);
+
+        //分批写入（每次最多1w条），防止内存占用过大
+		for($i = 0; $i < $loopCount;$i++)
+		{
+			if(!$segQuery)
+				$segQuery = (new Query())->from( $crontabData['table'] )->select('id, product_code, product_title ');
+
+			$offset = $i * $loopSize;
+			$segQuery->limit($loopSize)->offset($offset);
 		
+			$insertSql = 'INSERT INTO ' . $tableTag . ' (id, code, word, tag) VALUES ';
+			foreach ($segQuery->each() as $c)
+			{
+				$segments = jieba($c['product_title'], 2);//['word' => 'tag']
 
-		foreach ($variable as $key => $value) 
-		{
-			# code...
+				$wordArr = array_keys($segments);
+				$wordArr = $this->_segBysort($wordArr, $c['product_title']);
+				$wordArr = $this->_segByAdd($wordArr, $c['product_title']);
+
+				$insertSql .=  $this->_spellSegSql( $c['id'], $c['product_code'], $wordArr, $segments );
+			}
+			
+			$segQuery = null;
+			$c = null;
+			
+			$insertRet = Yii::$app->db->createCommand(substr($insertSql,0, -1))->execute();#插入数据
+			
+			$insertSql = null;
+
+			if($insertRet === false)
+				return 1;
 		}
 	}
 }

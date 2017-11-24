@@ -35,6 +35,9 @@ $config = [
             'pf_tmall' => '天猫',
             'pf_weixin' => '微信',
         ],
+        'UNKNOWN_TAG'=>[
+            'x'
+        ],
     ],
     /*
     'controllerMap' => [        'fixture' => [ // Fixture generation command line.
