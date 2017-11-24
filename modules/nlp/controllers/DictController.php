@@ -849,7 +849,8 @@ class DictController extends \yii\web\Controller
                                             'LEFT JOIN ' . $wsTable . ' w ON s.id = w.id LIMIT '. $offset . ',' . $limit
                                             )->queryAll();
 
-                $title = $name.''.$start_date_ret.''.$offset.'-'.$limit;//excel info
+                $fileName = $name.''.$start_date_ret.' '.$offset.'-'.$limit;//excel info
+                $title = $crontabData['sche_id']. '_'.$start_date_ret.'_'.$crontabData['id'];
 
                 $objPHPExcel = new PHPExcel();
                 $objPHPExcel->getProperties()->setCreator('3tichina') //创建人
@@ -888,7 +889,7 @@ class DictController extends \yii\web\Controller
 
                 $objWorkSheet->setTitle($title);
 
-                $this->getxlsx($title, $objPHPExcel);
+                $this->getxlsx($fileName, $objPHPExcel);
             }
 
         }
