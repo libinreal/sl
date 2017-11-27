@@ -38,6 +38,12 @@ $config = [
         'UNKNOWN_TAG'=>[
             'x'
         ],
+        'TRIM_CHAR' =>[
+            ' ',
+            '.',
+            '+',
+            '-'
+        ]
     ],
     /*
     'controllerMap' => [        'fixture' => [ // Fixture generation command line.

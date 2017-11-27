@@ -16,8 +16,11 @@ use Yii;
 class NlpTaskController extends Controller
 {
 	/**
-	 * 每分钟扫描如`ws_36_20171020_261`格式的数据表，
-	 * 生成与之关联的 词性标记表 通过id关联
+	 * 对指定日期和任务名称的抓取数据表做分词和标注，结果存储在`nlp_seg_`的前缀表
+	 * 例如对于数据表`ws_36_20171020_261`，分词和标注结果存在`nlp_seg_36_20171020_261`
+	 * 需要指定两个参数： start_date 和 name
+	 * @param $start_date 任务的计划开始日期
+	 * @param $name 任务名称
 	 */
 	public function actionTag($start_date, $name)
 	{
@@ -227,8 +230,9 @@ class NlpTaskController extends Controller
 	}
 
 	/**
-	 * 输出词库文本
-	 * @param $dict 词库名(不带'nlp_dict_'前缀)
+	 * 从Mysql的正式词库(词性)表中导出分词引擎识别的文本文件  user.dict.utf8 中
+	 * 需要指定词库(词性)名 $dict
+	 * @param $dict 词库(词性)名，不带'nlp_dict_'前缀
 	 *
 	 */
 	public function actionExportDict($dict)
@@ -288,5 +292,191 @@ class NlpTaskController extends Controller
 			if($insertRet === false)
 				return 1;
 		}
+	}
+
+
+	/**
+	 * 从爬虫抓取到的词库表导入到正式词库(词性)表
+	 * 需要指定采集表名 $from，正式词库表名$to
+	 * @param $from 爬虫自动采集到的词库存放表 e.g. sl_ws_cleaner_words
+	 * @param $to 被导入的正式词库表dict和词性表tag表名，程序会自动加上该前缀，e.g. food 会导入到 nlp_dict_food 和 nlp_dict_tag_food
+	 */
+	public function actionImportMysql($from, $to)
+	{
+		if(empty($from) || empty($to))
+		{
+			$this->ansiFormat('参数:数据表 或 参数:导入表名 没有指定', Console::BOLD);
+			return -1;//参数不正确
+		}
+
+		$fromCheck = Yii::$app->db->createCommand("SHOW TABLES LIKE '$from'" )->queryOne();//检查数据表是否存在
+		if( !$fromCheck )
+		{
+			$this->ansiFormat('参数:数据表 经检查，不存在该表', Console::BOLD);
+			return -1;//指定的数据表不存在
+		}
+
+		$dictList = Yii::$app->db->createCommand("SHOW TABLES LIKE 'nlp_dict%'" )->queryAll();//检查导入表是否存在
+	    $dictList = (array)$dictList;
+
+	    $dictTemp = $dictList;
+
+        $dictTable = '';
+        $tagTable = '';
+        foreach ($dictTemp as $t) 
+        {
+            $tn = (array_values($t))[0];
+            
+            if($tn == 'nlp_dict_'.$to)
+            	$dictTable = $tn;
+            if($tn == 'nlp_dict_tag_'.$to)
+            	$tagTable = $tn;
+        }
+
+        if(empty($dictTable))//$to 词库表不存在
+        {
+        	$this->ansiFormat('词库表:'.$dictTable.' 不存在，导入数据前手动上传Excel模版创建该表', Console::BOLD);
+        	/*
+        	$dictTable = 'nlp_dict_'.$to;
+        	$dictTableCreate = Yii::$app->db->createCommand(
+                "CREATE TABLE `". $dictTable ."` (" . 
+                  "`id` int(10) unsigned NOT NULL AUTO_INCREMENT," .
+                  "`word` char(30) NOT NULL DEFAULT ''," .
+                  "`weight` float(24,10) unsigned NOT NULL DEFAULT '0.0000000000'," .
+                  "`tag_id` int(10) unsigned DEFAULT '0'," .
+                  "`prime_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '近义词代表词id'," .
+                  "`synonym_ids` text NOT NULL COMMENT '近义词id集合'," .
+                  "PRIMARY KEY (`id`)," .
+                  "UNIQUE KEY `nlp_dict_" . $to ."_word` (`word`)" .
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8 DEFAULT COLLATE=utf8_bin COMMENT='".$to."分词词库';"
+            )->execute();//创建词库表
+
+            if($dictTableCreate === false)
+            {
+            	$this->ansiFormat('词库表'.$dictTable .'创建失败', Console::BOLD);
+                return -3;
+            }
+            */
+        }
+
+        if(empty($tagTable))//$to 词性表不存在
+        {
+        	$this->ansiFormat('词性表:'.$tagTable.' 不存在，导入数据前手动上传Excel模版创建该表', Console::BOLD);
+        	/*
+        	$tagTable = 'nlp_dict_tag_'.$to;
+        	$tagTableCreate = Yii::$app->db->createCommand(
+                "CREATE TABLE `". $tagTable ."` (" . 
+                  "`id` int(11) unsigned NOT NULL AUTO_INCREMENT," .
+                  "`tag` char(30) NOT NULL DEFAULT '' COMMENT '标签'," .
+                  "`pid` int(11) unsigned NOT NULL DEFAULT '0'," .
+                  "`tag_zh` char(100) NOT NULL DEFAULT '' COMMENT '标签中文'," .
+                  "PRIMARY KEY (`id`)," .
+                  "UNIQUE KEY `tag_".$to."_tag` (`tag`)," .
+                  "UNIQUE KEY `tag_".$to."_tag_zh` (`tag_zh`)" .
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='".$to."分词词性';"
+            )->execute();//创建词性表
+
+            if($tagTableCreate === false)
+            {
+                $this->ansiFormat('词性表'.$tagTable .'创建失败', Console::BOLD);
+                return -3;
+            }
+            */
+        }
+
+        //导入词性
+        $wsQuery = (new Query())->from( $from )->select('key_type');
+		$wsCount = $wsQuery->count();
+
+		$loopSize = 10000;
+		$loopCount = ceil($wsCount / $loopSize);
+
+		//分批插入词库（每次最多1w条），防止内存占用过大
+		for($i = 0; $i < $loopCount;$i++)
+		{
+			if(!$wsQuery)
+				$wsQuery = (new Query())->from( $from )->select('key_name, key_type');
+
+			$offset = $i * $loopSize;
+			$wsQuery->limit($loopSize)->offset($offset);
+		
+			$dictSql = 'INSERT INTO ' . $dictTable . ' (word) VALUES ';
+			foreach ($wsQuery->each() as $c)
+			{
+				$dictSql .=  '(\'' . $this->fileterWord($c['word']) . '\'),';
+			}
+			
+			$wsQuery = null;
+			$c = null;
+			
+			$insertRet = Yii::$app->db->createCommand(substr($dictSql,0, -1) .' ON DUPLICATE KEY UPDATE `word` = VALUES(`word`);')->execute();#插入数据
+			
+			$dictSql = null;
+
+			if($insertRet === false)
+			{
+				$this->ansiFormat('词库表'.$dictTable .'数据填充失败', Console::BOLD);
+				return 1;
+			}
+		}
+
+        //导入词库
+        $wsQuery = (new Query())->from( $from )->select('key_name, key_type');
+		$wsCount = $wsQuery->count();
+
+		$loopSize = 10000;
+		$loopCount = ceil($wsCount / $loopSize);
+
+		//分批插入词库（每次最多1w条），防止内存占用过大
+		for($i = 0; $i < $loopCount;$i++)
+		{
+			if(!$wsQuery)
+				$wsQuery = (new Query())->from( $from )->select('key_name, key_type');
+
+			$offset = $i * $loopSize;
+			$wsQuery->limit($loopSize)->offset($offset);
+		
+			$dictSql = 'INSERT INTO ' . $dictTable . ' (word) VALUES ';
+			foreach ($wsQuery->each() as $c)
+			{
+				$dictSql .=  '(\'' . $this->fileterWord($c['word']) . '\'),';
+			}
+			
+			$wsQuery = null;
+			$c = null;
+			
+			$insertRet = Yii::$app->db->createCommand(substr($dictSql,0, -1) .' ON DUPLICATE KEY UPDATE `word` = VALUES(`word`);')->execute();#插入数据
+			
+			$dictSql = null;
+
+			if($insertRet === false)
+			{
+				$this->ansiFormat('词库表'.$dictTable .'数据填充失败', Console::BOLD);
+				return 1;
+			}
+		}
+
+
+	}
+
+	/**
+	 * 过滤首尾非法字符
+	 * @param $str 需要过滤的字符串
+	 * @return $newStr 过滤后的字符串
+	 */
+	private function fileterWord($str)
+	{
+		$l = mb_strlen($str, 'utf-8');
+
+		$stopChar = Yii::$app->params['TRIM_CHAR'];
+		$newStr = '';
+		for($i = 0;$i < $l;$i++)
+		{
+			if(!in_array(mb_substr($str, $i, 1, 'utf-8'), $stopChar))
+			{
+				$newStr .= mb_substr($str, $i, 1, 'utf-8');
+			}
+		}
+		return $newStr;
 	}
 }
