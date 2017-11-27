@@ -1199,21 +1199,22 @@ class SlTaskScheduleController extends Controller
 
 		foreach ($crontabArr as $cronId => $cron) 
 		{
-			if( $cron['act_time'] )
+			if( !(int)$cron['act_time'] )//没被执行的任务
+			{	
+				$cron['act_time'] = strtotime( $cron['start_time'] );//start_time `date`型计划开始时间
+			}
+
+			$alert_params = Json::decode( $cron['alert_params'] );
+			if(empty($alert_params) || !is_array($alert_params))
+				$alert_params = [];
+
+			$act_duration = round( ($time_stamp - $cron['act_time']) / 3600, 1);
+
+			if( isset( $alert_params['duration'] ) && $act_duration - $alert_params['duration'] > 24 )
 			{
-				$alert_params = Json::decode( $cron['alert_params'] );
-				if(empty($alert_params) || !is_array($alert_params))
-					$alert_params = [];
-
-				$act_duration = round( ($time_stamp - $cron['act_time']) / 3600, 1);
-
-				if( isset( $alert_params['duration'] ) && $act_duration - $alert_params['duration'] > 24 )
-				{
-					$crontabAbnormalTypeArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_DURATION;
-					$crontabAbnormalMsgArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::getDurationMsg($act_duration, $alert_params['duration']);
-					$cronAbnormalIds[] = $cronId;
-				}
-
+				$crontabAbnormalTypeArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_DURATION;
+				$crontabAbnormalMsgArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::getDurationMsg($act_duration, $alert_params['duration']);
+				$cronAbnormalIds[] = $cronId;
 			}
 		}
 
