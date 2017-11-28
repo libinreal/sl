@@ -330,15 +330,18 @@ class DictController extends \yii\web\Controller
                         }
                     }
                     
-                    $addResult = Yii::$app->db->createCommand(substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`);')->execute();
-                    // echo substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`)';exit;
-                    if($addResult === false)
+                    if(!empty($wordV))
                     {
-                        return [
-                                'code'=>'-3',
-                                'msg'=>'dict table insert data error',
-                                'data'=>''
-                            ];
+                        $addResult = Yii::$app->db->createCommand(substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`);')->execute();
+                        // echo substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`)';exit;
+                        if($addResult === false)
+                        {
+                            return [
+                                    'code'=>'-3',
+                                    'msg'=>'dict table insert data error',
+                                    'data'=>''
+                                ];
+                        }
                     }
                 }
                 else if($isTag)
@@ -369,15 +372,19 @@ class DictController extends \yii\web\Controller
                             ];
                         }
                     }
-                    $addResult = Yii::$app->db->createCommand(substr($insertTagSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `tag` = VALUES(`tag`), `tag_zh` = VALUES(`tag_zh`);')->execute();
 
-                    if($addResult === false)
+                    if(!empty($tagV))
                     {
-                        return [
-                                'code'=>'-3',
-                                'msg'=>'tag table insert data error',
-                                'data'=>''
-                            ];
+                        $addResult = Yii::$app->db->createCommand(substr($insertTagSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `tag` = VALUES(`tag`), `tag_zh` = VALUES(`tag_zh`);')->execute();
+
+                        if($addResult === false)
+                        {
+                            return [
+                                    'code'=>'-3',
+                                    'msg'=>'tag table insert data error',
+                                    'data'=>''
+                                ];
+                        }
                     }
                 }
             }
@@ -515,14 +522,17 @@ class DictController extends \yii\web\Controller
                         }
                     }
 
-                    $synonymRet = Yii::$app->db->createCommand(substr($synonymSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `prime_id` = VALUES(`prime_id`), `synonym_ids` = VALUES(`synonym_ids`);')->execute();
-                    if($synonymRet === false)
+                    if(!empty($wordV))
                     {
-                        return [
-                            'code'=>'-17',
-                            'msg'=>'synonym_ids of dict table update failed',
-                            'data'=>''
-                        ];
+                        $synonymRet = Yii::$app->db->createCommand(substr($synonymSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `prime_id` = VALUES(`prime_id`), `synonym_ids` = VALUES(`synonym_ids`);')->execute();
+                        if($synonymRet === false)
+                        {
+                            return [
+                                'code'=>'-17',
+                                'msg'=>'synonym_ids of dict table update failed',
+                                'data'=>''
+                            ];
+                        }
                     }
 
                 }
@@ -696,18 +706,20 @@ class DictController extends \yii\web\Controller
                 if(!$isDict)
                     continue;
 
-                //execute tag_id update sql statement
-                $updateTagIdRet = Yii::$app->db->createCommand(substr($tagIdSql, 0, -1) . ' ON DUPLICATE KEY UPDATE `tag_id` = VALUES(`tag_id`);' )->execute();
-                
-                if($updateTagIdRet === false)
+                if(!empty($wordV))
                 {
-                    return [
-                        'code'=>'-21',
-                        'msg'=>'tag_id in dict table update failed',
-                        'data'=>''
-                    ];
+                    //execute tag_id update sql statement
+                    $updateTagIdRet = Yii::$app->db->createCommand(substr($tagIdSql, 0, -1) . ' ON DUPLICATE KEY UPDATE `tag_id` = VALUES(`tag_id`);' )->execute();
+                    
+                    if($updateTagIdRet === false)
+                    {
+                        return [
+                            'code'=>'-21',
+                            'msg'=>'tag_id in dict table update failed',
+                            'data'=>''
+                        ];
+                    }
                 }
-
             }
 
             return [

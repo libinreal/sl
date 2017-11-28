@@ -38,10 +38,15 @@ $config = [
         'UNKNOWN_TAG'=>[
             'x'
         ],
-        'TRIM_CHAR' =>[
+        'LTRIM_CHAR' =>[
             ' ',
             '.',
             '+',
+            '-'
+        ],
+        'RTRIM_CHAR' =>[
+            ' ',
+            '.',
             '-'
         ]
     ],

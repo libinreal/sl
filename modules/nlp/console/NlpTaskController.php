@@ -336,6 +336,7 @@ class NlpTaskController extends Controller
         if(empty($dictTable))//$to 词库表不存在
         {
         	$this->ansiFormat('词库表:'.$dictTable.' 不存在，导入数据前手动上传Excel模版创建该表', Console::BOLD);
+        	return -3;
         	/*
         	$dictTable = 'nlp_dict_'.$to;
         	$dictTableCreate = Yii::$app->db->createCommand(
@@ -362,6 +363,8 @@ class NlpTaskController extends Controller
         if(empty($tagTable))//$to 词性表不存在
         {
         	$this->ansiFormat('词性表:'.$tagTable.' 不存在，导入数据前手动上传Excel模版创建该表', Console::BOLD);
+
+        	return -3;
         	/*
         	$tagTable = 'nlp_dict_tag_'.$to;
         	$tagTableCreate = Yii::$app->db->createCommand(
@@ -384,43 +387,7 @@ class NlpTaskController extends Controller
             */
         }
 
-        //导入词性
-        $wsQuery = (new Query())->from( $from )->select('key_type');
-		$wsCount = $wsQuery->count();
-
-		$loopSize = 10000;
-		$loopCount = ceil($wsCount / $loopSize);
-
-		//分批插入词库（每次最多1w条），防止内存占用过大
-		for($i = 0; $i < $loopCount;$i++)
-		{
-			if(!$wsQuery)
-				$wsQuery = (new Query())->from( $from )->select('key_name, key_type');
-
-			$offset = $i * $loopSize;
-			$wsQuery->limit($loopSize)->offset($offset);
-		
-			$dictSql = 'INSERT INTO ' . $dictTable . ' (word) VALUES ';
-			foreach ($wsQuery->each() as $c)
-			{
-				$dictSql .=  '(\'' . $this->fileterWord($c['word']) . '\'),';
-			}
-			
-			$wsQuery = null;
-			$c = null;
-			
-			$insertRet = Yii::$app->db->createCommand(substr($dictSql,0, -1) .' ON DUPLICATE KEY UPDATE `word` = VALUES(`word`);')->execute();#插入数据
-			
-			$dictSql = null;
-
-			if($insertRet === false)
-			{
-				$this->ansiFormat('词库表'.$dictTable .'数据填充失败', Console::BOLD);
-				return 1;
-			}
-		}
-
-        //导入词库
+        //获取抓取的分词数据
         $wsQuery = (new Query())->from( $from )->select('key_name, key_type');
 		$wsCount = $wsQuery->count();
 
@@ -435,27 +402,99 @@ class NlpTaskController extends Controller
 
 			$offset = $i * $loopSize;
 			$wsQuery->limit($loopSize)->offset($offset);
-		
-			$dictSql = 'INSERT INTO ' . $dictTable . ' (word) VALUES ';
+
+			$tagZhArr = [];
+			$dictArr = [];
+				
+
+			$tagSql = 'INSERT INTO ' . $tagTable . ' (tag, tag_zh) VALUES ';//tag, tag_zh 填写为同一词语
+
 			foreach ($wsQuery->each() as $c)
 			{
-				$dictSql .=  '(\'' . $this->fileterWord($c['word']) . '\'),';
+				$tagZh = $this->fileterWord($c['key_type']);
+				if(!$tagZh)
+					continue;
+
+				$dict = $this->fileterWord($c['key_name']);
+				if(!$dict)
+					continue;
+
+				$tagZhArr[] = $tagZh;
+				$dictArr[] = $dict;
+
+				$tagSql .=  '(\'' . $tagZh . '\', \'' . $tagZh . '\'),';
 			}
 			
 			$wsQuery = null;
 			$c = null;
 			
-			$insertRet = Yii::$app->db->createCommand(substr($dictSql,0, -1) .' ON DUPLICATE KEY UPDATE `word` = VALUES(`word`);')->execute();#插入数据
+			$insertRet = Yii::$app->db->createCommand(substr($tagSql,0, -1) .' ON DUPLICATE KEY UPDATE `tag_zh` = VALUES(`tag_zh`);')->execute();#插入词性表
 			
-			$dictSql = null;
+			$tagSql = null;
 
 			if($insertRet === false)
 			{
-				$this->ansiFormat('词库表'.$dictTable .'数据填充失败', Console::BOLD);
-				return 1;
+				$this->ansiFormat('词性表'.$tagTable .'数据填充失败', Console::BOLD);
+				return 10;
 			}
-		}
 
+			//查询tag_id
+			$tagQuery = (new Query())->from( $tagTable )->select('id, tag_zh')->where(['in', 'tag_zh', array_unique( $tagZhArr)] );
+
+			//before $tagZhArr = [ 'index' => 'tag_zh' ...]
+			foreach ($tagQuery->each() as $t) 
+			{
+				$tagZhIndexs = array_keys($tagZhArr, $t['tag_zh']);//find the keys of the same tag_zh in array $tagZhArr
+				foreach ($tagZhIndexs as $i) 
+				{
+					$tagZhArr[$i] = $t['id'];//replace the value of tag_zh with the value of tag_id in array $tagZhArr
+				}
+			}
+			$tagZhIndexs = null;
+			$tagQuery = null;
+
+			//after $tagZhArr = [ 'index' => 'tag_id' ...]
+
+			//填充词库 插入字段有:word, tag_id, prime_id, synonym_ids
+			$dictSql = 'INSERT INTO ' . $dictTable . ' (word, tag_id) VALUES ';
+			foreach ($dictArr as $i => $d) 
+			{
+				$dictSql .= '(\'' . $d . '\', ' . $tagZhArr[$i].'),';
+			}
+			$insertRet = Yii::$app->db->createCommand(substr($dictSql,0, -1) .' ON DUPLICATE KEY UPDATE `word` = VALUES(`word`);')->execute();#插入词库表
+
+			$dictSql = null;
+			$tagZhArr = null;
+
+			if(!$insertRet)
+			{
+				$this->ansiFormat('词库表'.$dictTable .'数据填充失败', Console::BOLD);
+				return 11;
+			}
+
+			//更新近义词
+			//use tables' word, prime_id, synonym_ids, if not exist then use current value
+			$dictQuery = (new Query())->from( $dictTable )->select('id, word, prime_id, synonym_ids')->where(['in', 'word', array_unique( $dictArr)] )->all();
+
+			$dictSql = 'INSERT INTO ' . $dictTable . ' (word, prime_id, synonym_ids) VALUES ';
+			foreach ($dictQuery->each() as $d) 
+			{
+				if(!$d['prime_id'])//update prime_id, synonym_ids ,use self id
+					$dictSql .= '(\'' . $d['word'] . '\', ' . $d['id']. ', ' . $d['id'] . '),';
+			}
+			$insertRet = Yii::$app->db->createCommand(substr($dictSql,0, -1) .' ON DUPLICATE KEY UPDATE `word` = VALUES(`word`);')->execute();#插入词库表
+
+			$dictQuery = null;
+			$dictSql = null;
+			$dictArr = null;
+
+			if(!$insertRet)
+			{
+				$this->ansiFormat('词库表'.$dictTable .'数据填充失败', Console::BOLD);
+				return 17;
+			}
+
+		}
 
 	}
 
@@ -468,15 +507,31 @@ class NlpTaskController extends Controller
 	{
 		$l = mb_strlen($str, 'utf-8');
 
-		$stopChar = Yii::$app->params['TRIM_CHAR'];
-		$newStr = '';
-		for($i = 0;$i < $l;$i++)
+		$chars = '';
+		foreach (Yii::$app->params['LTRIM_CHAR'] as $c) 
 		{
-			if(!in_array(mb_substr($str, $i, 1, 'utf-8'), $stopChar))
-			{
-				$newStr .= mb_substr($str, $i, 1, 'utf-8');
-			}
+			$chars .= $c;
 		}
-		return $newStr;
+		$str = ltrim( $str, $chars );
+
+		$chars = '';
+		foreach (Yii::$app->params['RTRIM_CHAR'] as $c) 
+		{
+			$chars .= $c;
+		}
+		$str = rtrim( $str, $chars );
+
+		//去括号
+		$lb = substr_count($str, '（');
+		$rb = substr_count($str, '）');
+		if($rb > $lb)
+			$str= rtrim($str, '）');
+
+		$lb = substr_count($str, '(');
+		$rb = substr_count($str, ')');
+		if($rb > $lb)
+			$str= rtrim($str, ')');
+
+		return $str;
 	}
 }
