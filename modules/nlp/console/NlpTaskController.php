@@ -6,6 +6,7 @@ use yii\helpers\Json;
 use yii\db\Query;
 use app\models\sl\SlTaskScheduleCrontabConsole;
 
+use yii\helpers\Console;
 use Yii;
 /**
  * NLP系统任务执行
@@ -305,14 +306,14 @@ class NlpTaskController extends Controller
 	{
 		if(empty($from) || empty($to))
 		{
-			$this->ansiFormat('参数:数据表 或 参数:导入表名 没有指定', Console::BOLD);
+			$this->stdout('参数:数据表 或 参数:导入表名 没有指定', Console::BOLD);
 			return -1;//参数不正确
 		}
 
 		$fromCheck = Yii::$app->db->createCommand("SHOW TABLES LIKE '$from'" )->queryOne();//检查数据表是否存在
 		if( !$fromCheck )
 		{
-			$this->ansiFormat('参数:数据表 经检查，不存在该表', Console::BOLD);
+			$this->stdout('参数:数据表 经检查，不存在该表', Console::BOLD);
 			return -1;//指定的数据表不存在
 		}
 
@@ -335,7 +336,7 @@ class NlpTaskController extends Controller
 
         if(empty($dictTable))//$to 词库表不存在
         {
-        	$this->ansiFormat('词库表:'.$dictTable.' 不存在，导入数据前手动上传Excel模版创建该表', Console::BOLD);
+        	$this->stdout('词库表:'.$dictTable.' 不存在，导入数据前手动上传Excel模版创建该表', Console::BOLD);
         	return -3;
         	/*
         	$dictTable = 'nlp_dict_'.$to;
@@ -354,7 +355,7 @@ class NlpTaskController extends Controller
 
             if($dictTableCreate === false)
             {
-            	$this->ansiFormat('词库表'.$dictTable .'创建失败', Console::BOLD);
+            	$this->stdout('词库表'.$dictTable .'创建失败', Console::BOLD);
                 return -3;
             }
             */
@@ -362,7 +363,7 @@ class NlpTaskController extends Controller
 
         if(empty($tagTable))//$to 词性表不存在
         {
-        	$this->ansiFormat('词性表:'.$tagTable.' 不存在，导入数据前手动上传Excel模版创建该表', Console::BOLD);
+        	$this->stdout('词性表:'.$tagTable.' 不存在，导入数据前手动上传Excel模版创建该表', Console::BOLD);
 
         	return -3;
         	/*
@@ -381,7 +382,7 @@ class NlpTaskController extends Controller
 
             if($tagTableCreate === false)
             {
-                $this->ansiFormat('词性表'.$tagTable .'创建失败', Console::BOLD);
+                $this->stdout('词性表'.$tagTable .'创建失败', Console::BOLD);
                 return -3;
             }
             */
@@ -434,7 +435,7 @@ class NlpTaskController extends Controller
 
 			if($insertRet === false)
 			{
-				$this->ansiFormat('词性表'.$tagTable .'数据填充失败', Console::BOLD);
+				$this->stdout('词性表'.$tagTable .'数据填充失败', Console::BOLD);
 				return 10;
 			}
 
@@ -466,35 +467,44 @@ class NlpTaskController extends Controller
 			$dictSql = null;
 			$tagZhArr = null;
 
-			if(!$insertRet)
+			if($insertRet === false)
 			{
-				$this->ansiFormat('词库表'.$dictTable .'数据填充失败', Console::BOLD);
+				$this->stdout('词库表'.$dictTable .'数据填充失败', Console::BOLD);
 				return 11;
 			}
-
 			//更新近义词
 			//use tables' word, prime_id, synonym_ids, if not exist then use current value
-			$dictQuery = (new Query())->from( $dictTable )->select('id, word, prime_id, synonym_ids')->where(['in', 'word', array_unique( $dictArr)] )->all();
+			$needUpdate = false;
+			$dictQuery = (new Query())->from( $dictTable )->select('id, word, prime_id, synonym_ids')->where(['in', 'word', array_unique( $dictArr)] );
 
 			$dictSql = 'INSERT INTO ' . $dictTable . ' (word, prime_id, synonym_ids) VALUES ';
 			foreach ($dictQuery->each() as $d) 
 			{
-				if(!$d['prime_id'])//update prime_id, synonym_ids ,use self id
+				if(empty((int)$d['prime_id']))//update prime_id, synonym_ids ,use self id
+				{
+					$needUpdate = true;
 					$dictSql .= '(\'' . $d['word'] . '\', ' . $d['id']. ', ' . $d['id'] . '),';
+				}
 			}
-			$insertRet = Yii::$app->db->createCommand(substr($dictSql,0, -1) .' ON DUPLICATE KEY UPDATE `word` = VALUES(`word`);')->execute();#插入词库表
 
-			$dictQuery = null;
-			$dictSql = null;
-			$dictArr = null;
-
-			if(!$insertRet)
+			if($needUpdate)
 			{
-				$this->ansiFormat('词库表'.$dictTable .'数据填充失败', Console::BOLD);
-				return 17;
+				$insertRet = Yii::$app->db->createCommand(substr($dictSql,0, -1) .' ON DUPLICATE KEY UPDATE `prime_id` = VALUES(`prime_id`), `synonym_ids` = VALUES(`synonym_ids`);')->execute();#插入词库表
+
+				$dictQuery = null;
+				$dictSql = null;
+				$dictArr = null;
+
+				if($insertRet === false)
+				{
+					$this->stdout('词库表'.$dictTable .'数据填充失败', Console::BOLD);
+					return 17;
+				}
 			}
 
 		}
+
+		return 0;
 
 	}
 
