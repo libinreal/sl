@@ -232,7 +232,6 @@ $this->registerJs($dataListJs);
                     + '<td><span class="cell">'+ _rows[_i]['weight'] +'</span>'+ '</td>'
 
                     + '<td><span class="cell">'+ _rows[_i]['tag'] +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ _rows[_i]['tag_zh'] +'</span>'+ '</td>'
                     + '<td><span class="cell">'+ String(_rows[_i]['synonyms']).substr(0,14) +'</span>'+ '</td>'
                     + '</tr>';
         }
@@ -328,7 +327,6 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
                     <th><span class="cell">词语</span></th>
                     <th><span class="cell">权重</span></th>
                     <th><span class="cell">标签</span></th>
-                    <th><span class="cell">标签备注</span></th>
                     <th><span class="cell">近义词</span></th>
                 </tr>
             </tbody>

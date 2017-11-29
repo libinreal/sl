@@ -61,7 +61,7 @@ class DictController extends \yii\web\Controller
             $whereStr = ' where 1=1 ';
             if(!empty($post['word']))
             {
-                $whereStr .= ' AND l.word like \'%' . trim($post['word']) . '%\'';
+                $whereStr .= ' AND l.word = \'%' . trim($post['word']) . '%\'';
             }
 
             if(!empty($post['tag']))
@@ -96,9 +96,8 @@ class DictController extends \yii\web\Controller
             $pageNo = isset($post['pageNo']) ? $post['pageNo'] : 1;
             $pageSize = isset($post['pageSize']) ? $post['pageSize'] : 10;
             $offset = ($pageNo - 1) * $pageSize;
-            $data = Yii::$app->db->createCommand('SELECT l.id, l.word, l.weight, t.tag, l.synonym_ids FROM '. $post['dic_name'] .' l ' .
+            $data = Yii::$app->db->createCommand('SELECT l.id, l.word, l.weight, t.tag, t.tag_zh, l.synonym_ids FROM '. $post['dic_name'] .' l ' .
                             ' LEFT JOIN '. preg_replace('/nlp_dict_/', 'nlp_dict_tag_', $post['dic_name']) . ' t ON l.tag_id = t.id ' . $whereStr . ' ORDER BY id LIMIT ' . $offset . ', '. $pageSize)->queryAll();
-
             //query synonyms with synonym_ids in dict table
             $needQuery = false;
             $synonymSql = 'SELECT id, word FROM ' . $post['dic_name'] . ' WHERE id IN (';
@@ -191,14 +190,14 @@ class DictController extends \yii\web\Controller
             $dictTablePrefix = 'nlp_dict_';
             $tagTablePrefix = 'nlp_dict_tag_';
 
-            $dictFields = ['word', 'weight', 'tag', 'synonym', 'delete'];
-            $tagFields = ['tag', 'parent', 'delete'];
+            $dictFields = ['word', 'weight', 'tag', 'synonym'];
+            $tagFields = ['tag', 'tag_zh', 'parent'];
 
             $sheetCt = $objPHPExcel->getSheetCount();
             $rowCt = 0;
             $columnCt = 0;
 
-            // ************************************************ setup 1  :insert & delete ***************************************
+            // ************************************************ setup 1  :insert ***************************************
             //insert excel data into dict and tag table
             for ($wi = 0;$wi < $sheetCt;$wi++) 
             {
@@ -221,13 +220,7 @@ class DictController extends \yii\web\Controller
                 $fieldColumnMap = [];
 
                 $insertDictSql = 'INSERT INTO ' . $dictTable . ' (word, weight) VALUES';
-                $insertTagSql = 'INSERT INTO ' . $tagTable . ' (tag) VALUES';
-
-                $deleteDictSql = 'DELETE FROM ' . $dictTable . ' WHERE word IN(';
-                $deleteTagSql = 'DELETE FROM ' . $tagTable . ' WHERE tag IN(';
-
-                $needInsert = false;
-                $needDelete = false;
+                $insertTagSql = 'INSERT INTO ' . $tagTable . ' (tag, tag_zh) VALUES';
 
                 for ($ri = 1;$ri <= $rowCt;$ri++)
                 {
@@ -276,43 +269,25 @@ class DictController extends \yii\web\Controller
                             $weightV = (float)$worksheet->getCell($fieldColumnMap['weight'].$ri)->getValue();
                             $synonymV = (string)$worksheet->getCell($fieldColumnMap['synonym'].$ri)->getValue();
 
-                            $deleteV = (string)$worksheet->getCell($fieldColumnMap['delete'].$ri)->getValue();
-
                             //check empty
                             if(!$wordV)                            
                             {
                                 continue;
                             }
 
+                            $insertDictSql .= '(\'' . $wordV . '\', ' . $weightV . '),' ;
+                            //insert synonym words
                             $synonymInfo = explode(',', $synonymV);
 
-                            if($deleteV == 'y')
+                            foreach ($synonymInfo as $wordV) 
                             {
-                                $deleteDictSql .= '\'' . $wordV . '\',' ;
-
-                                foreach ($synonymInfo as $wordV) 
-                                {
-                                    $needDelete = true;//delete flag
-                                    $deleteDictSql .= '\'' . $wordV . '\',' ;
-                                }
-                            }
-                            else
-                            {
-
-                                $insertDictSql .= '(\'' . $wordV . '\',' . $weightV . '),' ;
-                                //insert synonym words
-
-                                foreach ($synonymInfo as $wordV) 
-                                {
-                                    $needInsert = true;//insert flag
-                                    $insertDictSql .= '(\'' . $wordV . '\',' . $weightV . '),' ;
-                                }
+                                $insertDictSql .= '(\'' . $wordV . '\', ' . $weightV . '),' ;
                             }
                         }
                         else
                         {
                             $tagV = (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue();
-                            $deleteV = (string)$worksheet->getCell($fieldColumnMap['delete'].$ri)->getValue();
+                            $tagZhV = (string)$worksheet->getCell($fieldColumnMap['tag_zh'].$ri)->getValue();
 
                             //check empty
                             if(!$tagV)                            
@@ -320,16 +295,7 @@ class DictController extends \yii\web\Controller
                                 continue;
                             }
 
-                            if($deleteV == 'y')
-                            {
-                                $needDelete = true;//delete flag
-                                $deleteTagSql .= '\'' . $tagV . '\',' ;
-                            }
-                            else
-                            {
-                                $needInsert = true;//insert flag
-                                $insertTagSql .= '(\'' . $tagV . '\'),' ;
-                            }
+                            $insertTagSql .= '(\'' . $tagV . '\', \'' . $tagZhV . '\'),' ;
                         }
                     }
                 }
@@ -364,7 +330,7 @@ class DictController extends \yii\web\Controller
                         }
                     }
                     
-                    if($needInsert)
+                    if(!empty($wordV))
                     {
                         $addResult = Yii::$app->db->createCommand(substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`);')->execute();
                         // echo substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`)';exit;
@@ -373,19 +339,6 @@ class DictController extends \yii\web\Controller
                             return [
                                     'code'=>'-3',
                                     'msg'=>'dict table insert data error',
-                                    'data'=>''
-                                ];
-                        }
-                    }
-                    if($needDelete)
-                    {
-                        $deleteResult = Yii::$app->db->createCommand(substr($deleteDictSql, 0, -1) . ');')->execute();
-                        // echo substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`)';exit;
-                        if($deleteResult === false)
-                        {
-                            return [
-                                    'code'=>'-3',
-                                    'msg'=>'dict table delete data error',
                                     'data'=>''
                                 ];
                         }
@@ -402,8 +355,10 @@ class DictController extends \yii\web\Controller
                               "`id` int(11) unsigned NOT NULL AUTO_INCREMENT," .
                               "`tag` char(30) NOT NULL DEFAULT '' COMMENT '标签'," .
                               "`pid` int(11) unsigned NOT NULL DEFAULT '0'," .
+                              "`tag_zh` char(100) NOT NULL DEFAULT '' COMMENT '标签中文'," .
                               "PRIMARY KEY (`id`)," .
-                              "UNIQUE KEY `tag_".$sheetTitleInfo[0]."_tag` (`tag`)" .
+                              "UNIQUE KEY `tag_".$sheetTitleInfo[0]."_tag` (`tag`)," .
+                              "UNIQUE KEY `tag_".$sheetTitleInfo[0]."_tag_zh` (`tag_zh`)" .
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='".$sheetTitleInfo[1]."分词词性';"
                         )->execute();//创建词性表
 
@@ -418,9 +373,9 @@ class DictController extends \yii\web\Controller
                         }
                     }
 
-                    if($needInsert)
+                    if(!empty($tagV))
                     {
-                        $addResult = Yii::$app->db->createCommand(substr($insertTagSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `tag` = VALUES(`tag`);')->execute();
+                        $addResult = Yii::$app->db->createCommand(substr($insertTagSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `tag` = VALUES(`tag`), `tag_zh` = VALUES(`tag_zh`);')->execute();
 
                         if($addResult === false)
                         {
@@ -431,21 +386,6 @@ class DictController extends \yii\web\Controller
                                 ];
                         }
                     }
-                    if($needDelete)
-                    {
-                        $deleteResult = Yii::$app->db->createCommand(substr($deleteTagSql, 0, -1) . ');')->execute();
-
-                        if($deleteResult === false)
-                        {
-                            return [
-                                    'code'=>'-3',
-                                    'msg'=>'tag table delete data error',
-                                    'data'=>''
-                                ];
-                        }
-                    }
-                    // test
-                    // return['code'=>'37','msg'=>$insertTagSql. '   '.$deleteTagSql, 'data'=>''];
                 }
             }
             // ************************************************ setup 2  update relation ***************************************
@@ -470,10 +410,8 @@ class DictController extends \yii\web\Controller
                 $sheetFields = [];
                 $fieldColumnMap = [];
 
-                $needUpdate = false;
-
                 $idDictSql = 'SELECT id,word FROM ' . $dictTable;
-                $idTagSql = 'SELECT id,tag FROM ' . $tagTable;
+                $idTagSql = 'SELECT id,tag_zh FROM ' . $tagTable;
 
                 for ($ri = 1;$ri <= $rowCt;$ri++)
                 {
@@ -545,12 +483,10 @@ class DictController extends \yii\web\Controller
                                 
                             $wordV = (string)$worksheet->getCell($fieldColumnMap['word'].$ri)->getValue();
                             $synonymV = (string)$worksheet->getCell($fieldColumnMap['synonym'].$ri)->getValue();
-                            $deleteV = (string)$worksheet->getCell($fieldColumnMap['delete'].$ri)->getValue();
-                            
                             $primeId = array_search($wordV, $dictIdWord);
 
                             //check empty
-                            if(!$wordV || $deleteV == 'y')
+                            if(!$wordV)
                             {
                                 continue;
                             }
@@ -582,12 +518,11 @@ class DictController extends \yii\web\Controller
                             {
                                 $synonymSql .= '(' . $primeId . ', ' . $primeId . ', \'' . $primeId . '\'),';#synonym_ids为空字符串
                             }
-                            $needUpdate = true;
 
                         }
                     }
 
-                    if($needUpdate)
+                    if(!empty($wordV))
                     {
                         $synonymRet = Yii::$app->db->createCommand(substr($synonymSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `prime_id` = VALUES(`prime_id`), `synonym_ids` = VALUES(`synonym_ids`);')->execute();
                         if($synonymRet === false)
@@ -616,23 +551,23 @@ class DictController extends \yii\web\Controller
                     $newTagIdWord = [];
                     foreach ($tagIdWord as $t) 
                     {
-                        $newTagIdWord[$t['id']] = $t['tag'];
+                        $newTagIdWord[$t['id']] = $t['tag_zh'];
                     }
                     $tagIdWord = $newTagIdWord;
 
                     $parentTagSql = 'INSERT INTO ' . $tagTable . ' (id, pid) VALUES'; #update pid in `tag` table
+                    $needUpdate = false;
 
                     for ($ri = 2;$ri <= $rowCt;$ri++)
                     {
                         for ($ci = 'A';$ci <= $columnCt;$ci++)
                         {
 
-                            $tagV = (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue();
+                            $tagV = (string)$worksheet->getCell($fieldColumnMap['tag_zh'].$ri)->getValue();
                             $parentV = (string)$worksheet->getCell($fieldColumnMap['parent'].$ri)->getValue();
-                            $deleteV = (string)$worksheet->getCell($fieldColumnMap['delete'].$ri)->getValue();
                             
                             //check empty
-                            if(!$tagV || $deleteV == 'y')
+                            if(!$tagV)
                             {
                                 continue;
                             }
@@ -667,7 +602,7 @@ class DictController extends \yii\web\Controller
                 }
             }
 
-            // ************************************************ setup 3  dict.tag_id ***************************************
+            // ************************************************ setup 3  tag_id ***************************************
             for ($wi = 0;$wi < $sheetCt;$wi++) 
             {
                 $worksheet = $objPHPExcel->getSheet($wi);
@@ -687,8 +622,6 @@ class DictController extends \yii\web\Controller
                 
                 $sheetFields = [];
                 $fieldColumnMap = [];
-
-                $needUpdate = false;
 
                 for ($ri = 1;$ri <= $rowCt;$ri++)
                 {
@@ -745,10 +678,9 @@ class DictController extends \yii\web\Controller
                         {
                             $wordV = (string)$worksheet->getCell($fieldColumnMap['word'].$ri)->getValue();
                             $synonymV = (string)$worksheet->getCell($fieldColumnMap['synonym'].$ri)->getValue();
-                            $deleteV = (string)$worksheet->getCell($fieldColumnMap['delete'].$ri)->getValue();
 
                             //check empty
-                            if(!$wordV || $deleteV == 'y')                            
+                            if(!$wordV)                            
                             {
                                 continue;
                             }
@@ -767,7 +699,6 @@ class DictController extends \yii\web\Controller
                             {
                                 $tagIdSql .= '(\'' . $wordV . '\', ' . $tagId . '),' ;
                             }
-                            $needUpdate = true;
                         }
                     }
                 }
@@ -775,7 +706,7 @@ class DictController extends \yii\web\Controller
                 if(!$isDict)
                     continue;
 
-                if($needUpdate)
+                if(!empty($wordV))
                 {
                     //execute tag_id update sql statement
                     $updateTagIdRet = Yii::$app->db->createCommand(substr($tagIdSql, 0, -1) . ' ON DUPLICATE KEY UPDATE `tag_id` = VALUES(`tag_id`);' )->execute();
@@ -864,7 +795,7 @@ class DictController extends \yii\web\Controller
             $pageNo = isset($post['pageNo']) ? $post['pageNo'] : 1;
             $pageSize = isset($post['pageSize']) ? $post['pageSize'] : 10;
             $offset = ($pageNo - 1) * $pageSize;
-            $data = Yii::$app->db->createCommand('SELECT l.id, l.tag, r.tag parent FROM '. $post['dic_name'] .' l ' .
+            $data = Yii::$app->db->createCommand('SELECT l.id, l.tag, l.tag_zh, r.tag_zh parent FROM '. $post['dic_name'] .' l ' .
                             ' LEFT JOIN '. $post['dic_name'] . ' r ON l.pid = r.id ' . $whereStr . ' ORDER BY id LIMIT ' . $offset . ', '. $pageSize)->queryAll();
 
             return  [

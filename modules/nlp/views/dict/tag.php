@@ -229,8 +229,6 @@ $this->registerJs($dataListJs);
         {
             _trStr += '<tr data-id="'+_rows[_i]['id']+'"><td><span class="cell">'+ _rows[_i]['id'] +'</span>'+ '</td>'
                     + '<td><span class="cell">'+ _rows[_i]['tag'] +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ _rows[_i]['tag_zh'] +'</span>'+ '</td>'
-
                     + '<td><span class="cell">'+ _rows[_i]['parent'] +'</span>'+ '</td>'
                     + '</tr>';
         }
@@ -296,7 +294,6 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
                 <tr class="sl-table__header">
                     <th><span class="cell">ID</span></th>
                     <th><span class="cell">标签</span></th>
-                    <th><span class="cell">标签备注</span></th>
                     <th><span class="cell">上级标签</span></th>
                 </tr>
             </tbody>
