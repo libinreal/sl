@@ -19,11 +19,11 @@ class NlpTaskController extends Controller
 	/**
 	 * 对指定日期和任务名称的抓取数据表做分词和标注，结果存储在`nlp_seg_`的前缀表
 	 * 例如对于数据表`ws_36_20171020_261`，分词和标注结果存在`nlp_seg_36_20171020_261`
-	 * 需要指定两个参数： start_date 和 name
+	 * 需要指定三个参数： start_date 和 name dictNames
 	 * @param $start_date 任务的计划开始日期
 	 * @param $name 任务名称
 	 */
-	public function actionTag($start_date, $name)
+	public function actionTag($start_date, $name, $dictNames)
 	{
 		// NlpLogConsole::find();
 		// (new Query())->from('nlp_log')->where('ws_data')
@@ -32,8 +32,25 @@ class NlpTaskController extends Controller
 
 		//paramaters lost
 		if(!$name || !$start_date)
+		{
+			$this->stdout('name 或 start_date 参数为空', Console::BOLD);
 			return 1;
+		}
 
+		if(!$dictNames)
+		{
+			$this->stdout('dictNames 参数为空', Console::BOLD);
+			return 1;	
+		}
+
+		//********************************************************* step 1. merge dict **********************************************
+		if($this->mergeDict($dictNames) === false)
+		{
+			$this->stdout('词库表 合并失败', Console::BOLD);
+			return -1;
+		}
+
+		//********************************************************* step 2. segment **********************************************
 		$create_time_start = strtotime($start_date);
 		$create_time_end = $create_time_start + 3600 * 24;
 
@@ -56,7 +73,10 @@ class NlpTaskController extends Controller
 
 			//data source not exists , uncompleted
 			if(!$tableCheck || $crontabData['task_status'] != SlTaskScheduleCrontabConsole::TASK_STATUS_COMPLETED)
+			{
+				$this->stdout('数据来源表不存在 或 数据未抓取完毕', Console::BOLD);
 				return 3;
+			}
 
 			//drop tag table if exists
 			$tableTag = 'nlp_seg_' . $crontabData['sche_id']. '_'.$start_date_ret.'_'.$crontabData['id'];
@@ -73,7 +93,10 @@ class NlpTaskController extends Controller
 
 			//create table failed
 			if($tableTagCreate === false)
+			{
+				$this->stdout('切分表创建失败', Console::BOLD);
 				return 4;
+			}
 			
 			//source records
 			$wsQuery = (new Query())->from( $crontabData['table'] )->select('id, product_code, product_title ');
@@ -111,7 +134,10 @@ class NlpTaskController extends Controller
 				$insertSql = null;
 
 				if($insertRet === false)
-					return 1;
+				{
+					$this->stdout('切分表插入失败', Console::BOLD);
+					return 17;
+				}
 			}
 		}
 		/***生成每日子任务 END***/
@@ -231,13 +257,20 @@ class NlpTaskController extends Controller
 	}
 
 	/**
-	 * 从Mysql的正式词库(词性)表中导出分词引擎识别的文本文件  user.dict.utf8 中
-	 * 需要指定词库(词性)名 $dict
-	 * @param $dict 词库(词性)名，不带'nlp_dict_'前缀
+	 * 合并多个词库，按顺序去重后，输出为一个文本文件
+	 * @param $dictNames 词库(词性)名列表，不带'nlp_dict_'前缀
 	 *
 	 */
-	public function actionExportDict($dict)
+	private function mergeDict($dictNames)
 	{	
+		$dictNameArr = implode(',', $dictNames);
+
+		if(empty($dictNameArr))
+		{
+			$this->stdout('参数错误，没有指定词库表', Console::BOLD);
+		    return 1;			
+		}
+
 		$dictList = Yii::$app->db->createCommand("SHOW TABLES LIKE 'nlp_dict%'" )->queryAll();//检查数据存放表是否存在
 	    $dictList = (array)$dictList;
 
@@ -245,54 +278,144 @@ class NlpTaskController extends Controller
 
         $dictTable = '';
         $tagTable = '';
-        foreach ($dictTemp as $t) 
+
+        $dictTables = [];
+        $tagTables = [];
+
+        foreach ($dictNameArr as $dict) 
         {
-            $tn = (array_values($t))[0];
-            
-            if($tn == 'nlp_dict_'.$dict)
-            	$dictTable = $tn;
-            if($tn == 'nlp_dict_tag_'.$dict)
-            	$tagTable = $tn;
+        	foreach ($dictTemp as $t)
+	        {
+	            $tn = (array_values($t))[0];
+	            
+	            if($tn == 'nlp_dict_'.$dict)
+	            	$dictTable = $tn;
+	            if($tn == 'nlp_dict_tag_'.$dict)
+	            	$tagTable = $tn;
+	        }
+
+	    	if(empty($dictTable))
+		    {
+		    	$this->stdout('词库表'.$dictTable.'不存在', Console::BOLD);
+		    	return 1;
+		    }
+
+		    if(empty($tagTable))
+		    {
+		    	$this->stdout('词性表'.$tagTable.'不存在', Console::BOLD);
+		    	return 1;
+		    }
+
+		    $dictTables[] = $dictTable;
+		    $tagTables[] = $tagTable;
+
+		    $dictTable = '';
+		    $tagTable = '';
+
         }
-	    
-	    //segment records
-		$segQuery = (new Query())->from( $crontabData['nlp_dict_'] )->select('id, product_code, product_title ');
-		$segCount = $segQuery->count();
+
+	    //创建合并输出表
+	    $mergeTable = 'nlp_seg_merge';
+		Yii::$app->db->createCommand("DROP TABLE IF EXISTS `". $mergeTable . "`;" )->execute();
+
+		$createRet = Yii::$app->db->createCommand(
+			"CREATE TABLE `". $mergeTable ."` (" . 
+			  "`word` text NOT NULL COMMENT '分词'," .
+			  "`weight` float(24,3) unsigned NOT NULL DEFAULT '0.000'," .
+			  "`tag` char(100) NOT NULL DEFAULT '' COMMENT '词性标注'," .
+			  "UNIQUE KEY `seg_merge_word` (`word`)" .
+			") ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='".implode(',', $dictNameArr)."合并表';"
+		)->execute();//创建标记数据表
+
+		//create table failed
+		if($createRet === false)
+		{
+			$this->stdout('生成'.implode(',', $dictNameArr).'合并表失败', Console::BOLD);
+			return 3;
+		}
+
+        foreach ($dictTables as $k => $dictTable) //遍历参数中的词库表
+        {
+        	$tagTable = $tagTables[$k];
+		    //segment records
+			$dictQuery = (new Query())->from( $dictTable . ' d ' )->select('d.word, d.weight, t.tag ')->leftJoin($tagTable . ' t ', ' d.tag_id = t.id');
+			$dictCount = $dictQuery->count();
+
+			$loopSize = 10000;
+			$loopCount = ceil($dictCount / $loopSize);
+
+	        //分批写入（每次最多1w条），防止内存占用过大
+			for($i = 0; $i < $loopCount;$i++)
+			{
+				if(!$dictQuery)
+					$dictQuery = (new Query())->from( $dictTable . ' d ' )->select('d.word, d.weight, t.tag ')->leftJoin($tagTable . ' t ', ' d.tag_id = t.id');
+
+				$offset = $i * $loopSize;
+				$dictQuery->limit($loopSize)->offset($offset);
+				
+				$insertSql = 'INSERT INTO ' . $mergeTable . ' (word, weight, tag) VALUES ';
+				foreach ($dictQuery->each() as $c)
+				{
+					$insertSql .= '(\''. $c['word'] . '\', ' . $c['weight'] . ', \'' . $c['tag'] . '\'),';
+				}
+				
+				$dictQuery = null;
+				
+				if(!empty($c))
+				{
+					$insertRet = Yii::$app->db->createCommand(substr($insertSql, 0, -1).' ON DUPLICATE KEY UPDATE `word` = VALUES(`word`), `weight` = VALUES(`weight`), `tag` = VALUES(`tag`);')->execute();#插入数据
+					
+					$insertSql = null;
+
+					if($insertRet === false)
+					{
+						$this->stdout('合并词库'.$dictTable.'失败', Console::BOLD);
+						return 17;
+					}
+				}
+				$c = null;
+			}
+		}
+
+		//输出为 user.dict.utf8
+		if( !is_writable(Yii::$app->params['DICT_PATH'].'user.dict.utf8') || ($dictRes = fopen(Yii::$app->params['DICT_PATH'].'user.dict.utf8', 'w')) === false )//获取文件句柄
+		{
+			$this->stdout(Yii::$app->params['DICT_PATH'].'user.dict.utf8 创建失败', Console::BOLD);
+			return 21;
+		}
+
+
+		$mergeQuery = (new Query())->from( $mergeTable )->select('word, weight, tag');
+		$mergeCount = $mQuery->count();
 
 		$loopSize = 10000;
-		$loopCount = ceil($segCount / $loopSize);
+		$loopCount = ceil($mergeCount / $loopSize);
 
         //分批写入（每次最多1w条），防止内存占用过大
 		for($i = 0; $i < $loopCount;$i++)
 		{
-			if(!$segQuery)
-				$segQuery = (new Query())->from( $crontabData['table'] )->select('id, product_code, product_title ');
+			if(!$mergeQuery)
+				$mergeQuery = (new Query())->from( $mergeTable )->select('word, weight, tag');
 
 			$offset = $i * $loopSize;
-			$segQuery->limit($loopSize)->offset($offset);
-		
-			$insertSql = 'INSERT INTO ' . $tableTag . ' (id, code, word, tag) VALUES ';
-			foreach ($segQuery->each() as $c)
+			$mergeQuery->limit($loopSize)->offset($offset);	
+
+			for($mergeQuery->each() as $m)
 			{
-				$segments = jieba($c['product_title'], 2);//['word' => 'tag']
 
-				$wordArr = array_keys($segments);
-				$wordArr = $this->_segBysort($wordArr, $c['product_title']);
-				$wordArr = $this->_segByAdd($wordArr, $c['product_title']);
-
-				$insertSql .=  $this->_spellSegSql( $c['id'], $c['product_code'], $wordArr, $segments );
+				if( fwrite( $dictRes, $m['word'] .' ' . $m['weight']. ' ' . $m['tag']."\n") === false )
+				{
+					$this->stdout(Yii::$app->params['DICT_PATH'].'user.dict.utf8 写入失败', Console::BOLD);
+					return 25;
+				}
 			}
 			
-			$segQuery = null;
-			$c = null;
-			
-			$insertRet = Yii::$app->db->createCommand(substr($insertSql,0, -1))->execute();#插入数据
-			
-			$insertSql = null;
-
-			if($insertRet === false)
-				return 1;
+			$mergeQuery = null;
 		}
+
+		fclose($dictRes);
+		return true;
+		
 	}
 
 
@@ -398,6 +521,7 @@ class NlpTaskController extends Controller
 		//分批插入词库（每次最多1w条），防止内存占用过大
 		for($i = 0; $i < $loopCount;$i++)
 		{
+			//************************************************************* step 1. insert tag ***********************************************
 			if(!$wsQuery)
 				$wsQuery = (new Query())->from( $from )->select('key_name, key_type');
 
@@ -407,7 +531,6 @@ class NlpTaskController extends Controller
 			$tagZhArr = [];
 			$dictArr = [];
 				
-
 			$tagSql = 'INSERT INTO ' . $tagTable . ' (tag, tag_zh) VALUES ';//tag, tag_zh 填写为同一词语
 
 			foreach ($wsQuery->each() as $c)
@@ -439,6 +562,7 @@ class NlpTaskController extends Controller
 				return 10;
 			}
 
+			//***********************************************************step 2. insert dict ********************************************************
 			//查询tag_id
 			$tagQuery = (new Query())->from( $tagTable )->select('id, tag_zh')->where(['in', 'tag_zh', array_unique( $tagZhArr)] );
 
@@ -472,6 +596,8 @@ class NlpTaskController extends Controller
 				$this->stdout('词库表'.$dictTable .'数据填充失败', Console::BOLD);
 				return 11;
 			}
+
+			//***********************************************************step 3. update synonym_ids ********************************************************
 			//更新近义词
 			//use tables' word, prime_id, synonym_ids, if not exist then use current value
 			$needUpdate = false;

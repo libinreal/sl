@@ -48,7 +48,8 @@ $config = [
             ' ',
             '.',
             '-'
-        ]
+        ],
+        'DICT_PATH'=>'/usr/local/src/phpjieba-master/cjieba/dict/'
     ],
     /*
     'controllerMap' => [        'fixture' => [ // Fixture generation command line.
