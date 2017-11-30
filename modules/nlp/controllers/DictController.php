@@ -292,6 +292,8 @@ class DictController extends \yii\web\Controller
 
                                 foreach ($synonymInfo as $wordV) 
                                 {
+                                    if(!trim($wordV))
+                                        continue;
                                     $needDelete = true;//delete flag
                                     $deleteDictSql .= '\'' . $wordV . '\',' ;
                                 }
@@ -311,6 +313,8 @@ class DictController extends \yii\web\Controller
 
                                 foreach ($synonymInfo as $wordV) 
                                 {
+                                    if(!trim($wordV))
+                                        continue;
                                     $needInsert = true;//insert flag
                                     $insertDictSql .= '(\'' . $wordV . '\',' . $weightV . '),' ;
                                 }
@@ -597,6 +601,8 @@ class DictController extends \yii\web\Controller
                                 $synonymIds = [ $primeId ];//prime_id self
                                 foreach ($synonymInfo as $s) 
                                 {
+                                    if(!trim($s))
+                                        continue;
                                     $synonymIds[] = array_search($s, $dictIdWord);
                                     /*if(!array_search($s, $dictIdWord))
                                         {
@@ -800,6 +806,8 @@ class DictController extends \yii\web\Controller
 
                             foreach ($synonymInfo as $wordV) 
                             {
+                                if(!trim($wordV))
+                                        continue;
                                 $tagIdSql .= '(\'' . $wordV . '\', ' . $tagId . '),' ;
                             }
                             $needUpdate = true;
