@@ -298,8 +298,15 @@ class DictController extends \yii\web\Controller
                             }
                             else
                             {
+                                $tagV = (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue();//use dict field `tag` to insert into `tag` table
+
+                                if($tagV)
+                                {
+                                    $insertTagSql .= '(\'' . $tagV . '\'),' ;
+                                }
 
                                 $insertDictSql .= '(\'' . $wordV . '\',' . $weightV . '),' ;
+                                
                                 //insert synonym words
 
                                 foreach ($synonymInfo as $wordV) 
@@ -363,12 +370,38 @@ class DictController extends \yii\web\Controller
                             ];
                         }
                     }
+
+                    $e = Yii::$app->db->createCommand("SHOW TABLES LIKE '${tagTable}'" )->queryOne();   
+                    if(!$e)
+                    {
+
+                        $tagTableCreate = Yii::$app->db->createCommand(
+                            "CREATE TABLE `". $tagTable ."` (" . 
+                              "`id` int(11) unsigned NOT NULL AUTO_INCREMENT," .
+                              "`tag` char(30) NOT NULL DEFAULT '' COMMENT '标签'," .
+                              "`pid` int(11) unsigned NOT NULL DEFAULT '0'," .
+                              "PRIMARY KEY (`id`)," .
+                              "UNIQUE KEY `tag_".$sheetTitleInfo[0]."_tag` (`tag`)" .
+                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='".$sheetTitleInfo[1]."分词词性';"
+                        )->execute();//创建词性表
+
+                        if($tagTableCreate === false)
+                        {
+                            // var_dump($e, $tagTableCreate);
+                            return [
+                                'code'=>'-9',
+                                'msg'=>'tag table can not be created,insert failed',
+                                'data'=>''
+                            ];
+                        }
+                    }
                     
                     if($needInsert)
                     {
                         $addResult = Yii::$app->db->createCommand(substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`);')->execute();
+                        $addTagResult = Yii::$app->db->createCommand(substr($insertTagSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `tag` = VALUES(`tag`);')->execute();
                         // echo substr($insertDictSql, 0, -1) . ' ON DUPLICATE KEY UPDATE  `weight` = VALUES(`weight`)';exit;
-                        if($addResult === false)
+                        if($addResult === false || $addTagResult === false)
                         {
                             return [
                                     'code'=>'-3',

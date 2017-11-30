@@ -156,14 +156,14 @@ class NlpTaskController extends Controller
 		$ksArr = [];
 		foreach ($seg as $i) 
 		{
-			$p = strpos($stat, $i);
+			$p = mb_strpos($stat, $i, 0, 'utf-8');
 			if(!isset($ksArr[$p]))
 			{
 				$ksArr[$p]  = $i;
 			}
 			else//from new offset find position to avoid replace the lastest position
 			{
-				$p = strpos($stat, $i, $p+1);
+				$p = mb_strpos($stat, $i, $p+1, 'utf-8');
 				$ksArr[$p] = $i;
 			}
 
@@ -181,11 +181,11 @@ class NlpTaskController extends Controller
 	  */
 	private function _segByAdd($seg, $stat)
 	{
-		$iMap = array_fill(0, strlen($stat),'');#整个位置图
+		$iMap = array_fill(0, mb_strlen($stat, 'utf-8'),'');#整个位置图
 		$cMap = [];#使用的位置图
 		foreach ($seg as $i => $s) 
 		{
-			$cm = array_fill( $i, strlen($s), '');
+			$cm = array_fill( $i, mb_strlen($s, 'utf-8'), '');
 			$cMap  = $cMap + $cm;
 		}
 		$oMap = array_diff_key($iMap, $cMap);
@@ -216,7 +216,7 @@ class NlpTaskController extends Controller
 			}
 			if($end === false)
 				$end = $oMaps[$j - 1];# $j - 1 == $c-1
-			$seg[$start] = substr($stat, $start, $end - $start + 1);
+			$seg[$start] = mb_substr($stat, $start, $end - $start + 1, 'utf-8');
 			// echo "<br>add内部<br>";
 			// var_dump($oMaps, $start, $end - $start + 1, substr($stat, $start, $end - $start + 1));
 			
@@ -263,7 +263,7 @@ class NlpTaskController extends Controller
 	 */
 	private function mergeDict($dictNames)
 	{	
-		$dictNameArr = implode(',', $dictNames);
+		$dictNameArr = explode(',', $dictNames);
 
 		if(empty($dictNameArr))
 		{
@@ -320,7 +320,7 @@ class NlpTaskController extends Controller
 
 		$createRet = Yii::$app->db->createCommand(
 			"CREATE TABLE `". $mergeTable ."` (" . 
-			  "`word` text NOT NULL COMMENT '分词'," .
+			  "`word` char(255) NOT NULL COMMENT '分词'," .
 			  "`weight` float(24,3) unsigned NOT NULL DEFAULT '0.000'," .
 			  "`tag` char(100) NOT NULL DEFAULT '' COMMENT '词性标注'," .
 			  "UNIQUE KEY `seg_merge_word` (`word`)" .
@@ -338,7 +338,7 @@ class NlpTaskController extends Controller
         {
         	$tagTable = $tagTables[$k];
 		    //segment records
-			$dictQuery = (new Query())->from( $dictTable . ' d ' )->select('d.word, d.weight, t.tag ')->leftJoin($tagTable . ' t ', ' d.tag_id = t.id');
+			$dictQuery = (new Query())->from( $dictTable . ' d ' )->select('d.word, d.weight, t.tag ')->leftJoin('`'.$tagTable . '` t ', ' d.tag_id = t.id');
 			$dictCount = $dictQuery->count();
 
 			$loopSize = 10000;
@@ -348,7 +348,7 @@ class NlpTaskController extends Controller
 			for($i = 0; $i < $loopCount;$i++)
 			{
 				if(!$dictQuery)
-					$dictQuery = (new Query())->from( $dictTable . ' d ' )->select('d.word, d.weight, t.tag ')->leftJoin($tagTable . ' t ', ' d.tag_id = t.id');
+					$dictQuery = (new Query())->from( $dictTable . ' d ' )->select('d.word, d.weight, t.tag ')->leftJoin('`'.$tagTable . '` t ', ' d.tag_id = t.id');
 
 				$offset = $i * $loopSize;
 				$dictQuery->limit($loopSize)->offset($offset);
@@ -386,7 +386,7 @@ class NlpTaskController extends Controller
 
 
 		$mergeQuery = (new Query())->from( $mergeTable )->select('word, weight, tag');
-		$mergeCount = $mQuery->count();
+		$mergeCount = $mergeQuery->count();
 
 		$loopSize = 10000;
 		$loopCount = ceil($mergeCount / $loopSize);
@@ -400,7 +400,7 @@ class NlpTaskController extends Controller
 			$offset = $i * $loopSize;
 			$mergeQuery->limit($loopSize)->offset($offset);	
 
-			for($mergeQuery->each() as $m)
+			foreach($mergeQuery->each() as $m)
 			{
 
 				if( fwrite( $dictRes, $m['word'] .' ' . $m['weight']. ' ' . $m['tag']."\n") === false )
@@ -531,7 +531,7 @@ class NlpTaskController extends Controller
 			$tagZhArr = [];
 			$dictArr = [];
 				
-			$tagSql = 'INSERT INTO ' . $tagTable . ' (tag, tag_zh) VALUES ';//tag, tag_zh 填写为同一词语
+			$tagSql = 'INSERT INTO ' . $tagTable . ' (tag) VALUES ';//tag, tag_zh 填写为同一词语
 
 			foreach ($wsQuery->each() as $c)
 			{
@@ -546,13 +546,13 @@ class NlpTaskController extends Controller
 				$tagZhArr[] = $tagZh;
 				$dictArr[] = $dict;
 
-				$tagSql .=  '(\'' . $tagZh . '\', \'' . $tagZh . '\'),';
+				$tagSql .=  '(\'' . $tagZh . '\'),';
 			}
 			
 			$wsQuery = null;
 			$c = null;
 			
-			$insertRet = Yii::$app->db->createCommand(substr($tagSql,0, -1) .' ON DUPLICATE KEY UPDATE `tag_zh` = VALUES(`tag_zh`);')->execute();#插入词性表
+			$insertRet = Yii::$app->db->createCommand(substr($tagSql,0, -1) .' ON DUPLICATE KEY UPDATE `tag` = VALUES(`tag`);')->execute();#插入词性表
 			
 			$tagSql = null;
 
@@ -564,12 +564,12 @@ class NlpTaskController extends Controller
 
 			//***********************************************************step 2. insert dict ********************************************************
 			//查询tag_id
-			$tagQuery = (new Query())->from( $tagTable )->select('id, tag_zh')->where(['in', 'tag_zh', array_unique( $tagZhArr)] );
+			$tagQuery = (new Query())->from( $tagTable )->select('id, tag')->where(['in', 'tag', array_unique( $tagZhArr)] );
 
 			//before $tagZhArr = [ 'index' => 'tag_zh' ...]
 			foreach ($tagQuery->each() as $t) 
 			{
-				$tagZhIndexs = array_keys($tagZhArr, $t['tag_zh']);//find the keys of the same tag_zh in array $tagZhArr
+				$tagZhIndexs = array_keys($tagZhArr, $t['tag']);//find the keys of the same tag_zh in array $tagZhArr
 				foreach ($tagZhIndexs as $i) 
 				{
 					$tagZhArr[$i] = $t['id'];//replace the value of tag_zh with the value of tag_id in array $tagZhArr
