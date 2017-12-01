@@ -284,7 +284,7 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
         </div>
         <button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:goToPage(1);">搜索</button>
 
-        <!-- button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportUnknown(1);">导出Unknown</button -->
+        <button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportUnknown(1);">导出词性</button>
     </form>
     </div>
 

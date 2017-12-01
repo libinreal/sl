@@ -240,7 +240,7 @@ $this->registerJs($dataListJs);
     }
 
     /**
-     * 导出词性未识别词库
+     * 导出词库
      * @param 
      */
     function exportUnknown()
@@ -251,7 +251,7 @@ $this->registerJs($dataListJs);
             return;
         }
 
-        window.open('/nlp/dict/exportUnknown');
+        window.open('/nlp/dict/exportDict');
 
     }
 <?php
@@ -315,7 +315,7 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
         </div>
         <button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:goToPage(1);">搜索</button>
 
-        <!-- button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportUnknown(1);">导出Unknown</button -->
+        <button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportUnknown(1);">导出词库</button>
     </form>
     </div>
 

@@ -919,8 +919,8 @@ class DictController extends \yii\web\Controller
     }
 
     /**
-     * 以.xlsx格式输出unknown分词文件
-     *
+     * 以.xlsx的文件格式输出抓取数据的切分结果
+     * 
      */
     public function actionExportUnknown()
     {
@@ -1018,6 +1018,102 @@ class DictController extends \yii\web\Controller
 
         }
         
+    }
+
+    /**
+     * 以.xlsx的文件格式输出指定领域的词库
+     * 
+     */
+    public function actionExportDict()
+    {
+        if(Yii::$app->request->isGet)
+        {
+            $get = Yii::$app->request->get();
+            $name = isset($get['name']) ? (string)$get['name'] : '';
+            
+            if(!$name)
+                echo '日期和名称未指定';
+
+            $create_time_start = strtotime($start_date);
+            $create_time_end = $create_time_start + 3600 * 24;
+
+            $q = SlTaskScheduleCrontab::find();
+
+            $q->select('id, sche_id,start_time')
+                ->where('create_time >= :create_time_start and create_time <= :create_time_end', [':create_time_start' => $create_time_start, ':create_time_end' => $create_time_end])
+                ->andWhere('name = :name', [':name' => $name]);
+            
+            $crontabData = $q->asArray()->limit(1)->one();
+            $q = null;
+
+            if( $crontabData )
+            {
+                $start_date_ret = preg_replace('/-/', '', substr($crontabData['start_time'], 0, 10));
+                $segTable = 'nlp_seg_' . $crontabData['sche_id']. '_'.$start_date_ret.'_'.$crontabData['id'];//分词结果表
+                $wsTable = 'ws_' . $crontabData['sche_id']. '_'.$start_date_ret.'_'.$crontabData['id'];//商品表
+
+                $tableCheck = Yii::$app->db->createCommand("SHOW TABLES LIKE '". $segTable . "'" )->queryOne();//检查数据存放表是否存在
+
+                //data source not exists , uncompleted
+                if(!$tableCheck)
+                    return 3;
+
+                $ret = Yii::$app->db->createCommand('SELECT s.code, s.word, s.tag, w.product_title FROM ' . $segTable . ' s ' .
+                                            'LEFT JOIN ' . $wsTable . ' w ON s.id = w.id LIMIT '. $offset . ',' . $limit
+                                            )->queryAll();
+
+                $fileName = $name.''.$start_date_ret.' '.$offset.'-'.$limit;//excel info
+                $title = $crontabData['sche_id']. '_'.$start_date_ret.'_'.$crontabData['id'];
+
+                $objPHPExcel = new PHPExcel();
+                $objPHPExcel->getProperties()->setCreator('3tichina') //创建人
+                ->setLastModifiedBy('3tichina') //最后修改人
+                ->setTitle($title) //标题
+                ->setSubject($title) //题目
+                ->setDescription($title) //描述
+                ->setKeywords($title) //关键字
+                ->setCategory($title); //种类
+
+                $objWorkSheet = $objPHPExcel->setActiveSheetIndex(0);
+                //宽高
+
+                $objWorkSheet->getColumnDimension('A')->setWidth(21);
+
+                $objWorkSheet->getColumnDimension('B')->setWidth(21);
+                $objWorkSheet->getColumnDimension('C')->setWidth(21);
+                $objWorkSheet->getColumnDimension('D')->setWidth(300);
+
+                //字段名
+                $objWorkSheet->setCellValue('A1', 'code');
+                $objWorkSheet->setCellValue('B1', 'word');
+                $objWorkSheet->setCellValue('C1', 'tag');
+
+                $objWorkSheet->setCellValue('D1', 'product_title');
+
+                foreach ($ret as $i=>$r) 
+                {
+                    $wi = $i + 1;
+                    $objWorkSheet->setCellValue('A'.$wi, $r['code']);
+                    $objWorkSheet->setCellValue('B'.$wi, $r['word']);
+                    $objWorkSheet->setCellValue('C'.$wi, $r['tag']);
+
+                    $objWorkSheet->setCellValue('D'.$wi, $r['product_title']);
+                }
+
+                $objWorkSheet->setTitle($title);
+
+                $this->getxlsx($fileName, $objPHPExcel);
+            }
+        }
+    }
+
+    /**
+     * 以.xlsx的文件格式输出指定领域的词性
+     * 
+     */
+    public function actionExportTag()
+    {
+
     }
 
     /**
