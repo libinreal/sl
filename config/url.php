@@ -11,6 +11,8 @@ return [
 
     //nlp
     'nlp/<controller>/<action>' => 'nlp/<controller>/<action>',
+    'nlp/dict/export-dict/<n:\w+>' => 'nlp/dict/export-dict',
+    'nlp/dict/export-tag/<n:\w+>' => 'nlp/dict/export-tag',
 
     // sl/schedule
     'sl/<controller>/<action>' => 'sl/<controller>/<action>',

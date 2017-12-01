@@ -5,6 +5,8 @@ use yii\web\Response;
 use app\models\nlp\DictUploadExcelForm;
 use yii\web\UploadedFile;
 use yii\helpers\ArrayHelper;
+
+use yii\db\Query;
 use PHPExcel_IOFactory;
 use PHPExcel;
 
@@ -359,7 +361,7 @@ class DictController extends \yii\web\Controller
                               "`weight` float(24,10) unsigned NOT NULL DEFAULT '0.0000000000'," .
                               "`tag_id` int(10) unsigned DEFAULT '0'," .
                               "`prime_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '近义词代表词id'," .
-                              "`synonym_ids` text NOT NULL COMMENT '近义词id集合'," .
+                              "`synonym_ids` varchar(300) COLLATE utf8_bin NOT NULL DEFAULT '' COMMENT '近义词id集合'," .
                               "PRIMARY KEY (`id`)," .
                               "UNIQUE KEY `nlp_dict_" . $sheetTitleInfo[0] ."_word` (`word`)" .
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 DEFAULT COLLATE=utf8_bin COMMENT='".$sheetTitleInfo[1]."分词词库';"
@@ -1021,7 +1023,100 @@ class DictController extends \yii\web\Controller
     }
 
     /**
-     * 以.xlsx的文件格式输出指定领域的词库
+     * 检查参数的正确性和数据表是否存在，数据存在则返回.xlsx文件的下载地址
+     * 
+     */
+    public function actionExport()
+    {
+        if(Yii::$app->request->isGet)
+        {
+            $get = Yii::$app->request->get();
+            $dict = isset($get['dic_name']) ? (string)$get['dic_name'] : '';
+            $type = isset($get['type']) ? (string)$get['type'] : '';
+            Yii::$app->response->format = Response::FORMAT_JSON;
+
+            if(!$dict)
+            {
+                return [
+                    'code' => '-1',
+                    'msg'=>'词库名称未指定',
+                    'data'=>''
+                    ];
+            }
+
+            if(!$type)
+            {
+                return [
+                    'code' => '-1',
+                    'msg'=>'类型未指定',
+                    'data'=>''
+                    ];
+            }
+
+            $dictList = Yii::$app->db->createCommand("SHOW TABLES LIKE 'nlp_dict%'" )->queryAll();//检查数据存放表是否存在
+            $dictList = (array)$dictList;
+            $surfix = substr($dict, strrpos($dict, '_') + 1);
+
+            $dictTable = '';
+            $tagTable = '';
+
+            foreach ($dictList as $t)
+            {
+                $tn = (array_values($t))[0];
+                
+                if($tn == 'nlp_dict_'.$surfix)
+                    $dictTable = $tn;
+                if($tn == 'nlp_dict_tag_'.$surfix)
+                    $tagTable = $tn;
+            }
+
+            if(!$dictTable)
+            {
+                return [
+                    'code' => '17',
+                    'msg'=> '选择的词库表不存在',
+                    'data'=>''
+                ];
+            }
+
+            if(!$tagTable)
+            {
+                return [
+                    'code' => '21',
+                    'msg'=> '选择的词性表不存在',
+                    'data'=>''
+                ];
+            }
+
+            //dict .xlsx export url
+            if($type == 'dict')
+            {
+                return [
+                    'code' => '0',
+                    'data' => '/nlp/dict/export-dict/'.$dict,
+                    'msg' => 'ok'
+                ];
+            }
+            //tag .xlsx export url
+            if($type == 'tag')
+            {
+                return [
+                    'code' => '0',
+                    'data' => '/nlp/dict/export-tag/'.$dict,
+                    'msg' => 'ok'
+                ];
+            }  
+
+            return [
+                    'code' => '17',
+                    'msg'=>'param err',
+                    'data'=>''
+                    ];      
+        }
+    }
+
+    /**
+     * 以.xlsx的文件格式输出指定领域的词性
      * 
      */
     public function actionExportDict()
@@ -1029,81 +1124,166 @@ class DictController extends \yii\web\Controller
         if(Yii::$app->request->isGet)
         {
             $get = Yii::$app->request->get();
-            $name = isset($get['name']) ? (string)$get['name'] : '';
-            
-            if(!$name)
-                echo '日期和名称未指定';
+            $dictTable = isset( $get['n'] ) ? $get['n'] : '';
 
-            $create_time_start = strtotime($start_date);
-            $create_time_end = $create_time_start + 3600 * 24;
-
-            $q = SlTaskScheduleCrontab::find();
-
-            $q->select('id, sche_id,start_time')
-                ->where('create_time >= :create_time_start and create_time <= :create_time_end', [':create_time_start' => $create_time_start, ':create_time_end' => $create_time_end])
-                ->andWhere('name = :name', [':name' => $name]);
-            
-            $crontabData = $q->asArray()->limit(1)->one();
-            $q = null;
-
-            if( $crontabData )
+            if(!$dictTable)//要导出的词库表名
             {
-                $start_date_ret = preg_replace('/-/', '', substr($crontabData['start_time'], 0, 10));
-                $segTable = 'nlp_seg_' . $crontabData['sche_id']. '_'.$start_date_ret.'_'.$crontabData['id'];//分词结果表
-                $wsTable = 'ws_' . $crontabData['sche_id']. '_'.$start_date_ret.'_'.$crontabData['id'];//商品表
+                return false;
+            }
 
-                $tableCheck = Yii::$app->db->createCommand("SHOW TABLES LIKE '". $segTable . "'" )->queryOne();//检查数据存放表是否存在
+            $e = Yii::$app->db->createCommand("SHOW TABLES LIKE '${dictTable}'" )->queryOne();//再次检查表存在与否
+            if(!$e)
+            {
+                echo '指定的词库表不存在';
+                return false;
+            }
 
-                //data source not exists , uncompleted
-                if(!$tableCheck)
-                    return 3;
+            $tagTable = preg_replace('/nlp_dict_/', 'nlp_dict_tag_', $dictTable);
 
-                $ret = Yii::$app->db->createCommand('SELECT s.code, s.word, s.tag, w.product_title FROM ' . $segTable . ' s ' .
-                                            'LEFT JOIN ' . $wsTable . ' w ON s.id = w.id LIMIT '. $offset . ',' . $limit
-                                            )->queryAll();
+            $e = Yii::$app->db->createCommand("SHOW TABLES LIKE '${tagTable}'" )->queryOne();//检查词性表存在与否
+            if(!$e)
+            {
+                echo '与词库关联的词性表不存在，无法导出词库';
+                return false;
+            }
 
-                $fileName = $name.''.$start_date_ret.' '.$offset.'-'.$limit;//excel info
-                $title = $crontabData['sche_id']. '_'.$start_date_ret.'_'.$crontabData['id'];
+            $dictEn = preg_replace('/nlp_dict_/', '', $dictTable);
+            $tableComment = Yii::$app->db->createCommand("SHOW TABLE STATUS LIKE '${dictTable}'" )->queryOne();//表注释
+            if(!$tableComment)
+            {
+                $dictZh = $dictEn;
+            }
+            else
+            {
+                $dictZh = preg_replace('/分词词库/', '', $tableComment['Comment']);
+            }
 
-                $objPHPExcel = new PHPExcel();
-                $objPHPExcel->getProperties()->setCreator('3tichina') //创建人
-                ->setLastModifiedBy('3tichina') //最后修改人
-                ->setTitle($title) //标题
-                ->setSubject($title) //题目
-                ->setDescription($title) //描述
-                ->setKeywords($title) //关键字
-                ->setCategory($title); //种类
+            $title = $dictEn . '-' . $dictZh;
+            $fileName = '电商分词标注系统-导出词库('.$dictEn.')';
 
-                $objWorkSheet = $objPHPExcel->setActiveSheetIndex(0);
-                //宽高
+            //*************************************  step 1. setup excel ************************************
 
-                $objWorkSheet->getColumnDimension('A')->setWidth(21);
+            $objPHPExcel = new PHPExcel();
+            $objPHPExcel->getProperties()->setCreator('3tichina') //创建人
+            ->setLastModifiedBy('3tichina') //最后修改人
+            ->setTitle($title) //标题
+            ->setSubject($title) //题目
+            ->setDescription($title) //描述
+            ->setKeywords($title) //关键字
+            ->setCategory($title); //种类
 
-                $objWorkSheet->getColumnDimension('B')->setWidth(21);
-                $objWorkSheet->getColumnDimension('C')->setWidth(21);
-                $objWorkSheet->getColumnDimension('D')->setWidth(300);
+            $worksheet = $objPHPExcel->setActiveSheetIndex(0);
+            
+            //宽高
+            $worksheet->getColumnDimension('A')->setWidth(21);
+            $worksheet->getColumnDimension('B')->setWidth(21);
+            $worksheet->getColumnDimension('C')->setWidth(21);
 
-                //字段名
-                $objWorkSheet->setCellValue('A1', 'code');
-                $objWorkSheet->setCellValue('B1', 'word');
-                $objWorkSheet->setCellValue('C1', 'tag');
+            $worksheet->getColumnDimension('D')->setWidth(300);
+            $worksheet->getColumnDimension('E')->setWidth(21);
 
-                $objWorkSheet->setCellValue('D1', 'product_title');
+            //字段名
+            $worksheet->setCellValue('A1', 'word');
+            $worksheet->setCellValue('B1', 'weight');
+            $worksheet->setCellValue('C1', 'tag');
 
-                foreach ($ret as $i=>$r) 
+            $worksheet->setCellValue('D1', 'synonym');
+            $worksheet->setCellValue('E1', 'delete');
+            $worksheet->setCellValue('F1', 'id');
+
+            //*************************************  step 1. prime : word,weight,tag,delete ************************************
+            $wsQuery = (new Query())->from( $dictTable .' d ')->select('d.id, d.word, d.weight, t.tag')->where('d.id = d.prime_id')->leftJoin('`'. $tagTable .'` t', ' t.id = d.tag_id');
+            $wsCount = $wsQuery->count();
+
+            $loopSize = 10000;
+            $loopCount = ceil($wsCount / $loopSize);
+
+            $wi = 1;
+            //分批导入
+            for($i = 0; $i < $loopCount;$i++)
+            {
+                if(!$wsQuery)
+                    $wsQuery = (new Query())->from( $dictTable .' d ')->select('d.id, d.word, d.weight, t.tag')->where('d.id = d.prime_id')->leftJoin('`'. $tagTable .'` t', ' t.id = d.tag_id');
+
+                $offset = $i * $loopSize;
+                $wsQuery->limit($loopSize)->offset($offset);
+                foreach ($wsQuery->each() as $r)
                 {
-                    $wi = $i + 1;
-                    $objWorkSheet->setCellValue('A'.$wi, $r['code']);
-                    $objWorkSheet->setCellValue('B'.$wi, $r['word']);
-                    $objWorkSheet->setCellValue('C'.$wi, $r['tag']);
+                    $wi++;
+                    $worksheet->setCellValue('A'.$wi, $r['word']);
+                    $worksheet->setCellValue('B'.$wi, $r['weight']);
+                    $worksheet->setCellValue('C'.$wi, $r['tag']);
 
-                    $objWorkSheet->setCellValue('D'.$wi, $r['product_title']);
+                    $worksheet->setCellValue('F'.$wi, $r['id']);//fill in prime_id ,delete it before export
+
+                }
+                
+                $wsQuery = null;
+                $r = null;
+            }
+                
+            //*************************************  step 2. synonym : words ************************************
+            $wsQuery = (new Query())->from( $dictTable )->select('prime_id, word')->where('id <> prime_id');
+            $wsCount = $wsQuery->count();
+
+            $loopSize = 10000;
+            $loopCount = ceil($wsCount / $loopSize);
+
+            //group by prime
+            for($i = 0; $i < $loopCount;$i++)
+            {
+
+                $primeIdArr = [];
+
+                if(!$wsQuery)
+                    $wsQuery = (new Query())->from( $dictTable )->select('prime_id, word')->where('id <> prime_id');
+
+                $offset = $i * $loopSize;
+                $wsQuery->limit($loopSize)->offset($offset);
+                foreach ($wsQuery->each() as $r)
+                {
+                    $wi++;
+
+                    if( !isset($primeIdArr[$r['prime_id']]) )
+                        $primeIdArr[$r['prime_id']] = [];
+                    
+                    $primeIdArr[$r['prime_id']][] = $r['word'];
+                }
+                
+                $rowCt = $worksheet->getHighestRow();
+                $columnCt = $worksheet->getHighestColumn();
+
+                for ($ri = 2;$ri <= $rowCt;$ri++)
+                {
+                    $primeId = (int)$worksheet->getCell('F'.$ri)->getValue();
+                    $synonym = (string)$worksheet->getCell('D'.$ri)->getValue();
+
+                    if(empty($primeId) || !isset($primeIdArr[$primeId]) )//primeId is 0 or primeId not in query result, just skip
+                    {
+                        continue;
+                    }
+
+                    $synonym = trim($synonym);
+                    if( mb_strlen($synonym) > 0 )//exclude space
+                    {
+                        $synonymVal = $synonym . ',' . implode(',', $primeIdArr[$primeId]);
+                    }
+                    else
+                    {
+                        // var_dump($primeIdArr[$primeId]);exit;
+                        $synonymVal = implode(',', $primeIdArr[$primeId]);
+                    }
+                    
+                    $worksheet->setCellValue('D'.$ri, $synonymVal);
                 }
 
-                $objWorkSheet->setTitle($title);
-
-                $this->getxlsx($fileName, $objPHPExcel);
+                $wsQuery = null;
+                $r = null;
             }
+
+            $worksheet->setTitle($title);
+
+            $this->getxlsx($fileName, $objPHPExcel);
         }
     }
 

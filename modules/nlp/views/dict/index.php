@@ -243,15 +243,28 @@ $this->registerJs($dataListJs);
      * 导出词库
      * @param 
      */
-    function exportUnknown()
+    function exportDict()
     {
-        if(!dictName)
-        {
-            $.alert('请选择词库');
-            return;
-        }
+        var dic_name = $("#filterFrm").find("input[name='dic_name']").val();
 
-        window.open('/nlp/dict/exportDict');
+        data = {dic_name:dic_name, type:'dict'};
+
+        $.ajax({
+            crossDomain: true,
+            url: '/nlp/dict/export',
+            type: 'get',
+            data: data,
+            dataType: 'json',
+            success: function (json_data) {
+                if(json_data.code != '0')
+                {
+                    alert(json_data.msg);
+                    return;
+                }
+                
+                window.open(json_data.data);     
+            }
+        });
 
     }
 <?php
@@ -315,7 +328,7 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
         </div>
         <button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:goToPage(1);">搜索</button>
 
-        <button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportUnknown(1);">导出词库</button>
+        <button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportDict();">导出词库</button>
     </form>
     </div>
 
