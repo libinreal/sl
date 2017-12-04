@@ -83,7 +83,7 @@ $this->registerJs($dataListJs);
                 // console.log(JSON.stringify(json_data));
                 if(json_data.code != '0')
                 {
-                    alert(json_data.msg);
+                    alert.alert(json_data.msg);
                     return;
                 }
                 var _total = json_data.data.total
@@ -236,6 +236,35 @@ $this->registerJs($dataListJs);
         _container.find('tr:eq(0)').after(_trStr);
     }
 
+    /**
+     * 导出词库
+     * @param 
+     */
+    function exportTag()
+    {
+        var dic_name = $("#filterFrm").find("input[name='dic_name']").val();
+
+        data = {dic_name:dic_name, type:'tag'};
+
+        $.ajax({
+            crossDomain: true,
+            url: '/nlp/dict/export',
+            type: 'get',
+            data: data,
+            dataType: 'json',
+            success: function (json_data) {
+                if(json_data.code != '0')
+                {
+                    $.alert(json_data.msg);
+                    return;
+                }
+                
+                window.open(json_data.data);     
+            }
+        });
+
+    }
+
 <?php
 $this->endBlock();
 $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
@@ -284,7 +313,7 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
         </div>
         <button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:goToPage(1);">搜索</button>
 
-        <button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportUnknown(1);">导出词性</button>
+        <button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportTag();">导出词性</button>
     </form>
     </div>
 

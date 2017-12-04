@@ -1070,7 +1070,7 @@ class DictController extends \yii\web\Controller
                     $tagTable = $tn;
             }
 
-            if(!$dictTable)
+            if($type == 'dict' && !$dictTable)
             {
                 return [
                     'code' => '17',
@@ -1083,7 +1083,7 @@ class DictController extends \yii\web\Controller
             {
                 return [
                     'code' => '21',
-                    'msg'=> '选择的词性表不存在',
+                    'msg'=> '对应的词性表不存在',
                     'data'=>''
                 ];
             }
@@ -1093,7 +1093,7 @@ class DictController extends \yii\web\Controller
             {
                 return [
                     'code' => '0',
-                    'data' => '/nlp/dict/export-dict/'.$dict,
+                    'data' => '/nlp/dict/export-dict/'.$dictTable,
                     'msg' => 'ok'
                 ];
             }
@@ -1102,7 +1102,7 @@ class DictController extends \yii\web\Controller
             {
                 return [
                     'code' => '0',
-                    'data' => '/nlp/dict/export-tag/'.$dict,
+                    'data' => '/nlp/dict/export-tag/'.$tagTable,
                     'msg' => 'ok'
                 ];
             }  
@@ -1179,7 +1179,7 @@ class DictController extends \yii\web\Controller
             $worksheet->getColumnDimension('B')->setWidth(21);
             $worksheet->getColumnDimension('C')->setWidth(21);
 
-            $worksheet->getColumnDimension('D')->setWidth(300);
+            $worksheet->getColumnDimension('D')->setWidth(123);
             $worksheet->getColumnDimension('E')->setWidth(21);
 
             //字段名
@@ -1293,7 +1293,89 @@ class DictController extends \yii\web\Controller
      */
     public function actionExportTag()
     {
+        if(Yii::$app->request->isGet)
+        {
+            $get = Yii::$app->request->get();
+            $tagTable = isset( $get['n'] ) ? $get['n'] : '';
 
+            $e = Yii::$app->db->createCommand("SHOW TABLES LIKE '${tagTable}'" )->queryOne();//检查词性表存在与否
+            if(!$e)
+            {
+                echo '与词库关联的词性表不存在，无法导出词库';
+                return false;
+            }
+
+            $tagEn = preg_replace('/nlp_dict_tag_/', '', $tagTable);
+            $tableComment = Yii::$app->db->createCommand("SHOW TABLE STATUS LIKE '${tagTable}'" )->queryOne();//表注释
+            if(!$tableComment)
+            {
+                $tagZh = $tagEn;
+            }
+            else
+            {
+                $tagZh = preg_replace('/分词词性/', '', $tableComment['Comment']);
+            }
+
+            $title = $tagEn . '-' . $tagZh;
+            $fileName = '电商分词标注系统-导出词性('.$tagEn.')';
+
+            //*************************************  step 1. setup excel ************************************
+
+            $objPHPExcel = new PHPExcel();
+            $objPHPExcel->getProperties()->setCreator('3tichina') //创建人
+            ->setLastModifiedBy('3tichina') //最后修改人
+            ->setTitle($title) //标题
+            ->setSubject($title) //题目
+            ->setDescription($title) //描述
+            ->setKeywords($title) //关键字
+            ->setCategory($title); //种类
+
+            $worksheet = $objPHPExcel->setActiveSheetIndex(0);
+            
+            //宽高
+            $worksheet->getColumnDimension('A')->setWidth(21);
+            $worksheet->getColumnDimension('B')->setWidth(21);
+            $worksheet->getColumnDimension('C')->setWidth(21);
+
+            $worksheet->getColumnDimension('D')->setWidth(300);
+            $worksheet->getColumnDimension('E')->setWidth(21);
+
+            //字段名
+            $worksheet->setCellValue('A1', 'tag');
+            $worksheet->setCellValue('B1', 'parent');
+            $worksheet->setCellValue('C1', 'delete');
+
+            //*************************************  tag,parent ************************************
+            $nlpQuery = (new Query())->from( $tagTable .' l ')->select('l.tag, r.tag parent')->leftJoin('`'. $tagTable .'` r', ' l.pid = r.id');
+            $nlpCount = $nlpQuery->count();
+
+            $loopSize = 10000;
+            $loopCount = ceil($nlpCount / $loopSize);
+
+            $wi = 1;
+            //分批导入
+            for($i = 0; $i < $loopCount;$i++)
+            {
+                if(!$nlpQuery)
+                    $nlpQuery = (new Query())->from( $tagTable .' l ')->select('l.tag, r.tag parent')->leftJoin('`'. $tagTable .'` r', ' l.pid = r.id');
+
+                $offset = $i * $loopSize;
+                $nlpQuery->limit($loopSize)->offset($offset);
+                foreach ($nlpQuery->each() as $r)
+                {
+                    $wi++;
+                    $worksheet->setCellValue('A'.$wi, $r['tag']);
+                    $worksheet->setCellValue('B'.$wi, $r['parent']);
+                }
+                
+                $nlpQuery = null;
+                $r = null;
+            }
+                
+            $worksheet->setTitle($title);
+
+            $this->getxlsx($fileName, $objPHPExcel);
+        }
     }
 
     /**

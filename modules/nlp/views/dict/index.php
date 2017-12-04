@@ -83,7 +83,7 @@ $this->registerJs($dataListJs);
                 // console.log(JSON.stringify(json_data));
                 if(json_data.code != '0')
                 {
-                    alert(json_data.msg);
+                    $.alert(json_data.msg);
                     return;
                 }
                 var _total = json_data.data.total
@@ -258,7 +258,7 @@ $this->registerJs($dataListJs);
             success: function (json_data) {
                 if(json_data.code != '0')
                 {
-                    alert(json_data.msg);
+                    $.alert(json_data.msg);
                     return;
                 }
                 
