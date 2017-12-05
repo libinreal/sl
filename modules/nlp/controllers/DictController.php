@@ -160,7 +160,7 @@ class DictController extends \yii\web\Controller
     }
 
     /**
-     * 保存词库到数据库
+     * Excel导入词库，词性，并保存词库到数据库
      *
      */
     public function actionSaveDict()
@@ -207,6 +207,16 @@ class DictController extends \yii\web\Controller
                 $worksheet = $objPHPExcel->getSheet($wi);
                 $sheetTitle = $worksheet->getTitle();
                 $sheetTitleInfo = explode('-', $sheetTitle);
+
+                //check if dict name is english
+                if(strlen($sheetTitleInfo[0]) != mb_strlen($sheetTitleInfo[0], 'utf-8'))
+                {
+                    return [
+                        'code'=>'-3',
+                        'msg'=>'sheet name不符合"name-名字"的格式',
+                        'data'=>''
+                    ];
+                }
 
                 //dict table & tag table
                 $dictTable = $dictTablePrefix . $sheetTitleInfo[0];
@@ -976,7 +986,7 @@ class DictController extends \yii\web\Controller
                                             )->queryAll();
 
                 $fileName = $name.''.$start_date_ret.' '.$offset.'-'.$limit;//excel info
-                $title = $crontabData['sche_id']. '_'.$start_date_ret.'_'.$crontabData['id'];
+                $title = mb_substr($crontabData['sche_id']. '_'.$start_date_ret.'_'.$crontabData['id'], 0, 29, 'utf-8');
 
                 $objPHPExcel = new PHPExcel();
                 $objPHPExcel->getProperties()->setCreator('3tichina') //创建人
@@ -1003,9 +1013,10 @@ class DictController extends \yii\web\Controller
 
                 $objWorkSheet->setCellValue('D1', 'product_title');
 
+                $wi = 1;
                 foreach ($ret as $i=>$r) 
                 {
-                    $wi = $i + 1;
+                    $wi++;
                     $objWorkSheet->setCellValue('A'.$wi, $r['code']);
                     $objWorkSheet->setCellValue('B'.$wi, $r['word']);
                     $objWorkSheet->setCellValue('C'.$wi, $r['tag']);
@@ -1158,7 +1169,7 @@ class DictController extends \yii\web\Controller
                 $dictZh = preg_replace('/分词词库/', '', $tableComment['Comment']);
             }
 
-            $title = $dictEn . '-' . $dictZh;
+            $title = mb_substr($dictEn . '-' . $dictZh, 0, 29, 'utf-8');
             $fileName = '电商分词标注系统-导出词库('.$dictEn.')';
 
             //*************************************  step 1. setup excel ************************************
@@ -1316,7 +1327,7 @@ class DictController extends \yii\web\Controller
                 $tagZh = preg_replace('/分词词性/', '', $tableComment['Comment']);
             }
 
-            $title = $tagEn . '-' . $tagZh;
+            $title = mb_substr($tagEn . '-' . $tagZh, 0, 29, 'utf-8');
             $fileName = '电商分词标注系统-导出词性('.$tagEn.')';
 
             //*************************************  step 1. setup excel ************************************
@@ -1375,6 +1386,81 @@ class DictController extends \yii\web\Controller
             $worksheet->setTitle($title);
 
             $this->getxlsx($fileName, $objPHPExcel);
+        }
+    }
+
+    /**
+     * 导出爬虫自动爬取到的词库为.xlxs文件
+     *
+     */
+    public function actionExportSpiderWord()
+    {
+        if(Yii::$app->request->isGet)
+        {
+            $spiderWordTable = 'sl_ws_cleaner_words';//存放抓取到的词库表名
+
+            $get = Yii::$app->request->get();
+
+            $offset = isset($get['o']) ? (int)$get['o'] : 0;//$get['o']
+            $limit = isset($get['l']) ? (int)$get['l'] : 100;
+
+            if($offset < 0 )
+            {
+                $offset = 0;
+            }
+
+            if($limit <= 0 )
+            {
+                $limit = 100;
+            }
+
+            $tableCheck = Yii::$app->db->createCommand("SHOW TABLES LIKE '". $spiderWordTable . "'" )->queryOne();//检查数据存放表是否存在
+
+            //data source not exists , uncompleted
+            if(!$tableCheck)
+                echo $spiderWordTable . '不存在';
+
+            $ret = Yii::$app->db->createCommand('SELECT cate, key_name, key_type FROM ' . $spiderWordTable . ' LIMIT '. $offset . ',' . $limit
+                                        )->queryAll();
+
+            $fileName = $spiderWordTable.' '.$offset.'-'.$limit;//excel info
+            $title = mb_substr($spiderWordTable, 0, 29, 'utf-8');
+
+            $objPHPExcel = new PHPExcel();
+            $objPHPExcel->getProperties()->setCreator('3tichina') //创建人
+            ->setLastModifiedBy('3tichina') //最后修改人
+            ->setTitle($title) //标题
+            ->setSubject($title) //题目
+            ->setDescription($title) //描述
+            ->setKeywords($title) //关键字
+            ->setCategory($title); //种类
+
+            $objWorkSheet = $objPHPExcel->setActiveSheetIndex(0);
+            //宽高
+
+            $objWorkSheet->getColumnDimension('A')->setWidth(21);
+
+            $objWorkSheet->getColumnDimension('B')->setWidth(21);
+            $objWorkSheet->getColumnDimension('C')->setWidth(21);
+
+            //字段名
+            $objWorkSheet->setCellValue('A1', 'cate');
+            $objWorkSheet->setCellValue('B1', 'key_name');
+            $objWorkSheet->setCellValue('C1', 'key_type');
+
+            $wi = 1;
+            foreach ($ret as $i=>$r) 
+            {
+                $wi++;
+                $objWorkSheet->setCellValue('A'.$wi, $r['cate']);
+                $objWorkSheet->setCellValue('B'.$wi, $r['key_name']);
+                $objWorkSheet->setCellValue('C'.$wi, $r['key_type']);
+            }
+
+            $objWorkSheet->setTitle($title);
+
+            $this->getxlsx($fileName, $objPHPExcel);
+            
         }
     }
 
