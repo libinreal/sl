@@ -284,7 +284,7 @@ class DictController extends \yii\web\Controller
                     {
                         if( $isDict )
                         {
-                            $wordV = (string)$worksheet->getCell($fieldColumnMap['word'].$ri)->getValue();
+                            $wordV = trim( (string)$worksheet->getCell($fieldColumnMap['word'].$ri)->getValue() );
                             $weightV = (float)$worksheet->getCell($fieldColumnMap['weight'].$ri)->getValue();
                             $synonymV = (string)$worksheet->getCell($fieldColumnMap['synonym'].$ri)->getValue();
 
@@ -304,15 +304,18 @@ class DictController extends \yii\web\Controller
 
                                 foreach ($synonymInfo as $wordV) 
                                 {
-                                    if(!trim($wordV))
+                                    $wordV = trim($wordV);
+
+                                    if(!$wordV)
                                         continue;
+
                                     $needDelete = true;//delete flag
                                     $deleteDictSql .= '\'' . $wordV . '\',' ;
                                 }
                             }
                             else
                             {
-                                $tagV = (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue();//use dict field `tag` to insert into `tag` table
+                                $tagV = trim( (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue() );//use dict field `tag` to insert into `tag` table
 
                                 if($tagV)
                                 {
@@ -325,8 +328,10 @@ class DictController extends \yii\web\Controller
 
                                 foreach ($synonymInfo as $wordV) 
                                 {
-                                    if(!trim($wordV))
+                                    $wordV = trim($wordV);
+                                    if(!$wordV)
                                         continue;
+
                                     $needInsert = true;//insert flag
                                     $insertDictSql .= '(\'' . $wordV . '\',' . $weightV . '),' ;
                                 }
@@ -334,7 +339,7 @@ class DictController extends \yii\web\Controller
                         }
                         else
                         {
-                            $tagV = (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue();
+                            $tagV = trim( (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue() );
                             $deleteV = (string)$worksheet->getCell($fieldColumnMap['delete'].$ri)->getValue();
 
                             //check empty
@@ -594,11 +599,18 @@ class DictController extends \yii\web\Controller
                         for ($ci = 'A';$ci <= $columnCt;$ci++)
                         {
                                 
-                            $wordV = (string)$worksheet->getCell($fieldColumnMap['word'].$ri)->getValue();
+                            $wordV = trim( (string)$worksheet->getCell($fieldColumnMap['word'].$ri)->getValue() );
                             $synonymV = (string)$worksheet->getCell($fieldColumnMap['synonym'].$ri)->getValue();
                             $deleteV = (string)$worksheet->getCell($fieldColumnMap['delete'].$ri)->getValue();
                             
                             $primeId = array_search($wordV, $dictIdWord);
+
+                            //debug
+                            /*if(!$primeId)
+                            {
+                                var_dump($wordV, $dictIdWord);
+                                exit;
+                            }*/
 
                             //check empty
                             if(!$wordV || $deleteV == 'y')
@@ -613,8 +625,11 @@ class DictController extends \yii\web\Controller
                                 $synonymIds = [ $primeId ];//prime_id self
                                 foreach ($synonymInfo as $s) 
                                 {
-                                    if(!trim($s))
+                                    $s = trim($s);
+
+                                    if(!$s)
                                         continue;
+
                                     $synonymIds[] = array_search($s, $dictIdWord);
                                     /*if(!array_search($s, $dictIdWord))
                                         {
@@ -680,8 +695,8 @@ class DictController extends \yii\web\Controller
                         for ($ci = 'A';$ci <= $columnCt;$ci++)
                         {
 
-                            $tagV = (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue();
-                            $parentV = (string)$worksheet->getCell($fieldColumnMap['parent'].$ri)->getValue();
+                            $tagV = trim( (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue() );
+                            $parentV = trim( (string)$worksheet->getCell($fieldColumnMap['parent'].$ri)->getValue() );
                             $deleteV = (string)$worksheet->getCell($fieldColumnMap['delete'].$ri)->getValue();
                             
                             //check empty
@@ -796,7 +811,7 @@ class DictController extends \yii\web\Controller
                     {
                         if( $isDict )
                         {
-                            $wordV = (string)$worksheet->getCell($fieldColumnMap['word'].$ri)->getValue();
+                            $wordV = trim( (string)$worksheet->getCell($fieldColumnMap['word'].$ri)->getValue() );
                             $synonymV = (string)$worksheet->getCell($fieldColumnMap['synonym'].$ri)->getValue();
                             $deleteV = (string)$worksheet->getCell($fieldColumnMap['delete'].$ri)->getValue();
 
@@ -806,7 +821,7 @@ class DictController extends \yii\web\Controller
                                 continue;
                             }
 
-                            $tagV = (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue();
+                            $tagV = trim( (string)$worksheet->getCell($fieldColumnMap['tag'].$ri)->getValue() );
                             $tagId = array_search($tagV, $tagIdWord);
 
                             $tagId = (int)$tagId;//false -> 0 not exists tag_id
@@ -818,8 +833,10 @@ class DictController extends \yii\web\Controller
 
                             foreach ($synonymInfo as $wordV) 
                             {
-                                if(!trim($wordV))
+                                $wordV = trim($wordV);
+                                if(!$wordV)
                                         continue;
+
                                 $tagIdSql .= '(\'' . $wordV . '\', ' . $tagId . '),' ;
                             }
                             $needUpdate = true;
