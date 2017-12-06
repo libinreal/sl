@@ -1199,16 +1199,18 @@ class SlTaskScheduleController extends Controller
 
 		foreach ($crontabArr as $cronId => $cron) 
 		{
+			/*
 			if( !(int)$cron['act_time'] )//没被执行的任务
 			{	
 				$cron['act_time'] = strtotime( $cron['start_time'] );//start_time `date`型计划开始时间
 			}
-
+			*/
 			$alert_params = Json::decode( $cron['alert_params'] );
 			if(empty($alert_params) || !is_array($alert_params))
 				$alert_params = [];
 
-			$act_duration = round( ($time_stamp - $cron['act_time']) / 3600, 1);
+			// $act_duration = round( ($time_stamp - $cron['act_time']) / 3600, 1);//以实际开始时间计算
+			$act_duration = round( ($time_stamp - strtotime( $cron['start_time'] )) / 3600, 1);//以计划开始时间计算
 
 			if( isset( $alert_params['duration'] ) && $act_duration - $alert_params['duration'] > 24 )
 			{
