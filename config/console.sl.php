@@ -67,7 +67,8 @@ $config = [
         ],
         'DEV_EMAIL' =>[
             'wened.wan@3ti.us',
-            'libin@3ti.us'
+            'libin@3ti.us',
+            'zqni@3ti.us',
         ]
     ],
     /*

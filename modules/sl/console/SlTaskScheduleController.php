@@ -1277,6 +1277,46 @@ class SlTaskScheduleController extends Controller
 	}
 
 	/**
+	 * 检查数据库服务是否可用
+	 * 
+	 */
+	public function actionCheckDb()
+	{
+		global $config;
+			
+		$dsn = $config['components']['db']['dsn'];
+		$username = $config['components']['db']['username'];
+		$password = $config['components']['db']['password'];
+		try {
+			
+			new \PDO($dsn, $username, $password);
+
+		} catch (\PDOException $e) {
+
+			$emailMessages = $this->getEmailMessage(
+													Yii::$app->params['DEV_EMAIL'],
+													[
+														'Mysql数据库连接失败'
+													],
+													[
+														'Error message:  ' . $e->getMessage() . "<br>" .
+														'Server information:  ' . $dsn . "<br>" .
+														'Error code:  ' . $e->getCode() . "<br>"
+													]
+													);
+			$sendEmail = Yii::$app->mailer->sendMultiple($emailMessages);
+
+			if(!$sendEmail)
+			{
+				Yii::error('邮件发送失败', 'app');
+			}
+			return 5;
+		}
+
+		return 0;
+	}
+
+	/**
 	 * 弃用 ：data_task_page 缺少和 task_item 的关联id，无法通过 前者计算 task_item的task_progress
 	 *
 	 * 每分钟执行每日任务以及子任务的进度、状态检查
