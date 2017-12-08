@@ -100,18 +100,21 @@ class SlTaskScheduleCrontabAbnormal extends \yii\db\ActiveRecord
     public static function getDurationMsg($act_duration , $alert_duration)
     {
         $delay = (float)$act_duration - (float)$alert_duration;
-        return "抓取耗时{$act_duration}h，预警值{$alert_duration}h，超时{$delay}h";
+        $per = round($delay / $alert_duration, 3) * 100;
+        return "抓取耗时{$act_duration}h，预警值{$alert_duration}h，超时{$delay}h，占比${per}%";
     }
 
     public static function getNumMinMsg($act_num, $alert_min)
     {
         $distance = $alert_min - $act_num;
-        return "抓取共{$act_num}条，预警值{$alert_min}条，缺少{$distance}条";
+        $per = round($distance / $alert_min, 3) * 100;
+        return "抓取共{$act_num}条，预警值{$alert_min}条，缺少{$distance}条，占比${per}%";
     }
 
     public static function getNumMaxMsg($act_num, $alert_max)
     {
         $distance = $act_num - $alert_max;
-        return "抓取共{$act_num}条，预警值{$alert_max}条，超出{$distance}条";
+        $per = round($distance / $alert_max, 3) * 100;
+        return "抓取共{$act_num}条，预警值{$alert_max}条，超出{$distance}条，占比${per}%";
     }
 }
