@@ -1140,7 +1140,7 @@ class SlTaskScheduleController extends Controller
 		$emailBodyArr = [];
 		foreach ($crontabAbnormalTypeArr as $cronId => $abnormaType) 
 		{
-			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabIdArr[$cronId]['name'] . '\', ' . $crontabIdArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\', ' . $time_stamp . '),';
+			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabIdArr[$cronId]['name'] . '\', ' . $crontabIdArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . strip_tags($crontabAbnormalMsgArr[$cronId]) . '\', ' . $time_stamp . '),';
 
 			if(!SlTaskScheduleCrontabAbnormalConsole::find()->limit(1)->select('id')->where('cron_id = ' . $cronId)->scalar())//是否已发送email
 			{
@@ -1240,7 +1240,7 @@ class SlTaskScheduleController extends Controller
 		$emailBodyArr = [];
 		foreach ($crontabAbnormalTypeArr as $cronId => $abnormaType) 
 		{
-			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabArr[$cronId]['name'] . '\', ' . $crontabArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . $crontabAbnormalMsgArr[$cronId] . '\',' . $time_stamp . '),';
+			$updateAbnormalValues .= '(' . $cronId . ', \'' . $crontabArr[$cronId]['name'] . '\', ' . $crontabArr[$cronId]['sche_id'] . ', ' . $abnormaType . ', \'' . strip_tags($crontabAbnormalMsgArr[$cronId]) . '\',' . $time_stamp . '),';
 
 			if(!SlTaskScheduleCrontabAbnormalConsole::find()->limit(1)->select('id')->where('cron_id = ' . $cronId)->scalar())//是否已发送email
 			{
