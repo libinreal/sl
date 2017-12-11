@@ -2,9 +2,9 @@
 use yii\helpers\Url;
 use yii\helpers\Json;
 
-    $this->title = '词库列表';
+    $this->title = '任务列表';
     $this->params['breadcrumbs'][] = 'NLP System';
-    $this->params['breadcrumbs'][] = '词库列表';
+    $this->params['breadcrumbs'][] = '任务列表';
     $this->params['breadcrumbs'][] = $this->title;
     app\assets\NLPAdminAsset::addScript($this, '@web/nlp/JSAjaxFileUploader/JQuery.JSAjaxFileUploader.min.js');
     app\assets\NLPAdminAsset::addCss($this, '@web/nlp/JSAjaxFileUploader/JQuery.JSAjaxFileUploader.css');
@@ -33,7 +33,7 @@ use yii\helpers\Json;
                                                             ]
                                                     ],
                                                     [
-                                                    'label' => 'Dictionary',
+                                                    'label' => 'Task',
                                                     'li_class' => 'current'
                                                     ]
                                                 ]
@@ -42,21 +42,21 @@ use yii\helpers\Json;
     $curPageUrl = Url::current();
 
  $dataListJs = <<<EOT
-    //goToPage(1);
+    goToPage(1);
 EOT;
 $this->registerJs($dataListJs);
 
     $this->beginBlock('indexJs');
 ?>
     $('#dicFileUpload').JSAjaxFileUploader({
-        uploadUrl:'/nlp/dict/save-dict',
+        uploadUrl:'/nlp/dict/save-filter-char',
         autoSubmit:false,
         uploadTest:'上传',
         formData:{_csrf: '<?= Yii::$app->request->getCsrfToken() ?>'},
-        allowExt: 'xlsx',
-        fileName:'excel',
+        allowExt: 'txt',
+        fileName:'txt',
         success:function(r){ $.alert(r.msg)},
-        inputText:'选择词库文件'
+        inputText:'选择过滤字符文件'
     });
 
     var pageNo = 1, pageSize = 10, pageCount = 0,
@@ -225,18 +225,15 @@ $this->registerJs($dataListJs);
      */
     function showDic( _rows )
     {
-        var _container = $('.dict_tables'),
+        var _container = $('.dict_tag_tables'),
             _trStr = '',
             _trLen = _rows.length
 
         for(var _i = 0;_i < _trLen;_i++)
         {
             _trStr += '<tr data-id="'+_rows[_i]['id']+'"><td><span class="cell">'+ _rows[_i]['id'] +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ _rows[_i]['word'] +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ _rows[_i]['weight'] +'</span>'+ '</td>'
-
                     + '<td><span class="cell">'+ _rows[_i]['tag'] +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ String(_rows[_i]['synonyms']).substr(0,14) +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ _rows[_i]['parent'] +'</span>'+ '</td>'
                     + '</tr>';
         }
         _container.find('tr:gt(0)').remove();//remove greater than 0 row
@@ -247,11 +244,11 @@ $this->registerJs($dataListJs);
      * 导出词库
      * @param 
      */
-    function exportDict()
+    function exportTag()
     {
         var dic_name = $("#filterFrm").find("input[name='dic_name']").val();
 
-        data = {dic_name:dic_name, type:'dict'};
+        data = {dic_name:dic_name, type:'tag'};
 
         $.ajax({
             crossDomain: true,
@@ -271,6 +268,7 @@ $this->registerJs($dataListJs);
         });
 
     }
+
 <?php
 $this->endBlock();
 $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
@@ -283,13 +281,13 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
 </div>
 <div id="dictList" class="block clearfix">
     <div class="section clearfix">
-    <span class="title-prefix-md">词库列表</span>
+    <span class="title-prefix-md">词性列表</span>
     </div>
 
     <div class="nlp-query-wrapper sui-form clearfix">
         <form id="filterFrm" method="POST">
         <div class="nlp-query">
-            <div class="nlp-query__label">选择词库</div>
+            <div class="nlp-query__label">选择词性表</div>
             <div class="nlp-query__control">
                 <span class="sui-dropdown dropdown-bordered select">
                         <span class="dropdown-inner">
@@ -312,39 +310,24 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
             </div>
         </div>
         <div class="nlp-query">
-            <div class="nlp-query__label">词语</div>
-            <div class="nlp-query__control">
-                <input type="text" name="word" class="input-medium">
-            </div>
-        </div>
-        <div class="nlp-query">
             <div class="nlp-query__label">词性</div>
             <div class="nlp-query__control">
                 <input type="text" name="tag" class="input-medium">
             </div>
         </div>
-        <div class="nlp-query">
-            <div class="nlp-query__label">权重</div>
-            <div class="nlp-query__control">
-                <input type="text" name="weight_s" class="input-medium"><span>-</span>
-                <input type="text" name="weight_e" class="input-medium">
-            </div>
-        </div>
         <button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:goToPage(1);">搜索</button>
 
-        <button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportDict();">导出词库</button>
+        <button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportTag();">导出词性</button>
     </form>
     </div>
 
     <div class="nlp-table-wrapper">
-        <table class="nlp-table dict_tables">
+        <table class="nlp-table dict_tag_tables">
             <tbody>
                 <tr class="sl-table__header">
                     <th><span class="cell">ID</span></th>
-                    <th><span class="cell">词语</span></th>
-                    <th><span class="cell">权重</span></th>
                     <th><span class="cell">标签</span></th>
-                    <th><span class="cell">近义词</span></th>
+                    <th><span class="cell">上级标签</span></th>
                 </tr>
             </tbody>
         </table>

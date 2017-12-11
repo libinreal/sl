@@ -3,6 +3,7 @@
 namespace app\modules\nlp\controllers;
 use yii\web\Response;
 use app\models\nlp\DictUploadExcelForm;
+use app\models\nlp\FilterUploadTxtForm;
 use yii\web\UploadedFile;
 use yii\helpers\ArrayHelper;
 
@@ -1482,12 +1483,56 @@ class DictController extends \yii\web\Controller
     }
 
     /**
-     * 采集词库的维护页面
+     * 采集词库和切分词库的命令生成页面
      * 
      */
-    public function actionCollect()
+    public function actionTask()
     {
-        
+        if(Yii::$app->request->isGet)
+        {
+            //$get = Yii::$app->request->get();
+            $this->render('task');
+        }
+        else if(Yii::$app->request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            $post = Yii::$app->request->post();
+
+            $pageNo = isset($post['pageNo']) ? $post['pageNo'] : 1;
+            $pageSize = isset($post['pageSize']) ? $post['pageSize'] : 10;
+            $offset = ($pageNo - 1) * $pageSize;
+
+            
+
+        }
+    }
+
+    /**
+     * 上传保存过滤的字符串的配置，用换行符分割，只允许txt文件
+     * 
+     */
+    public function actionSaveFilterChar()
+    {
+        if(Yii::$app->request->isPost)
+        {
+            // ************************************************ save  ***************************************
+            $post = Yii::$app->request->post();
+
+            //save excel with UploadedFile
+            $filterForm = new FilterUploadTxtForm();
+            $filterForm->txt = UploadedFile::getInstanceByName('txt');
+            if (!$filterForm->upload()) {
+                return [
+                    'code'=>'-1',
+                    'msg'=>$filterForm->getErrors(),
+                    'data'=>''
+                ];
+            }
+
+            #上传文件只支持txt格式
+            
+            fopen( $filterForm->saveName);
+        }
     }
 
     /**
