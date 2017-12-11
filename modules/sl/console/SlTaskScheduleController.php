@@ -1145,7 +1145,7 @@ class SlTaskScheduleController extends Controller
 			if(!SlTaskScheduleCrontabAbnormalConsole::find()->limit(1)->select('id')->where('cron_id = ' . $cronId)->scalar())//是否已发送email
 			{
 				$emailSubArr[] = '计划任务#'.$crontabIdArr[$cronId]['sche_id'].'出现异常';
-				$emailBodyArr[] = '计划任务ID：'. $crontabIdArr[$cronId]['sche_id']. "<br>任务名：". $crontabIdArr[$cronId]['name']."<br>每日任务ID：".$cronId."<br>异常内容：".$crontabAbnormalMsgArr[$cronId] . "<br>计划开始时间：".$crontabIdArr[$cronId]['start_time']."<br>异常时间：".date('Y-m-d H:i:s', $time_stamp);
+				$emailBodyArr[] = $this->setEmailHtmlStyle().'计划任务ID：'. $crontabIdArr[$cronId]['sche_id']. "<br>任务名：". $crontabIdArr[$cronId]['name']."<br>每日任务ID：".$cronId."<br>异常内容：".$crontabAbnormalMsgArr[$cronId] . "<br>计划开始时间：".$crontabIdArr[$cronId]['start_time']."<br>异常时间：".date('Y-m-d H:i:s', $time_stamp);
 			}
 		}
 
@@ -1245,7 +1245,7 @@ class SlTaskScheduleController extends Controller
 			if(!SlTaskScheduleCrontabAbnormalConsole::find()->limit(1)->select('id')->where('cron_id = ' . $cronId)->scalar())//是否已发送email
 			{
 				$emailSubArr[] = '计划任务#'.$crontabArr[$cronId]['sche_id'].'出现异常';
-				$emailBodyArr[] = '计划任务ID：'. $crontabArr[$cronId]['sche_id']. "<br>任务名：". $crontabArr[$cronId]['name'] ."<br>每日任务ID：".$cronId."<br>异常内容：".$crontabAbnormalMsgArr[$cronId] . "<br>计划开始时间：".$crontabArr[$cronId]['start_time']."<br>异常时间：".date('Y-m-d H:i:s', $time_stamp);
+				$emailBodyArr[] = $this->setEmailHtmlStyle().'计划任务ID：'. $crontabArr[$cronId]['sche_id']. "<br>任务名：". $crontabArr[$cronId]['name'] ."<br>每日任务ID：".$cronId."<br>异常内容：".$crontabAbnormalMsgArr[$cronId] . "<br>计划开始时间：".$crontabArr[$cronId]['start_time']."<br>异常时间：".date('Y-m-d H:i:s', $time_stamp);
 			}
 		}
 
@@ -1481,5 +1481,17 @@ class SlTaskScheduleController extends Controller
 
 		return $messages;
 			
+	}
+
+	/**
+	 * 设置邮件html正文css
+	 * @return string '样式'
+	 *
+	 */
+	private function setEmailHtmlStyle()
+	{
+		return '<style type="text/css">'.
+		'.warn{font-weight:bold;color:red}'.
+		'</style>';
 	}
 }

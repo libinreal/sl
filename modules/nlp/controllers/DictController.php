@@ -1482,6 +1482,15 @@ class DictController extends \yii\web\Controller
     }
 
     /**
+     * 采集词库的维护页面
+     * 
+     */
+    public function actionCollect()
+    {
+        
+    }
+
+    /**
      * 输出xlsx文件
      * @param string $filename
      */

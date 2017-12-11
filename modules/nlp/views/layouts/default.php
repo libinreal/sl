@@ -61,10 +61,6 @@ JS;
     <body>
     <?php 
     $this->beginBody();
-    if($this->context->id == 'dict')
-        $viewFile = 'dict.php';
-    else
-        $viewFile = 'content.php';
     ?>
 
 
@@ -78,7 +74,7 @@ JS;
         ?>
 
         <?= $this->render(
-            $viewFile,
+            'content.php',
             ['content' => $content]
         ) ?>
     <?php $this->endBody() ?>

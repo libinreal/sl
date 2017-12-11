@@ -11,7 +11,7 @@ use yii\helpers\Json;
                                         'items' => [
                                                         [
                                                         'label' => 'Home',
-                                                        'url' => '',
+                                                        'url' => '/',
                                                         'items' => [
                                                                     [
                                                                         'label' => 'Task',

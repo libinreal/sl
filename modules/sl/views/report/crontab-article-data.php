@@ -10,7 +10,7 @@ $this->params['breadcrumbs'] = [
                                     'items' => [
                                                     [
                                                     'label' => 'Home',
-                                                    'url' => '',
+                                                    'url' => '/',
                                                     'items' => [
                                                                 [
                                                                     'label' => 'Task',

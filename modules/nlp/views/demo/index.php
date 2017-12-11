@@ -4,6 +4,33 @@
     $this->params['breadcrumbs'][] = '分析结果';
     $this->params['breadcrumbs'][] = $this->title;
 
+    $this->params['breadcrumbs'] = [ 
+                                    'items' => [
+                                                    [
+                                                    'label' => 'Home',
+                                                    'url' => '/',
+                                                    'items' => [
+                                                                [
+                                                                    'label' => 'Demo',
+                                                                    'url' => '/nlp/demo/index'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Dictionary',
+                                                                    'url' => '/nlp/dict/index'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Tag',
+                                                                    'url' => '/nlp/dict/tag'
+                                                                ]
+                                                            ]
+                                                    ],
+                                                    [
+                                                    'label' => 'Demo',
+                                                    'li_class' => 'current'
+                                                    ]
+                                                ]
+                                ];
+
     $stmtsActApi = str_replace('\\/', '/', urldecode(
         json_encode( array(
             array('name'=>urlencode('词性分析'), 'api'=>Yii::$app->getModule('nlp')->params['API.NLP_WORD_CLASS_ANALYSE']),
@@ -171,203 +198,249 @@ JS;
     // app\assets\PRSAdminAsset::addScript($this, '@web/admin/js/echarts.simple.min.js');
     $this->registerJs($wcJs);
 ?>
-<div id="apiResult-0">
-    <div class="basic-block ei-panel">
-        <span class="title-prefix-md">词性分析</span>
 
-        <div class="ei-dl clearfix">
-            <div id="wc-ret">
-
+<div class="bb-left clearfix">
+        <div class="basic-block">
+            <!--span class="title-prefix-md">文字输入</span>
+            <div style="clear:both;"></div-->
+            <div class="stmts-form">
+                <form id="stmts-form" method="post" action=<?php
+                if($this->context->action->id == 'word-class'):
+                    echo Yii::$app->getModule('nlp')->params['API.NLP_WORD_CLASS_ANALYSE'];
+                elseif($this->context->action->id == 'name-entity-recognize'):
+                    echo Yii::$app->getModule('nlp')->params['API.NLP_NAME_ENTITY_RECOGNIZE'];
+                elseif($this->context->action->id == 'sentiment-analyse'):
+                    echo Yii::$app->getModule('nlp')->params['API.NLP_SENTIMENT_ANALYSE'];
+                elseif($this->context->action->id == 'depend-parse'):
+                    echo Yii::$app->getModule('nlp')->params['API.NLP_PARSE'];
+                endif;
+                ?>>
+                <span class="title-prefix-md">文字输入</span>
+                <div style="clear:both;"></div>
+                    <textarea name="intext" class="stmts-ta" rows="17" placeholder="请输入文字..."></textarea>
+                <div id="stmts-kw" style="display: none;">
+                    <span class="title-prefix-md">输入关键字</span>
+                    <div style="clear:both;"></div>
+                    <input name="kw" class="stmts-tx" placeholder="请输入关键字...">
+                </div>
+                <input type="submit" class="btn-sub" value="提交">
+                </form>
             </div>
         </div>
     </div>
-    <div class="basic-block ei-example">
-        <span class="title-prefix-md">词性类别图示</span>
 
-        <div class="ei-dr clearfix">
-            <div class="color-palette">
-                <?php
-                    $word_class_set = array_flip( array_flip( Yii::$app->getModule('nlp')->params['WORD_CLASS_TAG_SET'] ));
-                    foreach($word_class_set as $tk => $tv){
-                        echo '<span class="wc-' . $tk . '">' . $tv . '</span>';
-                    }
-                ?>
-                <span class="wc-other">其他</span>
+    <div class="bb-right clearfix">
+        <div class="bb-nav clearfix">
+            <ul>
+            <li><a href="javascript:;">词性分析</a></li>
+            <li><a href="javascript:;">实体识别</a></li>
+            <li><a href="javascript:;">依存文法</a></li>
+            <li><a href="javascript:;">情感分析</a></li>
+            </ul>
+            <div style="clear:both"></div>
+        </div>
+
+        <div class="bb-rb clearfix">
+            <div id="apiResult-0">
+                <div class="basic-block ei-panel">
+                    <span class="title-prefix-md">词性分析</span>
+
+                    <div class="ei-dl clearfix">
+                        <div id="wc-ret">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="basic-block ei-example">
+                    <span class="title-prefix-md">词性类别图示</span>
+
+                    <div class="ei-dr clearfix">
+                        <div class="color-palette">
+                            <?php
+                                $word_class_set = array_flip( array_flip( Yii::$app->getModule('nlp')->params['WORD_CLASS_TAG_SET'] ));
+                                foreach($word_class_set as $tk => $tv){
+                                    echo '<span class="wc-' . $tk . '">' . $tv . '</span>';
+                                }
+                            ?>
+                            <span class="wc-other">其他</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="apiResult-1" style="display: none;">
+                <div class="basic-block ei-panel">
+                    <span class="title-prefix-md">实体识别</span>
+
+                    <div class="ei-dl clearfix">
+                        <div id="ner-ret">
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="basic-block ei-example">
+                    <span class="title-prefix-md">实体识别图示</span>
+
+                    <div class="ei-dr clearfix">
+                        <div class="color-palette">
+                            <?php
+                                $word_class_set = array_flip( array_flip( Yii::$app->getModule('nlp')->params['NAME_ENTITY_RECOGNIZE_SET'] ));
+                                foreach($word_class_set as $tk => $tv){
+                                    echo '<span class="ner-' . $tk . '">' . $tv . '</span>';
+                                }
+                            ?>
+                            <span class="ner-other">其他</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="apiResult-2" style="display: none;">
+                <div class="basic-block ei-panel dp-panel">
+                    <div class="clearfix">
+                    <span class="title-prefix-md">依存文法</span>
+                    </div>
+
+                    <div class="dp-dl clearfix">
+                        <div id="plumb-ret"></div>
+                        <div class="dp-readme">
+                            <h3>依存句法关系说明</h3>
+                            <table border="1" class="docutils">
+                                <colgroup>
+                                    <col width="16%">
+                                    <col width="7%">
+                                    <col width="38%">
+                                    <col width="38%">
+                                </colgroup>
+                                <thead valign="bottom">
+                                <tr class="row-odd">
+                                    <th class="head">关系类型</th>
+                                    <th class="head">Tag</th>
+                                    <th class="head">Description</th>
+                                    <th class="head">Example</th>
+                                </tr>
+                                </thead>
+                                <tbody valign="top">
+                                    <tr class="row-even">
+                                        <td>主谓关系</td>
+                                        <td>SBV</td>
+                                        <td>subject-verb</td>
+                                        <td>我送她一束花 (我 &lt;– 送)</td>
+                                    </tr>
+                                    <tr class="row-odd">
+                                        <td>动宾关系</td>
+                                        <td>VOB</td>
+                                        <td>直接宾语，verb-object</td>
+                                        <td>我送她一束花 (送 –&gt; 花)</td>
+                                    </tr>
+                                    <tr class="row-even">
+                                        <td>间宾关系</td>
+                                        <td>IOB</td>
+                                        <td>间接宾语，indirect-object</td>
+                                        <td>我送她一束花 (送 –&gt; 她)</td>
+                                    </tr>
+                                    <tr class="row-odd">
+                                        <td>前置宾语</td>
+                                        <td>FOB</td>
+                                        <td>前置宾语，fronting-object</td>
+                                        <td>他什么书都读 (书 &lt;– 读)</td>
+                                    </tr>
+                                    <tr class="row-even">
+                                        <td>兼语</td>
+                                        <td>DBL</td>
+                                        <td>double</td>
+                                        <td>他请我吃饭 (请 –&gt; 我)</td>
+                                    </tr>
+                                    <tr class="row-odd">
+                                        <td>定中关系</td>
+                                        <td>ATT</td>
+                                        <td>attribute</td>
+                                        <td>红苹果 (红 &lt;– 苹果)</td>
+                                    </tr>
+                                    <tr class="row-even">
+                                        <td>状中结构</td>
+                                        <td>ADV</td>
+                                        <td>adverbial</td>
+                                        <td>非常美丽 (非常 &lt;– 美丽)</td>
+                                    </tr>
+                                    <tr class="row-odd">
+                                        <td>动补结构</td>
+                                        <td>CMP</td>
+                                        <td>complement</td>
+                                        <td>做完了作业 (做 –&gt; 完)</td>
+                                    </tr>
+                                    <tr class="row-even">
+                                        <td>并列关系</td>
+                                        <td>COO</td>
+                                        <td>coordinate</td>
+                                        <td>大山和大海 (大山 –&gt; 大海)</td>
+                                    </tr>
+                                    <tr class="row-odd">
+                                        <td>介宾关系</td>
+                                        <td>POB</td>
+                                        <td>preposition-object</td>
+                                        <td>在贸易区内 (在 –&gt; 内)</td>
+                                    </tr>
+                                    <tr class="row-even">
+                                        <td>左附加关系</td>
+                                        <td>LAD</td>
+                                        <td>left adjunct</td>
+                                        <td>大山和大海 (和 &lt;– 大海)</td>
+                                    </tr>
+                                    <tr class="row-odd">
+                                        <td>右附加关系</td>
+                                        <td>RAD</td>
+                                        <td>right adjunct</td>
+                                        <td>孩子们 (孩子 –&gt; 们)</td>
+                                    </tr>
+                                    <tr class="row-even">
+                                        <td>独立结构</td>
+                                        <td>IS</td>
+                                        <td>independent structure</td>
+                                        <td>两个单句在结构上彼此独立</td>
+                                    </tr>
+                                    <tr class="row-odd">
+                                        <td>核心关系</td>
+                                        <td>HED</td>
+                                        <td>head</td>
+                                        <td>指整个句子的核心</td>
+                                    </tr>
+                                </tbody>
+                                </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="apiResult-3" style="display: none;">
+                <div class="basic-block sa-panel">
+                    <span class="title-prefix-md">情感分析</span>
+
+                    <div class="sa-dl clearfix">
+                        <div id="sa-ret" style="width: 330px;height: 330px;"></div>
+                    </div>
+
+                </div>
+
+                <div class="basic-block sa-example">
+                    <!--
+                    <ul class="sa-tab clearfix"><li class="active">通用</li><li>骑车</li><li>厨具</li><li>餐饮</li><li>新闻</li><li>微博</li></ul>
+                    -->
+                    <div class="sa-dr clearfix">
+                        <div class="sa-tag sa-tag-p clearfix">正面</div>
+                        <div  class="sa-tag clearfix">负面</div>
+                        <div>负面指数：</div>
+                        <div>0-1之间的小数，统计语句中的与关键词相关的贬义词，单独计算所有句子消极情感的分值，表示负向情感值，并计算该值占总体情感绝对值的百分比。</div>
+                        <div>正面指数：</div>
+                        <div>0-1之间的小数，统计语句中的与关键词相关的褒义词，单独计算所有句子积极情感的分值，表示正向情感值，并计算该值占总体情感绝对值的百分比。</div>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div id="apiResult-1" style="display: none;">
-    <div class="basic-block ei-panel">
-        <span class="title-prefix-md">实体识别</span>
-
-        <div class="ei-dl clearfix">
-            <div id="ner-ret">
-
-            </div>
-        </div>
-
-    </div>
-
-    <div class="basic-block ei-example">
-        <span class="title-prefix-md">实体识别图示</span>
-
-        <div class="ei-dr clearfix">
-            <div class="color-palette">
-                <?php
-                    $word_class_set = array_flip( array_flip( Yii::$app->getModule('nlp')->params['NAME_ENTITY_RECOGNIZE_SET'] ));
-                    foreach($word_class_set as $tk => $tv){
-                        echo '<span class="ner-' . $tk . '">' . $tv . '</span>';
-                    }
-                ?>
-                <span class="ner-other">其他</span>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<div id="apiResult-2" style="display: none;">
-    <div class="basic-block ei-panel dp-panel">
-        <div class="clearfix">
-        <span class="title-prefix-md">依存文法</span>
-        </div>
-
-        <div class="dp-dl clearfix">
-            <div id="plumb-ret"></div>
-            <div class="dp-readme">
-                <h3>依存句法关系说明</h3>
-                <table border="1" class="docutils">
-                    <colgroup>
-                        <col width="16%">
-                        <col width="7%">
-                        <col width="38%">
-                        <col width="38%">
-                    </colgroup>
-                    <thead valign="bottom">
-                    <tr class="row-odd">
-                        <th class="head">关系类型</th>
-                        <th class="head">Tag</th>
-                        <th class="head">Description</th>
-                        <th class="head">Example</th>
-                    </tr>
-                    </thead>
-                    <tbody valign="top">
-                        <tr class="row-even">
-                            <td>主谓关系</td>
-                            <td>SBV</td>
-                            <td>subject-verb</td>
-                            <td>我送她一束花 (我 &lt;– 送)</td>
-                        </tr>
-                        <tr class="row-odd">
-                            <td>动宾关系</td>
-                            <td>VOB</td>
-                            <td>直接宾语，verb-object</td>
-                            <td>我送她一束花 (送 –&gt; 花)</td>
-                        </tr>
-                        <tr class="row-even">
-                            <td>间宾关系</td>
-                            <td>IOB</td>
-                            <td>间接宾语，indirect-object</td>
-                            <td>我送她一束花 (送 –&gt; 她)</td>
-                        </tr>
-                        <tr class="row-odd">
-                            <td>前置宾语</td>
-                            <td>FOB</td>
-                            <td>前置宾语，fronting-object</td>
-                            <td>他什么书都读 (书 &lt;– 读)</td>
-                        </tr>
-                        <tr class="row-even">
-                            <td>兼语</td>
-                            <td>DBL</td>
-                            <td>double</td>
-                            <td>他请我吃饭 (请 –&gt; 我)</td>
-                        </tr>
-                        <tr class="row-odd">
-                            <td>定中关系</td>
-                            <td>ATT</td>
-                            <td>attribute</td>
-                            <td>红苹果 (红 &lt;– 苹果)</td>
-                        </tr>
-                        <tr class="row-even">
-                            <td>状中结构</td>
-                            <td>ADV</td>
-                            <td>adverbial</td>
-                            <td>非常美丽 (非常 &lt;– 美丽)</td>
-                        </tr>
-                        <tr class="row-odd">
-                            <td>动补结构</td>
-                            <td>CMP</td>
-                            <td>complement</td>
-                            <td>做完了作业 (做 –&gt; 完)</td>
-                        </tr>
-                        <tr class="row-even">
-                            <td>并列关系</td>
-                            <td>COO</td>
-                            <td>coordinate</td>
-                            <td>大山和大海 (大山 –&gt; 大海)</td>
-                        </tr>
-                        <tr class="row-odd">
-                            <td>介宾关系</td>
-                            <td>POB</td>
-                            <td>preposition-object</td>
-                            <td>在贸易区内 (在 –&gt; 内)</td>
-                        </tr>
-                        <tr class="row-even">
-                            <td>左附加关系</td>
-                            <td>LAD</td>
-                            <td>left adjunct</td>
-                            <td>大山和大海 (和 &lt;– 大海)</td>
-                        </tr>
-                        <tr class="row-odd">
-                            <td>右附加关系</td>
-                            <td>RAD</td>
-                            <td>right adjunct</td>
-                            <td>孩子们 (孩子 –&gt; 们)</td>
-                        </tr>
-                        <tr class="row-even">
-                            <td>独立结构</td>
-                            <td>IS</td>
-                            <td>independent structure</td>
-                            <td>两个单句在结构上彼此独立</td>
-                        </tr>
-                        <tr class="row-odd">
-                            <td>核心关系</td>
-                            <td>HED</td>
-                            <td>head</td>
-                            <td>指整个句子的核心</td>
-                        </tr>
-                    </tbody>
-                    </table>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<div id="apiResult-3" style="display: none;">
-    <div class="basic-block sa-panel">
-        <span class="title-prefix-md">情感分析</span>
-
-        <div class="sa-dl clearfix">
-            <div id="sa-ret" style="width: 330px;height: 330px;"></div>
-        </div>
-
-    </div>
-
-    <div class="basic-block sa-example">
-        <!--
-        <ul class="sa-tab clearfix"><li class="active">通用</li><li>骑车</li><li>厨具</li><li>餐饮</li><li>新闻</li><li>微博</li></ul>
-        -->
-        <div class="sa-dr clearfix">
-            <div class="sa-tag sa-tag-p clearfix">正面</div>
-            <div  class="sa-tag clearfix">负面</div>
-            <div>负面指数：</div>
-            <div>0-1之间的小数，统计语句中的与关键词相关的贬义词，单独计算所有句子消极情感的分值，表示负向情感值，并计算该值占总体情感绝对值的百分比。</div>
-            <div>正面指数：</div>
-            <div>0-1之间的小数，统计语句中的与关键词相关的褒义词，单独计算所有句子积极情感的分值，表示正向情感值，并计算该值占总体情感绝对值的百分比。</div>
-        </div>
-
-    </div>
-</div>
