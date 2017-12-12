@@ -5,7 +5,7 @@ use yii\helpers\Json;
 
 class FilterUploadTxtForm extends Model {
    public $txt;//UploadedFile instance
-   public $saveName;
+   const SAVE_NAME = '../uploads/nlp/engine/config/filter.txt';
    public function rules() {
       return [
          [['txt'], 'myTxtRule'],
@@ -13,8 +13,7 @@ class FilterUploadTxtForm extends Model {
    }
    public function upload() {
       if ($this->validate()) {
-         $this->saveName = '../uploads/nlp/dict/txt/' . $this->txt->baseName . '.' . $this->txt->extension;
-         if( $this->txt->saveAs($this->saveName) )
+         if( $this->txt->saveAs(self::SAVE_NAME) )
          {
             return true;
          }
@@ -37,7 +36,7 @@ class FilterUploadTxtForm extends Model {
       {
          $allowExtension = ['txt'];
 
-         if( !in_array ($this->excel->extension, ['txt']) )
+         if( !in_array ($this->txt->extension, ['txt']) )
             $this->addError($attribute, "Txt validate failed, only allow extentions:" . Json::encode($allowExtension));
          
          if ($this->txt->getHasError())

@@ -1,6 +1,7 @@
 <?php
 use yii\helpers\Url;
 use yii\helpers\Json;
+use app\models\nlp\NlpEngineTaskItem;
 
     $this->title = '任务列表';
     $this->params['breadcrumbs'][] = 'NLP System';
@@ -62,6 +63,12 @@ $this->registerJs($dataListJs);
     var pageNo = 1, pageSize = 10, pageCount = 0,
         paginationLen = 5, refreshUrl = "<?= $curPageUrl ?>";
 
+    var taskItemStatArr =<?php echo Json::encode([
+        NlpEngineTaskItem::STATUS_READY => '待执行',
+        NlpEngineTaskItem::STATUS_EXECUTING => '执行中',
+        NlpEngineTaskItem::STATUS_COMPLETE => '执行完毕',
+    ]) ?>;
+
     function changePageSize(_pageSize){
         pageSize = _pageSize
 
@@ -94,7 +101,7 @@ $this->registerJs($dataListJs);
                 pageCount = Math.ceil(_total / pageSize)
                 makePagination(_pageNo, pageCount)//分页
 
-                showDic(json_data.data.rows)//刷新数据
+                showTaskItem(json_data.data.rows)//刷新数据
 
                 if(json_data.data.rows.length > 0)
                 {
@@ -219,11 +226,11 @@ $this->registerJs($dataListJs);
     }
 
     /**
-     * 显示计划任务数据
+     * 显示nlp引擎任务数据
      * @param  array _rows 任务数组
      * @return
      */
-    function showDic( _rows )
+    function showTaskItem( _rows )
     {
         var _container = $('.dict_tag_tables'),
             _trStr = '',
@@ -232,8 +239,10 @@ $this->registerJs($dataListJs);
         for(var _i = 0;_i < _trLen;_i++)
         {
             _trStr += '<tr data-id="'+_rows[_i]['id']+'"><td><span class="cell">'+ _rows[_i]['id'] +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ _rows[_i]['tag'] +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ _rows[_i]['parent'] +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ _rows[_i]['cmd'] +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ _rows[_i]['param_list'] +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ taskItemStatArr[_rows[_i]['status']] +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ _rows[_i]['update_time'] +'</span>'+ '</td>'
                     + '</tr>';
         }
         _container.find('tr:gt(0)').remove();//remove greater than 0 row
@@ -281,43 +290,67 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
 </div>
 <div id="dictList" class="block clearfix">
     <div class="section clearfix">
-    <span class="title-prefix-md">词性列表</span>
+    <span class="title-prefix-md">任务列表</span>
     </div>
 
     <div class="nlp-query-wrapper sui-form clearfix">
         <form id="filterFrm" method="POST">
         <div class="nlp-query">
-            <div class="nlp-query__label">选择词性表</div>
+            <div class="nlp-query__label">任务参数</div>
+            <div class="nlp-query__control">
+                <input type="text" name="param_list" class="input-medium">
+            </div>
+        </div>
+        <div class="nlp-query">
+            <div class="nlp-query__label">任务类型</div>
             <div class="nlp-query__control">
                 <span class="sui-dropdown dropdown-bordered select">
                         <span class="dropdown-inner">
                             <a role="button" data-toggle="dropdown" href="#" style="width: 181px;" class="dropdown-toggle">
-                                <input value="" name="dic_name" type="hidden">
-                                <i class="caret"></i><span>请选择</span>
+                                <input value="" name="cmd" type="hidden">
+                                <i class="caret"></i><span>全部</span>
                             </a>
                             <ul role="menu" class="sui-dropdown-menu">
-                                <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="">请选择</a> </li>
-                                <?php
-                                    foreach ($dictList as $d) 
-                                    {
-                                        echo '<li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="' . $d .'">' . $d .'</a> </li>';
-                                    }
-                                    
-                                ?>
+                                <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="">全部</a> </li>
+                                <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="importMysql">词库灌入</a> </li>
+                                <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="tag">标题分词</a> </li>
                             </ul>
                         </span>
                 </span>
             </div>
         </div>
         <div class="nlp-query">
-            <div class="nlp-query__label">词性</div>
+            <div class="nlp-query__label">任务状态</div>
             <div class="nlp-query__control">
-                <input type="text" name="tag" class="input-medium">
+                <span class="sui-dropdown dropdown-bordered select">
+                        <span class="dropdown-inner">
+                            <a role="button" data-toggle="dropdown" href="#" style="width: 79px;" class="dropdown-toggle">
+                                <input value="" name="status" type="hidden">
+                                <i class="caret"></i><span>全部</span>
+                            </a>
+                            <ul role="menu" class="sui-dropdown-menu">
+                                <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="">全部</a> </li>
+                                <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="0">待执行</a> </li>
+                                <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="1">执行中</a> </li>
+                                <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="2">已完成</a> </li>
+                            </ul>
+                        </span>
+                </span>
             </div>
         </div>
+        <div class="nlp-query input-daterange" data-toggle="datepicker">
+            <div class="nlp-query__label">更新时间</div>
+            <div class="nlp-query__control">
+                <input type="text" name="update_time_s" class="input-medium input-date"><span>-</span>
+                <input type="text" name="update_time_e" class="input-medium input-date">
+            </div>
+        </div>
+        
         <button type="button" class="sui-btn btn-primary fl" style="margin-top: 33px;" onclick="javascript:goToPage(1);">搜索</button>
 
-        <button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportTag();">导出词性</button>
+        <button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportSpiderDict();">导出采集词库</button>
+
+        <button type="button" class="sui-btn btn-primary fl" style="margin-left:10px;margin-top: 33px;" onclick="javascript:exportTag();">导出分词结果</button>
     </form>
     </div>
 

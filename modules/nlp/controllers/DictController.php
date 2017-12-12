@@ -6,12 +6,14 @@ use app\models\nlp\DictUploadExcelForm;
 use app\models\nlp\FilterUploadTxtForm;
 use yii\web\UploadedFile;
 use yii\helpers\ArrayHelper;
+use app\components\helpers\ConfigHelper;
 
 use yii\db\Query;
 use PHPExcel_IOFactory;
 use PHPExcel;
 
 use app\models\sl\SlTaskScheduleCrontab;
+use app\models\nlp\NlpEngineTaskItem;
 
 use Yii;
 
@@ -1491,7 +1493,7 @@ class DictController extends \yii\web\Controller
         if(Yii::$app->request->isGet)
         {
             //$get = Yii::$app->request->get();
-            $this->render('task');
+            return $this->render('task');
         }
         else if(Yii::$app->request->isPost)
         {
@@ -1502,8 +1504,31 @@ class DictController extends \yii\web\Controller
             $pageSize = isset($post['pageSize']) ? $post['pageSize'] : 10;
             $offset = ($pageNo - 1) * $pageSize;
 
-            
+            $taskItemModel = new NlpEngineTaskItem();
+            $taskItemQuery = $taskItemModel->getSearchQuery();
 
+            if(!$taskItemQuery)
+            {
+                return ['code'=>'-1', 'msg'=>'Input data invalid'];
+            }
+
+            $totals = $taskItemQuery->count();
+
+            $data = $taskItemQuery->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->orderBy('[[id]] DESC')->all();
+
+            foreach ($data as &$v)
+            {
+                $v['update_time'] = date('Y-m-d H:i:s', $v['update_time']);
+            }
+            unset($v);
+
+            return  [
+                'code'=>'0',
+                'msg'=>'ok',
+                'data'=>[ 'total' => $totals, 'rows' => $data]
+            ];
+                
+ 
         }
     }
 
@@ -1515,12 +1540,13 @@ class DictController extends \yii\web\Controller
     {
         if(Yii::$app->request->isPost)
         {
+            Yii::$app->response->format = Response::FORMAT_JSON;
             // ************************************************ save  ***************************************
             $post = Yii::$app->request->post();
 
             //save excel with UploadedFile
             $filterForm = new FilterUploadTxtForm();
-            $filterForm->txt = UploadedFile::getInstanceByName('txt');
+            $filterForm->txt = UploadedFile::getInstanceByName('txt');#上传文件只支持txt格式
             if (!$filterForm->upload()) {
                 return [
                     'code'=>'-1',
@@ -1529,9 +1555,12 @@ class DictController extends \yii\web\Controller
                 ];
             }
 
-            #上传文件只支持txt格式
-            
-            fopen( $filterForm->saveName);
+            return [
+                'code'=>'0',
+                'msg'=>'ok',
+                'data'=>''
+            ];
+        
         }
     }
 

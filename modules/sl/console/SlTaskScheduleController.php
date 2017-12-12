@@ -1492,6 +1492,7 @@ class SlTaskScheduleController extends Controller
 	{
 		return '<style type="text/css">'.
 		'.warn{font-weight:bold;color:red}'.
+		'.focus{font-weight:bold}'.
 		'</style>';
 	}
 }

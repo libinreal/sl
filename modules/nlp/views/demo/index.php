@@ -21,6 +21,10 @@
                                                                 [
                                                                     'label' => 'Tag',
                                                                     'url' => '/nlp/dict/tag'
+                                                                ],
+                                                                [
+                                                                    'label' => 'Task',
+                                                                    'url' => '/nlp/dict/task'
                                                                 ]
                                                             ]
                                                     ],
