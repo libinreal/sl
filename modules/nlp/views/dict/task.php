@@ -487,7 +487,7 @@ app\assets\NLPAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
                             </a>
                             <ul role="menu" class="sui-dropdown-menu">
                                 <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="">全部</a> </li>
-                                <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="importMysql">词库灌入</a> </li>
+                                <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="import-mysql">词库灌入</a> </li>
                                 <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="tag">标题分词</a> </li>
                             </ul>
                         </span>
@@ -586,7 +586,7 @@ app\assets\NLPAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
                                     </a>
                                     <ul role="menu" class="sui-dropdown-menu">
                                         <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="">全部</a> </li>
-                                        <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="importMysql">词库灌入</a> </li>
+                                        <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="import-mysql">词库灌入</a> </li>
                                         <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="tag">标题分词</a> </li>
                                     </ul>
                                 </span>

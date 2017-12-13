@@ -1520,7 +1520,7 @@ class DictController extends \yii\web\Controller
             foreach ($data as &$v)
             {
                 $v['update_time'] = date('Y-m-d H:i:s', $v['update_time']);
-                $v['param_list'] = implode(';', Json::decode($v['param_list'], true));
+                $v['param_list'] = implode(' ', Json::decode($v['param_list'], true));
 
                 $v['cmd_name'] = '';
 
@@ -1604,7 +1604,7 @@ class DictController extends \yii\web\Controller
 
             //valid params whether correct or not
             switch ($cmd) {
-                case 'importMysql':
+                case 'import-mysql':
                     //具体参数含义参考 console\NlpTaskController的importMysql方法
                     $from = isset($paramList[0]) ? $paramList[0] : '';
                     $to = isset($paramList[1]) ? $paramList[1] : '';
