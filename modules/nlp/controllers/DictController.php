@@ -1000,7 +1000,7 @@ class DictController extends \yii\web\Controller
 
                 //data source not exists , uncompleted
                 if(!$tableCheck)
-                    return 3;
+                    echo '分词结果表不存在';
 
                 $ret = Yii::$app->db->createCommand('SELECT s.code, s.word, s.tag, w.product_title FROM ' . $segTable . ' s ' .
                                             'LEFT JOIN ' . $wsTable . ' w ON s.id = w.id LIMIT '. $offset . ',' . $limit
