@@ -707,6 +707,10 @@ class NlpTaskController extends Controller
 		if(!$_filterConfig)
 		{
 			$_filterConfig = ConfigHelper::parseIniToLine(FilterUploadTxtForm::SAVE_NAME);
+			if(empty($_filterConfig))
+			{
+				$_filterConfig = ['ltrim' => [], 'rtrim' => []];
+			}
 		}
 
 		$l = mb_strlen($str, 'utf-8');
