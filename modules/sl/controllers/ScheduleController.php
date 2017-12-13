@@ -1546,7 +1546,9 @@ class ScheduleController extends \yii\web\Controller
     }
 
     public function actionTest()
-    {
-        return $this->render('test');
+    {   
+     
+        echo Yii::getAlias('@app');// basic
+        // return $this->render('test');
     }
 }

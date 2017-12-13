@@ -2,6 +2,7 @@
 
 namespace app\modules\nlp\controllers;
 use yii\web\Response;
+use yii\helpers\Json;
 use app\models\nlp\DictUploadExcelForm;
 use app\models\nlp\FilterUploadTxtForm;
 use yii\web\UploadedFile;
@@ -1485,7 +1486,7 @@ class DictController extends \yii\web\Controller
     }
 
     /**
-     * 采集词库和切分词库的命令生成页面
+     * 采集词库和切分词库的命令查看和维护页面
      * 
      */
     public function actionTask()
@@ -1514,11 +1515,23 @@ class DictController extends \yii\web\Controller
 
             $totals = $taskItemQuery->count();
 
-            $data = $taskItemQuery->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->orderBy('[[id]] DESC')->all();
+            $data = $taskItemQuery->select('id, param_list, update_time, cmd, status')->limit( $pageSize )->offset( ($pageNo - 1) * $pageSize )->asArray()->orderBy('[[id]] DESC')->all();
 
             foreach ($data as &$v)
             {
                 $v['update_time'] = date('Y-m-d H:i:s', $v['update_time']);
+                $v['param_list'] = implode(';', Json::decode($v['param_list'], true));
+
+                $v['cmd_name'] = '';
+
+                if($v['cmd'] == 'tag')
+                {
+                    $v['cmd_name'] = '标题分词';
+                }
+                else if($v['cmd'] == 'import-mysql')
+                {
+                    $v['cmd_name'] = '词库灌入';
+                }
             }
             unset($v);
 
@@ -1561,6 +1574,223 @@ class DictController extends \yii\web\Controller
                 'data'=>''
             ];
         
+        }
+    }
+
+    /**
+     * 新增nlp任务
+     * 
+     */
+    public function actionAddTaskItem()
+    {
+        if(Yii::$app->request->isPost)
+        {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            // ************************************************ save  ***************************************
+            $post = Yii::$app->request->post();
+            $cmd = trim($post['cmd']);
+            $params = trim($post['params']);
+
+            if(empty($cmd) || empty($params))
+            {
+                return [
+                    'code'=>'-1',
+                    'msg'=>'request data is empty',
+                    'data'=>''
+                ];
+            }
+
+            $paramList = explode(' ', $params);
+
+            //valid params whether correct or not
+            switch ($cmd) {
+                case 'importMysql':
+                    //具体参数含义参考 console\NlpTaskController的importMysql方法
+                    $from = isset($paramList[0]) ? $paramList[0] : '';
+                    $to = isset($paramList[1]) ? $paramList[1] : '';
+
+                    if(empty($from) || empty($to))
+                    {
+                        return [
+                            'code'=>'-1',
+                            'msg'=>'参数:数据表 或 参数:导入表名 没有指定',
+                            'data'=>''
+                        ];
+                    }
+
+                    $fromCheck = Yii::$app->db->createCommand("SHOW TABLES LIKE '$from'" )->queryOne();//检查数据表是否存在
+                    if( !$fromCheck )
+                    {
+                        return [
+                            'code'=>'-1',
+                            'msg'=>'参数:数据表 经检查，不存在该表',
+                            'data'=>''
+                        ];
+                    }
+
+                    $dictList = Yii::$app->db->createCommand("SHOW TABLES LIKE 'nlp_dict%'" )->queryAll();//检查导入表是否存在
+                    $dictList = (array)$dictList;
+
+                    $dictTemp = $dictList;
+
+                    $dictTable = '';
+                    $tagTable = '';
+                    foreach ($dictTemp as $t) 
+                    {
+                        $tn = (array_values($t))[0];
+                        
+                        if($tn == 'nlp_dict_'.$to)
+                            $dictTable = $tn;
+                        if($tn == 'nlp_dict_tag_'.$to)
+                            $tagTable = $tn;
+                    }
+
+                    if(empty($dictTable))//$to 词库表不存在
+                    {
+                        return [
+                            'code'=>'-3',
+                            'msg'=>'词库表:'.$dictTable.' 不存在，导入数据前手动上传Excel模版创建该表',
+                            'data'=>''
+                        ];
+                    }
+
+                    if(empty($tagTable))//$to 词性表不存在
+                    {
+                        return [
+                            'code'=>'-3',
+                            'msg'=>'词性表:'.$tagTable.' 不存在，导入数据前手动上传Excel模版创建该表',
+                            'data'=>''
+                        ];
+                    }
+
+                    $cmdVal = 'import-mysql';
+                    $paramVal = Json::encode(['from' => $from, 'to' => $to]);
+                    break;
+
+                case 'tag':
+                    //具体参数含义参考 console\NlpTaskController的tag方法
+                    $name = isset($paramList[0]) ? $paramList[0] : '';
+                    $startDate = isset($paramList[1]) ? $paramList[1] : '';
+                    $dictNames = isset($paramList[2]) ? $paramList[2] : '';
+
+                    if(!$name || !$startDate)
+                    {
+                        return [
+                            'code'=>'1',
+                            'msg'=>'name 或 startDate 参数为空',
+                            'data'=>''
+                        ];
+                    }
+
+                    if(strtotime($startDate) === false)
+                    {
+                        return [
+                            'code'=>'1',
+                            'msg'=>'startDate 不是一个有效日期',
+                            'data'=>''
+                        ];   
+                    }
+
+                    if(!$dictNames)
+                    {
+                        return [
+                            'code'=>'1',
+                            'msg'=>'dictNames 参数为空',
+                            'data'=>''
+                        ];
+                    }
+
+                    //********************************************************* step 1. merge dict **********************************************
+                    $dictNameArr = explode(',', $dictNames);
+
+                    if(empty($dictNameArr))
+                    {
+                        return [
+                            'code'=>'1',
+                            'msg'=>'参数错误，没有指定词库表',
+                            'data'=>''
+                        ];           
+                    }
+
+                    $dictList = Yii::$app->db->createCommand("SHOW TABLES LIKE 'nlp_dict%'" )->queryAll();//检查数据存放表是否存在
+                    $dictList = (array)$dictList;
+
+                    $dictTemp = $dictList;
+
+                    $dictTable = '';
+                    $tagTable = '';
+
+                    foreach ($dictNameArr as $dict) 
+                    {
+                        foreach ($dictTemp as $t)
+                        {
+                            $tn = (array_values($t))[0];
+                            
+                            if($tn == 'nlp_dict_'.$dict)
+                                $dictTable = $tn;
+                            if($tn == 'nlp_dict_tag_'.$dict)
+                                $tagTable = $tn;
+                        }
+
+                        if(empty($dictTable))
+                        {
+                            return [
+                                'code'=>'1',
+                                'msg'=>'词库表'.$dictTable.'不存在',
+                                'data'=>''
+                            ];
+                        }
+
+                        if(empty($tagTable))
+                        {
+                            return [
+                                'code'=>'1',
+                                'msg'=>'词性表'.$tagTable.'不存在',
+                                'data'=>''
+                            ];
+                        }
+
+                        $dictTable = '';
+                        $tagTable = '';
+
+                    }
+
+                    $cmdVal = 'tag';
+                    $paramVal = Json::encode( ['startDate' => $startDate, 'name' => $name, 'dictNames' => $dictNames] );
+                    break;
+
+                default:
+                    return [
+                        'code'=>'-3',
+                        'msg'=>'task type incorrect',
+                        'data'=>''
+                    ];
+            }
+
+            $moduleVal = 'nlp-task';
+            $addTimeVal = time();
+
+            $taskTable = NlpEngineTaskItem::tableName();
+            $insertTaskSql = "INSERT INTO {$taskTable} (module, cmd, param_list, update_time) VALUES( '{$moduleVal}', '{$cmdVal}', '{$paramVal}', {$addTimeVal}) ON DUPLICATE KEY UPDATE `param_list` = VALUES(`param_list`)";
+
+            $updateRet = Yii::$app->db->createCommand($insertTaskSql)->execute();
+
+            if($updateRet !== false)
+            {
+                return [
+                    'code'=>'0',
+                    'msg'=>'ok',//$insertTaskSql,
+                    'data'=>''
+                ];
+            }
+            else
+            {
+                return [
+                    'code'=>'1',
+                    'msg'=>'insert task failed',
+                    'data'=>''
+                ];
+            }
         }
     }
 

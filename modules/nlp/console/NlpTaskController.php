@@ -3,9 +3,13 @@ namespace app\modules\nlp\console;
 
 use yii\console\Controller;
 use yii\helpers\Json;
+use app\components\helpers\ConfigHelper;
 use yii\db\Query;
 use app\models\sl\SlTaskScheduleCrontabConsole;
+use app\models\nlp\NlpEngineTaskItemConsole;
+use app\models\nlp\NlpEngineLogConsole;
 
+use app\models\nlp\FilterUploadTxtForm;
 use yii\helpers\Console;
 use Yii;
 /**
@@ -16,24 +20,82 @@ use Yii;
  */
 class NlpTaskController extends Controller
 {
+	private function $_errMsg = '';
+
+	/**
+	 * overide parent method stdout
+	 *
+	 */
+	public function stdout($string)
+    {
+    	$this->_errMsg = $string;
+    	return parent::stdout($string);
+    }
+
+	/**
+	 * 定时扫描 `nlp_engine_task_item` 检查ready状态的任务
+	 * 并执行已准备就绪的任务
+	 */	
+	public function actionTick()
+	{
+		$items = NlpEngineTaskItemConsole::find()
+					->where(['status' => NlpEngineTaskItemConsole::STATUS_READY])
+					->asArray()
+					->all();
+
+		$insertLogString = 'INSERT INTO ' . NlpEngineLogConsole::tableName() . ' (module, cmd, params, msg, status, add_time)VALUES';
+
+
+		foreach ($items as $v)
+		{
+			//update nlp_engine_task_item `status` = {executing}
+			Yii::$app->db->createCommand('UPDATE ' . NlpEngineTaskItemConsole::table() . ' SET status = ' . NlpEngineTaskItemConsole::STATUS_EXECUTING . ' WHERE id = ' . $v['id'])
+						->execute();
+
+			$ret = Yii::$app->runAction($v['module'] .'/'. $v['cmd'], Json::decode($v['param_list'], true));
+
+			Yii::$app->db->createCommand('UPDATE ' . NlpEngineTaskItemConsole::table() . ' SET status = ' . NlpEngineTaskItemConsole::STATUS_COMPLETE . ' WHERE id = ' . $v['id'])
+						->execute();
+
+			if($ret === 0)
+			{
+				$insertLogString .= '(\''. $v['module'] . '\', \'' . $v['cmd'] . '\', \'' . $v['param_list'] . '\', \'\', 0, ' . time() . '),';
+			}
+			else
+			{
+				$insertLogString .= '(\''. $v['module'] . '\', \'' . $v['cmd'] . '\', \'' . $v['param_list'] . '\', \'' . $this->_errMsg . '\', ' . $ret . ', ' . time() . '),';
+			}
+			$this->_errMsg = '';
+		}
+
+		if(!empty($items))
+		{
+			Yii::$app->db->createCommand(substr($insertLogString, 0, -1))->execute();
+		}
+
+		return 0;
+
+	}
+
 	/**
 	 * 对指定日期和任务名称的抓取数据表做分词和标注，结果存储在`nlp_seg_`的前缀表
 	 * 例如对于数据表`ws_36_20171020_261`，分词和标注结果存在`nlp_seg_36_20171020_261`
-	 * 需要指定三个参数： start_date 和 name dictNames
-	 * @param $start_date 任务的计划开始日期
+	 * 需要指定三个参数： startDate 和 name dictNames
+	 * @param $startDate 任务的计划开始日期
 	 * @param $name 任务名称
+	 * @param $dictNames 分词使用的词库列表，多个词库以','分割，词库中如出现重复分词，则后面的会覆盖前面
 	 */
-	public function actionTag($start_date, $name, $dictNames)
+	public function actionTag($startDate, $name, $dictNames)
 	{
 		// NlpLogConsole::find();
 		// (new Query())->from('nlp_log')->where('ws_data')
-		// $start_date = '2017-11-11';
+		// $startDate = '2017-11-11';
 		// $name = 'DMP_CLEANER_BRAND';
 
 		//paramaters lost
-		if(!$name || !$start_date)
+		if(!$name || !$startDate)
 		{
-			$this->stdout('name 或 start_date 参数为空', Console::BOLD);
+			$this->stdout('name 或 startDate 参数为空', Console::BOLD);
 			return 1;
 		}
 
@@ -51,7 +113,7 @@ class NlpTaskController extends Controller
 		}
 
 		//********************************************************* step 2. segment **********************************************
-		$create_time_start = strtotime($start_date);
+		$create_time_start = strtotime($startDate);
 		$create_time_end = $create_time_start + 3600 * 24;
 
 		$q = SlTaskScheduleCrontabConsole::find();
@@ -641,17 +703,23 @@ class NlpTaskController extends Controller
 	 */
 	private function fileterWord($str)
 	{
+		static $_filterConfig;
+		if(!$_filterConfig)
+		{
+			$_filterConfig = ConfigHelper::parseIniToLine(FilterUploadTxtForm::SAVE_NAME);
+		}
+
 		$l = mb_strlen($str, 'utf-8');
 
 		$chars = '';
-		foreach (Yii::$app->params['LTRIM_CHAR'] as $c) 
+		foreach ($_filterConfig['ltrim'] as $c) 
 		{
 			$chars .= $c;
 		}
 		$str = ltrim( $str, $chars );
 
 		$chars = '';
-		foreach (Yii::$app->params['RTRIM_CHAR'] as $c) 
+		foreach ($_filterConfig['rtrim'] as $c) 
 		{
 			$chars .= $c;
 		}

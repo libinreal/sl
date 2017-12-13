@@ -47,8 +47,144 @@ use app\models\nlp\NlpEngineTaskItem;
 EOT;
 $this->registerJs($dataListJs);
 
-    $this->beginBlock('indexJs');
+    $this->beginBlock('taskJs');
 ?>
+    (function($){
+    var ModalBuilder = function(selector, options, data){
+        this._currentZIndex = 1000;
+        this._modalClass = null;
+        this.selector = selector;
+        this.data = data;
+        this.options = {
+                title:'提示',//标题
+                titlebgColor:'',//标题背景颜色
+                containerWidth:'',//容器宽度百分比
+                maxWidth : 0.7,
+                minWidth : 0.2,
+                contentheight:'',//内容高度
+                maxHeight : 0.8,
+                minHeight: 0.2  ,
+        };
+        $.extend(true, this.options, options);
+        this.modal();
+    }
+    ModalBuilder.prototype = {
+        modal:function(){
+            this._creatElemHtml();
+            $('.'+ this._modalClass).modal();
+            var that = this;
+            if(this.options.shown){
+                $('.'+ this._modalClass).on('shown', function(e){
+                    that.options.shown();
+                });
+            }
+            if(this.options.okHide){
+                $('.'+ this._modalClass).on('okHide', function(e){
+                    that.options.okHide();
+                });
+            }
+            if(this.options.cancelHide){
+                $('.'+ this._modalClass).on('cancelHide', function(e){
+                    that.options.cancelHide();
+                });
+            }
+
+            if(this.options.hidden){
+                $('.'+ this._modalClass).on('hidden', function(e){
+                    that.options.hidden();
+                    $(this).remove();
+                });
+            }else{
+                $('.'+ this._modalClass).on('hidden', function(e){
+                    $(this).remove();
+                });
+            }
+
+            if(!this.options.containerWidth){//弹层自定义宽度展示后获取宽度值
+                $('.'+ this._modalClass).css('width','auto');
+                var objwidth = $('.'+ this._modalClass).width();
+                $('.'+ this._modalClass).css({'margin-left':'-'+(objwidth/2) + 'px','left':'50%'});
+            }
+            /** 拖拽模态框*/
+            this._drapModal();
+            $(".sui-modal-backdrop:last").css("z-index",this._currentZIndex);
+            this._currentZIndex++;
+            $(".sui-modal:last").css("z-index",this._currentZIndex);
+            this._currentZIndex++;
+        },
+        _creatElemHtml : function(){
+            this._modalClass='modal_'+new Date().valueOf();
+            var bodyWidth = document.documentElement.clientWidth;
+            var bodyHeight = document.documentElement.clientHeight;
+            $('body').append(template(this.selector, this.data));
+            $('body div[role="dialog"]:last').addClass(this._modalClass);
+            $('.'+ this._modalClass + " .modal-body").css({'max-width':this.options.maxWidth*bodyWidth + 'px','min-width':this.options.minWidth*bodyWidth +'px'});
+            $('.'+ this._modalClass + " .modal-header h4").text(this.options.title);
+            $('.'+ this._modalClass + " .modal-header").css('background',this.options.titlebgColor);
+            $('.'+ this._modalClass + " .modal-body").css({'max-height':this.options.maxHeight*bodyHeight+'px','min-height':this.options.minHeight*bodyHeight + 'px'});
+            if(this.options.contentheight && this.options.contentheight !='auto'){
+                if(this.options.contentheight > this.options.maxHeight){
+                    $('.'+ this._modalClass + " .modal-body").css({'height':this.options.maxHeight*bodyHeight});
+                }else{
+                    $('.'+ this._modalClass + " .modal-body").css({'height':this.options.contentheight*bodyHeight});
+                }
+
+            }else{
+                $('.'+ this._modalClass + " .modal-body").css({'height':'auto'});
+            }
+            if(this.options.containerWidth && this.options.containerWidth !='auto'){
+                if(this.options.containerWidth > this.options.maxWidth){
+                    $('.'+ this._modalClass).css({'width':this.options.maxWidth*bodyWidth + 'px','margin-left':'-'+(this.options.maxWidth*bodyWidth/2) + 'px','left':'50%'});
+                }else{
+                    $('.'+ this._modalClass).css({'margin-left':'-'+(this.options.containerWidth*bodyWidth/2) + 'px','width':this.options.containerWidth*bodyWidth + 'px','left':'50%'});
+                }
+            }
+
+        },
+        _drapModal:function(){
+            var p={};
+            function getXY(eve) {
+                var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+                var scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft;
+                return {x : scrollLeft + eve.clientX,y : scrollTop + eve.clientY };
+            }
+
+            $(document).on("mouseup",function(ev){
+                p={};
+                $(document).off("mousemove");
+            });
+
+            $(".modal-header:last").on("mousedown",function(ev){
+                document.body.onselectstart=document.body.ondrag=function(){
+                    return false;
+                }
+                p.y = ev.pageY - $(this).parents(".sui-modal")[0].offsetTop;
+                p.x = ev.pageX - $(this).parents(".sui-modal")[0].offsetLeft;
+
+                $(document).on("mousemove",function(ev){
+                    var oEvent = ev || event;
+                    var pos = getXY(oEvent);
+                    $(".sui-modal:last").css({left:(pos.x-p.x) + "px",top:(pos.y-p.y) + "px","margin-left":"10px","margin-top":"10px"});
+                });
+            });
+            $(document).on('hidden.bs.modal','.modal',function(e){
+                $('.modal-dialog').css({'top': '0px','left': '0px'})
+                document.body.onselectstart=document.body.ondrag=null;
+            });
+        },
+        resize:function(){
+            var w = 0-$('.'+ this._modalClass).width()/2;
+            var h = 0-$('.'+ this._modalClass).height()/2;
+            $('.'+ this._modalClass).css({"margin-top":h+"px","margin-left":w+"px"});
+        }
+    }
+    if ( typeof module != 'undefined' && module.exports ) {
+        module.exports = treeBuilder;
+    } else {
+        window.ModalBuilder = ModalBuilder;
+    }
+})(jQuery)
+
     $('#dicFileUpload').JSAjaxFileUploader({
         uploadUrl:'/nlp/dict/save-filter-char',
         autoSubmit:false,
@@ -226,6 +362,41 @@ $this->registerJs($dataListJs);
     }
 
     /**
+     * 新增nlp任务
+     * @return
+     */
+    function addTask()
+    {
+        new ModalBuilder('template1', {
+                        contentheight:0.3,
+                        title: '新增nlp任务',
+                        
+                        okHide: function(){
+
+                            var _data = $("form[name='add_task']").find("input").serializeObject();
+                            _data['_csrf'] = csrfToken;
+
+                            $.ajax({
+                                url: '/nlp/dict/add-task-item',
+                                type: 'post',
+                                data: _data,
+                                dataType: 'json',
+                                success: function(json_data){
+                                    $.alert(json_data.msg);
+                                    
+                                    if(json_data.code == '0')
+                                    {
+                                        goToPage(pageNo);
+                                    }
+                                    
+                                }
+                            });
+                        }
+        });
+
+    }
+
+    /**
      * 显示nlp引擎任务数据
      * @param  array _rows 任务数组
      * @return
@@ -239,8 +410,8 @@ $this->registerJs($dataListJs);
         for(var _i = 0;_i < _trLen;_i++)
         {
             _trStr += '<tr data-id="'+_rows[_i]['id']+'"><td><span class="cell">'+ _rows[_i]['id'] +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ _rows[_i]['cmd'] +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ _rows[_i]['param_list'] +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ _rows[_i]['cmd_name'] +'</span>'+ '</td>'
+                    + '<td><span class="cell">'+ _rows[_i]['param_list'].substr(0, 62) +'</span>'+ '</td>'
                     + '<td><span class="cell">'+ taskItemStatArr[_rows[_i]['status']] +'</span>'+ '</td>'
                     + '<td><span class="cell">'+ _rows[_i]['update_time'] +'</span>'+ '</td>'
                     + '</tr>';
@@ -249,38 +420,41 @@ $this->registerJs($dataListJs);
         _container.find('tr:eq(0)').after(_trStr);
     }
 
-    /**
-     * 导出词库
-     * @param 
-     */
-    function exportTag()
-    {
-        var dic_name = $("#filterFrm").find("input[name='dic_name']").val();
+/**
+ * 导出词库
+ * @param 
+ */
+function exportTag()
+{
+    new ModalBuilder('template3', {
+        title: '导出分词结果',
+        okHide: function(){
+            var _o = $("form[name='export_unknown_excel']").find("input[name='modal_offset']").val()
+            var _l = $("form[name='export_unknown_excel']").find("input[name='modal_limit']").val()
+            var _date = $("form[name='export_unknown_excel']").find("input[name='start_date']").val()
+            var _n = $("form[name='export_unknown_excel']").find("input[name='name']").val()
+            location.href = '/nlp/dict/export-unknown?start_date='+ _date + '&name=' + _n +'&o=' + _o + '&l=' + _l;
+        }
+    });
 
-        data = {dic_name:dic_name, type:'tag'};
+}
 
-        $.ajax({
-            crossDomain: true,
-            url: '/nlp/dict/export',
-            type: 'get',
-            data: data,
-            dataType: 'json',
-            success: function (json_data) {
-                if(json_data.code != '0')
-                {
-                    $.alert(json_data.msg);
-                    return;
-                }
-                
-                window.open(json_data.data);     
-            }
-        });
-
-    }
+function exportSpiderDict()
+{
+    new ModalBuilder('template2', {
+        title: '导出采集词库',
+        okHide: function(){
+            var _o = $("form[name='export_spider_dict_excel']").find("input[name='modal_offset']").val()
+            var _l = $("form[name='export_spider_dict_excel']").find("input[name='modal_limit']").val()
+            location.href = '/nlp/dict/export-spider-word?o=' + _o + '&l=' + _l;
+        }
+    });
+}
 
 <?php
 $this->endBlock();
-$this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
+$this->registerJs($this->blocks['taskJs'], \yii\web\View::POS_END);
+app\assets\NLPAdminAsset::addScript($this, '@web/sl/lib/template/template.js');
 ?>
 
 
@@ -291,6 +465,7 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
 <div id="dictList" class="block clearfix">
     <div class="section clearfix">
     <span class="title-prefix-md">任务列表</span>
+    <div class="nlp-add-text fr" onclick="javascript:addTask();">添加nlp任务</div>
     </div>
 
     <div class="nlp-query-wrapper sui-form clearfix">
@@ -359,8 +534,10 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
             <tbody>
                 <tr class="sl-table__header">
                     <th><span class="cell">ID</span></th>
-                    <th><span class="cell">标签</span></th>
-                    <th><span class="cell">上级标签</span></th>
+                    <th><span class="cell">任务类型</span></th>
+                    <th><span class="cell">相关参数</span></th>
+                    <th><span class="cell">任务状态</span></th>
+                    <th><span class="cell">更新时间</span></th>
                 </tr>
             </tbody>
         </table>
@@ -388,3 +565,128 @@ $this->registerJs($this->blocks['indexJs'], \yii\web\View::POS_END);
     </div>
 </div>
 
+<script id="template1" type="text/html">
+    <div id="myModal1" tabindex="-1" role="dialog" data-hasfoot="false" class="sui-modal hide fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 id="myModalLabel" class="modal-title">Modal title111</h4>
+          </div>
+          <div class="modal-body">
+                <form name="add_task">
+                <div class="nlp-category-wrapper sui-form clearfix">
+                    <div class="nlp-query">
+                        <div class="nlp-query__label">任务类型</div>
+                        <div class="nlp-query__control">
+                            <span class="sui-dropdown dropdown-bordered select">
+                                <span class="dropdown-inner">
+                                    <a role="button" data-toggle="dropdown" href="#" style="width: 181px;" class="dropdown-toggle">
+                                        <input value="" name="cmd" type="hidden">
+                                        <i class="caret"></i><span>全部</span>
+                                    </a>
+                                    <ul role="menu" class="sui-dropdown-menu">
+                                        <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="">全部</a> </li>
+                                        <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="importMysql">词库灌入</a> </li>
+                                        <li role="presentation"> <a role="menuitem" tabindex="-1" href="javascript:void(0);" value="tag">标题分词</a> </li>
+                                    </ul>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="nlp-query">
+                        <div class="nlp-query__label">任务参数</div>
+                        <div class="nlp-query__control">
+                            <input type="text" name="params" class="input-medium">
+                        </div>
+                    </div>
+                </div>
+                </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" data-ok="modal" class="sui-btn btn-primary btn-borderadius nlp-btn--md">提交</button>
+            <button type="button" data-dismiss="modal" class="sui-btn btn-borderadius nlp-btn--md" style="margin-left: 80px;">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</script>
+
+<script id="template2" type="text/html">
+    <div id="myModal2" tabindex="-1" role="dialog" data-hasfoot="false" class="sui-modal hide fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 id="myModalLabel" class="modal-title">Modal title111</h4>
+          </div>
+          <div class="modal-body">
+                <form name="export_spider_dict_excel">
+                    <div class="nlp-category-wrapper sui-form clearfix">
+                        <div class="nlp-query">
+                            <div class="nlp-query__label">起始值</div>
+                            <div class="nlp-query__control">
+                                <input type="text" name="modal_offset" class="input-medium">
+                            </div>
+                        </div>
+                        <div class="nlp-query">
+                            <div class="nlp-query__label">总数量</div>
+                            <div class="nlp-query__control">
+                                <input type="text" name="modal_limit" class="input-medium">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" data-ok="modal" class="sui-btn btn-primary btn-borderadius nlp-btn--md">确定</button>
+            <button type="button" data-dismiss="modal" class="sui-btn btn-borderadius nlp-btn--md" style="margin-left: 80px;">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</script>
+
+<script id="template3" type="text/html">
+    <div id="myModal3" tabindex="-1" role="dialog" data-hasfoot="false" class="sui-modal hide fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 id="myModalLabel" class="modal-title">Modal title111</h4>
+          </div>
+          <div class="modal-body">
+                <form name="export_unknown_excel">
+                    <div class="nlp-category-wrapper sui-form clearfix">
+                        <div class="nlp-query">
+                            <div class="nlp-query__label">采集任务名</div>
+                            <div class="nlp-query__control">
+                                <input type="text" name="name" class="input-medium">
+                            </div>
+                        </div>
+                        <div class="nlp-query input-daterange" data-toggle="datepicker">
+                            <div class="nlp-query__label">采集开始时间</div>
+                            <div class="nlp-query__control">
+                                <input type="text" name="start_date" class="input-medium input-date">
+                            </div>
+                        </div>
+                        <div class="nlp-query">
+                            <div class="nlp-query__label">起始值</div>
+                            <div class="nlp-query__control">
+                                <input type="text" name="modal_offset" class="input-medium">
+                            </div>
+                        </div>
+                        <div class="nlp-query">
+                            <div class="nlp-query__label">总数量</div>
+                            <div class="nlp-query__control">
+                                <input type="text" name="modal_limit" class="input-medium">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" data-ok="modal" class="sui-btn btn-primary btn-borderadius nlp-btn--md">确定</button>
+            <button type="button" data-dismiss="modal" class="sui-btn btn-borderadius nlp-btn--md" style="margin-left: 80px;">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</script>
