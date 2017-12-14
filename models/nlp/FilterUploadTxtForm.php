@@ -2,6 +2,7 @@
 namespace app\models\nlp;
 use yii\base\Model;
 use yii\helpers\Json;
+use Yii;
 
 class FilterUploadTxtForm extends Model {
    public $txt;//UploadedFile instance
@@ -48,6 +49,13 @@ class FilterUploadTxtForm extends Model {
       }
    }
 
-
+   /**
+    *
+    *
+    */
+   public static function getSaveName()
+   {
+      return Yii::getAlias('@app') . '/uploads/nlp/engine/config/filter.txt';
+   }
 
 }

@@ -69,6 +69,7 @@ $config = [
             'wened.wan@3ti.us',
             'libin@3ti.us',
             'zqni@3ti.us',
+            'evanzhang@3ti.us'
         ]
     ],
     /*

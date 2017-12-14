@@ -20,7 +20,7 @@ use Yii;
  */
 class NlpTaskController extends Controller
 {
-	private function $_errMsg = '';
+	private $_errMsg = '';
 
 	/**
 	 * overide parent method stdout
@@ -45,16 +45,15 @@ class NlpTaskController extends Controller
 
 		$insertLogString = 'INSERT INTO ' . NlpEngineLogConsole::tableName() . ' (module, cmd, params, msg, status, add_time)VALUES';
 
-
 		foreach ($items as $v)
 		{
 			//update nlp_engine_task_item `status` = {executing}
-			Yii::$app->db->createCommand('UPDATE ' . NlpEngineTaskItemConsole::table() . ' SET status = ' . NlpEngineTaskItemConsole::STATUS_EXECUTING . ' WHERE id = ' . $v['id'])
+			Yii::$app->db->createCommand('UPDATE ' . NlpEngineTaskItemConsole::tableName() . ' SET status = ' . NlpEngineTaskItemConsole::STATUS_EXECUTING . ' WHERE id = ' . $v['id'])
 						->execute();
 
-			$ret = Yii::$app->runAction($v['module'] .'/'. $v['cmd'], Json::decode($v['param_list'], true));
-
-			Yii::$app->db->createCommand('UPDATE ' . NlpEngineTaskItemConsole::table() . ' SET status = ' . NlpEngineTaskItemConsole::STATUS_COMPLETE . ' WHERE id = ' . $v['id'])
+			$ret = Yii::$app->runAction($v['module'] .'/'. $v['cmd'], array_values( Json::decode($v['param_list'], true) ) );
+			
+			Yii::$app->db->createCommand('UPDATE ' . NlpEngineTaskItemConsole::tableName() . ' SET status = ' . NlpEngineTaskItemConsole::STATUS_COMPLETE . ' WHERE id = ' . $v['id'])
 						->execute();
 
 			if($ret === 0)
@@ -71,7 +70,7 @@ class NlpTaskController extends Controller
 		if(!empty($items))
 		{
 			Yii::$app->db->createCommand(substr($insertLogString, 0, -1))->execute();
-		}
+		}	
 
 		return 0;
 
@@ -489,6 +488,7 @@ class NlpTaskController extends Controller
 	 */
 	public function actionImportMysql($from, $to)
 	{
+		
 		if(empty($from) || empty($to))
 		{
 			$this->stdout('参数:数据表 或 参数:导入表名 没有指定', Console::BOLD);
@@ -706,7 +706,7 @@ class NlpTaskController extends Controller
 		static $_filterConfig;
 		if(!$_filterConfig)
 		{
-			$_filterConfig = ConfigHelper::parseIniToLine(FilterUploadTxtForm::SAVE_NAME);
+			$_filterConfig = ConfigHelper::parseIniToLine(FilterUploadTxtForm::getSaveName());
 			if(empty($_filterConfig))
 			{
 				$_filterConfig = ['ltrim' => [], 'rtrim' => []];

@@ -117,4 +117,9 @@ class SlTaskScheduleCrontabAbnormal extends \yii\db\ActiveRecord
         $per = round($distance / $alert_max, 3) * 100;
         return "抓取共{$act_num}条，预警值{$alert_max}条，<span class='focus'>超出</span>{$distance}条，占比<span class='focus'>{$per}%</span>";
     }
+
+    public static function getUncompletedMsg()
+    {
+        return "24小时内<span class='warn'>未完成</span>";
+    }
 }

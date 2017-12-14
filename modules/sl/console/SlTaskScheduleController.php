@@ -1215,7 +1215,7 @@ class SlTaskScheduleController extends Controller
 			if( isset( $alert_params['duration'] ) && $act_duration - $alert_params['duration'] > 24 )
 			{
 				$crontabAbnormalTypeArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_DURATION;
-				$crontabAbnormalMsgArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::getDurationMsg($act_duration, $alert_params['duration']);
+				$crontabAbnormalMsgArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::getUncompletedMsg();
 				$cronAbnormalIds[] = $cronId;
 			}
 		}
@@ -1251,7 +1251,9 @@ class SlTaskScheduleController extends Controller
 
 		if(!empty($emailSubArr))
 		{
-			$emailMessages = $this->getEmailMessage(Yii::$app->params['DEV_EMAIL'], $emailSubArr, $emailBodyArr);
+			$receivers = Yii::$app->params['DEV_EMAIL'];//filter evan.zhang from the receivers
+			array_pop($receivers);
+			$emailMessages = $this->getEmailMessage($receivers, $emailSubArr, $emailBodyArr);
 			$sendEmail = Yii::$app->mailer->sendMultiple($emailMessages);
 
 			if(!$sendEmail)

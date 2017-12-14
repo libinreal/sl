@@ -20,7 +20,12 @@ class ConfigHelper
 	{
 		$ret = [];
 
-		$f = fopen($p, 'r');
+		try{
+			$f = fopen($p, 'r');
+		}catch(Exception $e){
+			return null;
+		}
+		
 		$k = '';
 		while(feof($f)===false)
 		{
