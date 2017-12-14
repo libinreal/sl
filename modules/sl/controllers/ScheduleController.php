@@ -1547,8 +1547,48 @@ class ScheduleController extends \yii\web\Controller
 
     public function actionTest()
     {   
-     
-        echo Yii::getAlias('@app');// basic
-        // return $this->render('test');
+        return;
+        $stamp = strtotime('today');
+
+        for($i = 0 ; $i < 16; $i++)
+        {
+            $stamp = $stamp - 24 * 3600;
+
+            $latestDateArr[] = date('Ymd', $stamp);
+            $latestStampArr[] = $stamp;
+        }
+
+        $maxTime = max($latestStampArr);
+        $minTime = min($latestStampArr);
+
+        $taskNameArr = ['DMP_PHONE_BRAND',
+                        'DMP_NOTEBOOK_BRAND',
+                        'DMP_SAMPOO_BRAND',
+                        'DMP_BAG_BRAND',
+                        'DMP_CLEANER_BRAND',
+                        'DMP_DAILY_TASK',
+                        'DMP_MILK_BRAND',
+                        'DMP_WINE_BRAND'
+        ];
+
+        $dataArr = SlTaskScheduleCrontab::find()
+                                ->where(['in', 'name', $taskNameArr])
+                                ->andWhere(['and', 'create_time>='.$minTime, 'create_time<='.$maxTime])
+                                ->select('id,sche_id,create_time')->asArray()->all();
+
+        foreach ($dataArr as $d) 
+        {
+            $n = 'ws_'.$d['sche_id'].'_'.date('Ymd',$d['create_time']).'_'.$d['id'];
+            $tableArr[] = $n;
+        }
+
+        $ret = [];
+        foreach ($tableArr as $t) 
+        {
+            $c = Yii::$app->db->createCommand('SELECT COUNT(*) FROM `'.$t.'`')->queryScalar();
+            $ret[$t] = $c;
+        }
+
+        var_dump($ret);
     }
 }
