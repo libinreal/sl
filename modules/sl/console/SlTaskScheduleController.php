@@ -1177,6 +1177,23 @@ class SlTaskScheduleController extends Controller
 	}
 
 	/**
+	 * 清理{n}天前的sl_ws_data_task_page数据，并把state = 1<正在处理>的字段重置为 0<防止任务卡死>
+	 * 
+	 */
+	public function actionCleanAndReset()
+	{
+		$saveDays = 10;
+		$saveStamp = time() - $saveDays * 3600 * 24;//the time stamp of saveDays before
+
+		$deletePageSql = 'DELETE FROM ' . SlWsDataTaskPageConsole::tableName() . ' WHERE `add_time` < \'' . date('Y-m-d H:i:s', $saveStamp) . '\'';
+		Yii::$app->db->createCommand($deletePageSql)->execute();
+
+		$resetStateSql = 'UPDATE ' . SlWsDataTaskPageConsole::tableName() . ' set `state` = 0 WHERE `state` = 1 AND `add_time` < \'' . date('Y-m-d H:i:s', time()). '\'';
+		Yii::$app->db->createCommand($resetStateSql)->execute();
+		return 0;
+	}
+
+	/**
 	 * 检查未完成实际任务是否超过预警时间24小时
 	 * 每日执行一次
 	 */
@@ -1212,7 +1229,7 @@ class SlTaskScheduleController extends Controller
 			// $act_duration = round( ($time_stamp - $cron['act_time']) / 3600, 1);//以实际开始时间计算
 			$act_duration = round( ($time_stamp - strtotime( $cron['start_time'] )) / 3600, 1);//以计划开始时间计算
 
-			if( isset( $alert_params['duration'] ) && $act_duration - $alert_params['duration'] > 24 )
+			if( $act_duration > 16 )
 			{
 				$crontabAbnormalTypeArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::ABNORMAL_TYPE_DURATION;
 				$crontabAbnormalMsgArr[$cronId] = SlTaskScheduleCrontabAbnormalConsole::getUncompletedMsg();
