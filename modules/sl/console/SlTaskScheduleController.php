@@ -1033,7 +1033,7 @@ class SlTaskScheduleController extends Controller
 		if(!empty($taskCrontabValues))
 		{
 			$exeUpdate = Yii::$app->db->createCommand($scheCrontabSql . substr($taskCrontabValues, 0, -1) . $scheCrontabSql1)->execute();
-			if(!$exeUpdate)
+			if($exeUpdate === false)
 			{
 				return 10;
 			}
@@ -1127,7 +1127,7 @@ class SlTaskScheduleController extends Controller
 		if(!empty($updateItemValues))
 		{
 			$exeUpdate = Yii::$app->db->createCommand($updateItemSql . substr($updateItemValues, 0, -1) . $updateItemSql1)->execute();
-			if(!$exeUpdate)
+			if($exeUpdate === false)
 			{
 				return 10;
 			}
@@ -1167,7 +1167,7 @@ class SlTaskScheduleController extends Controller
 		if(!empty($updateAbnormalValues))
 		{
 			$exeUpdate = Yii::$app->db->createCommand($updateAbnormalSql . substr($updateAbnormalValues, 0, -1) . $updateAbnormalSql1)->execute();
-			if(!$exeUpdate)
+			if($exeUpdate === false)
 			{
 				return 10;
 			}
