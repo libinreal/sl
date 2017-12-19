@@ -120,6 +120,6 @@ class SlTaskScheduleCrontabAbnormal extends \yii\db\ActiveRecord
 
     public static function getUncompletedMsg()
     {
-        return "24小时内<span class='warn'>未完成</span>";
+        return "16小时内<span class='warn'>未完成</span>";
     }
 }
