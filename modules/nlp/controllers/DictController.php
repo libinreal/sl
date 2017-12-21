@@ -251,7 +251,7 @@ class DictController extends \yii\web\Controller
                     {
                         if( $ri == 1 )//get field name in first row ( $ri == '1')
                         {
-                            $sheetFields[] = $worksheet->getCell($ci.'1')->getValue();
+                            $sheetFields[] = trim($worksheet->getCell($ci.'1')->getValue());
                             // var_dump($ci.'1', $worksheet->getCell($ci.'1')->getValue());
                         }
                     }
@@ -541,7 +541,7 @@ class DictController extends \yii\web\Controller
                     {
                         if( $ri == 1 )//get field name in first row ( $ri == '1')
                         {
-                            $sheetFields[] = $worksheet->getCell($ci.'1')->getValue();
+                            $sheetFields[] = trim($worksheet->getCell($ci.'1')->getValue());
                         }
                     }
 
@@ -768,7 +768,7 @@ class DictController extends \yii\web\Controller
                     {
                         if( $ri == 1 )//get field name in first row ( $ri == '1')
                         {
-                            $sheetFields[] = $worksheet->getCell($ci.'1')->getValue();
+                            $sheetFields[] = trim($worksheet->getCell($ci.'1')->getValue());
                         }
                     }
 
