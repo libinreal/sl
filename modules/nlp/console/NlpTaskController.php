@@ -77,6 +77,115 @@ class NlpTaskController extends Controller
 	}
 
 	/**
+	 * 对指定数据表的指定字段做分词和标注，输出表是以`nlp_seg_`为前缀，tagTable指定名为后缀的
+	 * notice：指定的数据表至少包含两个字段 `code`(数据主键)，sourceFiled所指定的字段
+	 * e.g. data_table data_field tag_table food,electrical
+	 * 需要指定四个参数： sourceTable，sourceField，tagTable，dictNames
+	 * @param $sourceTable 进行分词的数据表
+	 * @param $sourceField 进行分词的数据字段，只支持单个字段
+	 * @param $tagTable 分词输出表
+	 * @param $dictNames 分词使用的词库列表，多个词库以','分割，词库中如出现重复分词，则后面的会覆盖前面
+	 */
+	public function actionFreeTag($sourceTable, $sourceField, $tagTable, $dictNames)
+	{
+		//paramaters lost
+		if(!$sourceTable || !$sourceField || !$tagTable || !$dictNames)
+		{
+			$this->stdout('参数缺失', Console::BOLD);
+			return 1;
+		}
+
+		//********************************************************* step 1. merge dict **********************************************
+		if($this->mergeDict($dictNames) === false)
+		{
+			$this->stdout('词库表 合并失败', Console::BOLD);
+			return -1;
+		}
+
+		//********************************************************* step 2. segment **********************************************
+		$tableCheck = Yii::$app->db->createCommand("SHOW TABLES LIKE '". $sourceTable . "'" )->queryOne();//检查数据存放表是否存在
+		$fieldCheck = Yii::$app->db->createCommand("SHOW FIELDS FROM ". $sourceTable)->queryAll();//检查数据存放字段是否存在
+
+		$copyFields = $fieldCheck;
+		$fieldCheck = [];
+
+		foreach ($copyFields as $f) 
+		{
+			$fieldCheck[] = $f['Field'];
+		}
+
+		//data source not exists , uncompleted
+		if(!$tableCheck || !in_array($sourceField, $fieldCheck) || !in_array('code', $fieldCheck) )
+		{
+			$this->stdout('数据来源表不存在 或 数据来源表的字段缺少', Console::BOLD);
+			return 3;
+		}
+
+		//drop tag table if exists
+		$tableTag = 'nlp_seg_' . $tagTable;
+		Yii::$app->db->createCommand("DROP TABLE IF EXISTS `". $tableTag . "`;" )->execute();
+
+		$tableTagCreate = Yii::$app->db->createCommand(
+			"CREATE TABLE `". $tableTag ."` (" . 
+			  "`code` text NOT NULL COMMENT '全局编码'," .
+			  "`word` text NOT NULL COMMENT '分词'," .
+			  "`tag` char(100) NOT NULL DEFAULT '' COMMENT '词性标注'" .
+			") ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='".$sourceTable."词性分析结果';"
+		)->execute();//创建标记数据表
+
+		//create table failed
+		if($tableTagCreate === false)
+		{
+			$this->stdout('切分表创建失败', Console::BOLD);
+			return 4;
+		}
+		
+		//source records
+		$wsQuery = (new Query())->from( $sourceTable )->select('code, '. $sourceField);
+		$wsCount = $wsQuery->count();
+
+		$loopSize = 10000;
+		$loopCount = ceil($wsCount / $loopSize);
+
+		//分批插入（每次最多1w条），防止内存占用过大
+		for($i = 0; $i < $loopCount;$i++)
+		{
+			if(!$wsQuery)
+				$wsQuery = (new Query())->from( $sourceTable )->select('code, '. $sourceField);
+
+			$offset = $i * $loopSize;
+			$wsQuery->limit($loopSize)->offset($offset);
+		
+			$insertSql = 'INSERT INTO ' . $tableTag . ' (code, word, tag) VALUES ';
+			foreach ($wsQuery->each() as $c)
+			{
+				$segments = jieba($c[$sourceField], 2);//['word' => 'tag']
+
+				$wordArr = array_keys($segments);
+				$wordArr = $this->_segBysort($wordArr, $c[$sourceField]);
+				$wordArr = $this->_segByAdd($wordArr, $c[$sourceField]);
+
+				$insertSql .=  $this->_spellSegSql( $c['code'], $wordArr, $segments );
+			}
+			
+			$wsQuery = null;
+			$c = null;
+			
+			$insertRet = Yii::$app->db->createCommand(substr($insertSql,0, -1))->execute();#插入数据
+			
+			$insertSql = null;
+
+			if($insertRet === false)
+			{
+				$this->stdout('切分表插入失败', Console::BOLD);
+				return 17;
+			}
+		}
+		/***生成每日子任务 END***/
+		return 0;
+	}
+
+	/**
 	 * 对指定日期和任务名称的抓取数据表做分词和标注，结果存储在`nlp_seg_`的前缀表
 	 * 例如对于数据表`ws_36_20171020_261`，分词和标注结果存在`nlp_seg_36_20171020_261`
 	 * 需要指定三个参数： startDate 和 name dictNames
@@ -287,16 +396,15 @@ class NlpTaskController extends Controller
 	}
 
 	/**
-	 * 获取分词插入语句
-	 * @param $id 数据抓取表id: 426631
+	 * 获取分词插入sql语句
 	 * @param $code 数据抓取唯一编码 : jd_Spider_jd_Spider_4090788
 	 * @param $seg 分词词组 : ['word']
 	 * @param $tag 分词和词性关联数组 : ['word' => 'tag']
 	 * @param $sql 插入mysql的语句
 	 */
-	private function _spellSegSql($id, $code, $seg, $tag)
+	private function _spellSegSql($code, $seg, $tag)
 	{
-		$preSql = '(' . $id . ', \'' . $code . '\',';
+		$preSql = '(\'' . $code . '\',';
 		$sql = '';
 
 		foreach ($seg as $s)
