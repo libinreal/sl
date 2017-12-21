@@ -55,9 +55,11 @@ $config = [
                 [
                     'class' => 'yii\log\FileTarget',
                     'logVars'=>[],
-                    /*'levels' => ['error', 'warning','info'],
+                    /*
+                    'levels' => ['error', 'warning','info'],
                     'categories'=>['yii\db\*','app\models\*'],
-                    'logFile'=>'@runtime/logs/sql/sql.console.nlp'.date('Ymd'),*/
+                    'logFile'=>'@runtime/logs/sql/sql.app'.date('Ymd'),
+                    */
                 ],
             ],
         ],
