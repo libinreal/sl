@@ -144,7 +144,7 @@ class DictController extends \yii\web\Controller
                 $idArr = explode(',', $d['synonym_ids']);
                 foreach ($idArr as $id)
                 {
-                    if(isset($synonymIdWord))
+                    if(isset($synonymIdWord)&&isset($synonymIdWord[$id]))
                     {
                         $d['synonyms'] .= $synonymIdWord[$id] . ',';
                     }

@@ -291,13 +291,17 @@ class NlpTaskController extends Controller
 				$insertSql = 'INSERT INTO ' . $tableTag . ' (id, code, word, tag) VALUES ';
 				foreach ($wsQuery->each() as $c)
 				{
-					$segments = jieba($c['product_title'], 2);//['word' => 'tag']
+					$c['product_title'] = trim($c['product_title']);
+					if($c['product_title'])
+					{
+						$segments = jieba($c['product_title'], 2);//['word' => 'tag']
 
-					$wordArr = array_keys($segments);
-					$wordArr = $this->_segBysort($wordArr, $c['product_title']);
-					$wordArr = $this->_segByAdd($wordArr, $c['product_title']);
+						$wordArr = array_keys($segments);
+						$wordArr = $this->_segBysort($wordArr, $c['product_title']);
+						$wordArr = $this->_segByAdd($wordArr, $c['product_title']);
 
-					$insertSql .=  $this->_spellSegSql( $c['id'], $c['product_code'], $wordArr, $segments );
+						$insertSql .=  $this->_spellSegSql( $c['id'], $c['product_code'], $wordArr, $segments );
+					}
 				}
 				
 				$wsQuery = null;

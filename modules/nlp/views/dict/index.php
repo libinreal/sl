@@ -236,7 +236,7 @@ $this->registerJs($dataListJs);
                     + '<td><span class="cell">'+ _rows[_i]['weight'] +'</span>'+ '</td>'
 
                     + '<td><span class="cell">'+ _rows[_i]['tag'] +'</span>'+ '</td>'
-                    + '<td><span class="cell">'+ String(_rows[_i]['synonyms']).substr(0,14) +'</span>'+ '</td>'
+                    + '<td><span class="cell" title="'+ _rows[_i]['synonyms'] +'">'+ String(_rows[_i]['synonyms']).substr(0,14) +'</span>'+ '</td>'
                     + '</tr>';
         }
         _container.find('tr:gt(0)').remove();//remove greater than 0 row
