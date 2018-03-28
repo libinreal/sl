@@ -1,16 +1,7 @@
-Yii 2 Basic Project Template
+Social Listening任务监控 + Natural Language Processing前台
 ============================
 
-Yii 2 Basic Project Template is a skeleton [Yii 2](http://www.yiiframework.com/) application best for
-rapidly creating small projects.
-
-The template contains the basic features including user login/logout and a contact page.
-It includes all commonly used configurations that would allow you to focus on adding new
-features to your application.
-
-[![Latest Stable Version](https://poser.pugx.org/yiisoft/yii2-app-basic/v/stable.png)](https://packagist.org/packages/yiisoft/yii2-app-basic)
-[![Total Downloads](https://poser.pugx.org/yiisoft/yii2-app-basic/downloads.png)](https://packagist.org/packages/yiisoft/yii2-app-basic)
-[![Build Status](https://travis-ci.org/yiisoft/yii2-app-basic.svg?branch=master)](https://travis-ci.org/yiisoft/yii2-app-basic)
+Base on Yii 2.0.11.2
 
 DIRECTORY STRUCTURE
 -------------------
@@ -21,12 +12,17 @@ DIRECTORY STRUCTURE
       controllers/        contains Web controller classes
       mail/               contains view files for e-mails
       models/             contains model classes
-      runtime/            contains files generated during runtime
-      tests/              contains various tests for the basic application
-      vendor/             contains dependent 3rd-party packages
+        sl/               SL 模型类
+        nlp/              NLP 模型类
+      modules
+        ctrl/             管理后台测试代码
+        nlp/              NLP前台演示控制器和视图
+        res/              Restful规范的测试代码
+        sl/               SL网页任务监控和命令行任务下发的控制器和视图代码
       views/              contains view files for the Web application
       web/                contains the entry script and Web resources
-
+      nlpCmd              基于jieba分词的自定义词库、标签创建工具
+      slCmd               分布式数据抓取任务下发和进度更新工具
 
 
 REQUIREMENTS
