@@ -22,9 +22,9 @@ $config = [
         ],
         'db' => [
             'class' => '\yii\db\Connection',
-            'dsn' => 'mysql:host=192.168.2.17;port=3306;dbname=webspider',
-            'username' => 'webspider',
-            'password' => '$b1cFERT@!',
+            'dsn' => 'mysql:host=127.0.0.1;port=3306;dbname=db',
+            'username' => '',
+            'password' => '',
             'tablePrefix' => '',
             'charset' => 'UTF8',
         ]
@@ -49,7 +49,7 @@ $config = [
             '.',
             '-'
         ],
-        'DICT_PATH'=>'/usr/local/src/phpjieba-master/cjieba/dict/'
+        'DICT_PATH'=>'/cjieba/dict/'
     ],
     /*
     'controllerMap' => [        'fixture' => [ // Fixture generation command line.

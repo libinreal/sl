@@ -20,5 +20,5 @@ return [
     'sl/report/crontab-data/<data_type:\w+>' => 'sl/report/crontab-data',
     'sl/report/crontab-data/<data_type:\w+>/<name:.+>/<start_time_s:\d[\d-]+>' => 'sl/report/crontab-data',
     //sl temp login
-    'SL666888' => 'sl/temp-login/index',
+    '1111' => 'sl/temp-login/index',
 ];

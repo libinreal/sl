@@ -52,9 +52,9 @@ $config = [
         ],
         'db' => [
             'class' => '\yii\db\Connection',
-            'dsn' => 'mysql:host=192.168.2.17;port=3306;dbname=webspider',
-            'username' => 'webspider',
-            'password' => '$b1cFERT@!',
+            'dsn' => 'mysql:host=127.0.0.1;port=3306;dbname=db',
+            'username' => 'db',
+            'password' => '',
             'tablePrefix' => '',
             'charset' => 'UTF8',
         ]
@@ -66,10 +66,7 @@ $config = [
             'pf_weixin' => '微信',
         ],
         'DEV_EMAIL' =>[
-            'wened.wan@3ti.us',
-            'libin@3ti.us',
-            'zqni@3ti.us',
-            'evanzhang@3ti.us'
+	    'admin@3ti.us'
         ]
     ],
     /*
